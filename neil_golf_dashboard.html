@@ -204,7 +204,7 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
     </div>
     <div class="card" style="padding:0;overflow:hidden;">
       <table class="tbl" id="rounds-tbl">
-        <thead><tr><th style="width:32px;text-align:center;">#</th><th>Date</th><th>Course</th><th>Score</th><th>HCP</th><th>Played To</th></tr></thead>
+        <thead><tr><th style="width:32px;text-align:center;">#</th><th>Date</th><th>Course</th><th>Score</th><th>Daily HCP</th><th>Gross Diff</th></tr></thead>
         <tbody id="rounds-body"></tbody>
       </table>
     </div>
@@ -487,8 +487,8 @@ function renderRounds(rows) {
       <td style="white-space:nowrap;font-size:12px;">${r._dateStr}</td>
       <td class="tc">${r.Course}</td>
       <td><span class="pill ${scoreClass(r._score)}">${r._score}</span></td>
-      <td class="hc">${r._hcp || '—'}</td>
-      <td class="hc">${r._playedTo || '—'}</td>
+      <td class="hc">${r['Daily Hcp'] || '—'}</td>
+      <td class="hc">${r['Gross Diff'] || '—'}</td>
     </tr>`;
   }).join('');
   document.getElementById('rounds-count').textContent = `Showing ${Math.min(200, rows.length)} of ${rows.length} rounds`;
