@@ -661,13 +661,15 @@ function renderHcpTracker(rows) {
   // Rearranged for Stableford needed to improve HCP:
   // Need new PlayedTo < worstBest8 to replace it in best 8
   // Target: new_avg * 0.96 = currentHcp - 0.1
-  const targetAvgDown   = (currentHcp - 0.1) / 0.96;
-  const neededPlayedTo  = targetAvgDown * 8 - (sumBest8 - worstBest8);
-  // Stableford = 36 + DailyHcp + Par - ScratchRating - PCC - (neededPlayedTo * Slope/113)
-  const scoreToImprove  = Math.ceil(36 + dailyHcp + par - scratchRating - pcc - (neededPlayedTo * slopeRating / 113));
+  // Use calcHcp (best 8 avg * 0.93) as base, not official GA HCP
+  const calcHcpFloat  = avg8 * 0.93;
+  const targetHcpDown = (Math.round(calcHcpFloat * 10) - 1) / 10;
+  const targetAvgDown = targetHcpDown / 0.93;
+  const neededPlayedTo = targetAvgDown * 8 - (sumBest8 - worstBest8);
+  const scoreToImprove = Math.ceil(36 + dailyHcp + par - scratchRating - pcc - (neededPlayedTo * slopeRating / 113));
 
-  // Score to WORSEN: need PlayedTo > worstBest8 so it doesn't enter best 8
-  const neededPlayedToUp = worstBest8 + 0.1;
+  // Score to WORSEN: need diff > worstBest8 so it doesn't enter best 8
+  const neededPlayedToUp = worstBest8 + 0.05;
   const scoreToWorsen    = Math.floor(36 + dailyHcp + par - scratchRating - pcc - (neededPlayedToUp * slopeRating / 113));
 
   document.getElementById('hcp-summary-bar').innerHTML = `
