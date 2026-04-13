@@ -472,7 +472,7 @@ function renderRounds(rows) {
   filteredRows = rows;
   const tbody = document.getElementById('rounds-body');
   const totalRows = rows.length;
-  const display = rows.slice(-200).reverse();
+  const display = rows.slice().reverse();
   // The dividing line: top 20 rounds are the most recent 20
   const top20cutoff = Math.min(20, display.length);
 
@@ -492,7 +492,7 @@ function renderRounds(rows) {
       <td class="hc">${r['Gross Diff'] || '—'}</td>
     </tr>`;
   }).join('');
-  document.getElementById('rounds-count').textContent = `Showing ${Math.min(200, rows.length)} of ${rows.length} rounds`;
+  document.getElementById('rounds-count').textContent = `Showing all ${rows.length} rounds`;
 }
 
 function filterRounds() {
