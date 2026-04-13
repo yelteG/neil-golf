@@ -204,7 +204,7 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
     </div>
     <div class="card" style="padding:0;overflow:hidden;">
       <table class="tbl" id="rounds-tbl">
-        <thead><tr><th>Date</th><th>Course</th><th>Score</th><th>HCP</th><th>Played To</th></tr></thead>
+        <thead><tr><th style="width:32px;text-align:center;">#</th><th>Date</th><th>Course</th><th>Score</th><th>HCP</th><th>Played To</th></tr></thead>
         <tbody id="rounds-body"></tbody>
       </table>
     </div>
@@ -463,15 +463,27 @@ function renderLast5(rows) {
 function renderRounds(rows) {
   filteredRows = rows;
   const tbody = document.getElementById('rounds-body');
+  const totalRows = rows.length;
   const display = rows.slice(-200).reverse();
-  tbody.innerHTML = display.map(r => `
-    <tr>
+  // The dividing line: top 20 rounds are the most recent 20
+  const top20cutoff = Math.min(20, display.length);
+
+  tbody.innerHTML = display.map((r, i) => {
+    const rowNum = totalRows - i;
+    const isTop20 = i < top20cutoff;
+    const isBoundary = i === top20cutoff - 1; // last row of top 20
+    const borderBottom = isBoundary
+      ? 'border-bottom:3px solid var(--green);'
+      : '';
+    return `<tr style="${borderBottom}">
+      <td style="color:var(--text-faint);font-size:11px;text-align:center;padding:10px 6px;width:32px;">${rowNum}</td>
       <td style="white-space:nowrap;font-size:12px;">${r._dateStr}</td>
       <td class="tc">${r.Course}</td>
       <td><span class="pill ${scoreClass(r._score)}">${r._score}</span></td>
       <td class="hc">${r._hcp || '—'}</td>
       <td class="hc">${r._playedTo || '—'}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
   document.getElementById('rounds-count').textContent = `Showing ${Math.min(200, rows.length)} of ${rows.length} rounds`;
 }
 
@@ -590,11 +602,40 @@ function renderHcpTracker(rows) {
   const calcHcp = (avg8 * 0.96).toFixed(1);
   const currentHcp = parseFloat(last20[last20.length-1]['GA Handicap']) || 14;
 
+  // Calculate score thresholds using last round's course params
+  const lastRound    = last20[last20.length - 1];
+  const scratchRating = parseFloat(lastRound['Scratch Rating']) || 72.0;
+  const slopeRating   = parseFloat(lastRound['Slope']) || 131;
+  const worstBest8    = Math.max(...best8diffs);
+  const sumBest8      = best8diffs.reduce((a,b)=>a+b,0);
+
+  // Score to IMPROVE HCP by 0.1: need new diff that lowers avg
+  // New diff replaces worst_best8: new_avg = (sumBest8 - worstBest8 + newDiff)/8
+  // Target: new_avg * 0.96 = currentHcp - 0.1
+  const targetAvgDown  = (currentHcp - 0.1) / 0.96;
+  const neededDiffDown = targetAvgDown * 8 - (sumBest8 - worstBest8);
+  const scoreToImprove = Math.round(scratchRating - (neededDiffDown * 113 / slopeRating) + 0.5);
+
+  // Score to WORSEN HCP by 0.1: worst round drops off next revision
+  // If new diff is worse than worstBest8, it won't enter best 8 — HCP unchanged
+  // HCP worsens when oldest best-8 round drops out of 20 window
+  // Approximate: score that produces diff = worstBest8 + 1 (clearly outside best 8)
+  const neededDiffUp  = worstBest8 + 1.0;
+  const scoreToWorsen = Math.round(scratchRating - (neededDiffUp * 113 / slopeRating) + 0.5);
+
   document.getElementById('hcp-summary-bar').innerHTML = `
     <div class="hcp-summary-item"><div class="hcp-summary-label">Current HCP</div><div class="hcp-summary-value" style="color:var(--gold)">${currentHcp}</div></div>
-    <div class="hcp-summary-item"><div class="hcp-summary-label">Avg best 8 diff</div><div class="hcp-summary-value">${avg8.toFixed(2)}</div></div>
     <div class="hcp-summary-item"><div class="hcp-summary-label">Calculated index</div><div class="hcp-summary-value" style="color:var(--green)">${calcHcp}</div></div>
-    <div class="hcp-summary-item"><div class="hcp-summary-label">Flag rounds</div><div class="hcp-summary-value">${best8diffs.length} of 20</div></div>`;
+    <div class="hcp-summary-item">
+      <div class="hcp-summary-label">Score to improve HCP ▼</div>
+      <div class="hcp-summary-value" style="color:#3db870;">${scoreToImprove}+ pts</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">at ${scratchRating} scratch / ${slopeRating} slope</div>
+    </div>
+    <div class="hcp-summary-item">
+      <div class="hcp-summary-label">Score to worsen HCP ▲</div>
+      <div class="hcp-summary-value" style="color:#e05c5c;">${scoreToWorsen} pts or less</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">at ${scratchRating} scratch / ${slopeRating} slope</div>
+    </div>`;
 
   // Table rows — newest first
   const FLAG_SVG = `<svg width="14" height="14" viewBox="0 0 14 14" style="margin-left:5px;vertical-align:middle;" fill="none"><path d="M2 1v12M2 1l8 3-8 3" stroke="#3db870" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -631,8 +672,8 @@ function renderHcpTracker(rows) {
       <td style="padding:14px 14px;text-align:center;font-size:13px;color:var(--text-muted);">${scratchRating}</td>
       <td style="padding:14px 14px;text-align:center;font-size:13px;color:var(--text-muted);">${slope}</td>
       <td style="padding:14px 14px;text-align:center;font-size:13px;color:var(--text-muted);">${dailyDiff || '--'}</td>
-      <td style="padding:14px 14px;text-align:center;font-size:13px;font-weight:${isBest?'600':'400'};color:${isBest?'#3db870':'var(--text-muted)'};">${diffDisplay}</td>
       <td style="padding:14px 14px;text-align:center;font-size:13px;color:var(--text-muted);">${dailyHcp}</td>
+      <td style="padding:14px 14px;text-align:center;font-size:13px;font-weight:${isBest?'600':'400'};color:${isBest?'#3db870':'var(--text-muted)'};">${diffDisplay}</td>
       <td style="padding:14px 14px;text-align:center;font-size:13px;color:var(--text-muted);">${priorHcp || '--'}</td>
     </tr>`;
   });
