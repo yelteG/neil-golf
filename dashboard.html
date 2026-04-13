@@ -309,18 +309,23 @@ async function loadData() {
 
         obj._score = parseInt(obj['Score']) || 0;
         // Date comes as Date(year, month0indexed, day) from Google Sheets
-        const dv = r.c[0] ? r.c[0].v : '';
+        // Parse date from various formats
+        const dv = r.c[0] ? (r.c[0].v || '') : '';
+        const df = r.c[0] ? (r.c[0].f || '') : '';
+        const dateStr = df || dv || '';
         if (typeof dv === 'string' && dv.includes('Date(')) {
           const m = dv.match(/Date\((\d+),(\d+),(\d+)\)/);
-          if (m) obj._date = new Date(+m[1], +m[2], +m[3]); // month is 0-indexed
-        } else if (typeof dv === 'string' && dv.includes('/')) {
-          const p = dv.split('/');
+          if (m) obj._date = new Date(+m[1], +m[2], +m[3]);
+        } else if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+          const p = dateStr.split('/');
           obj._date = new Date(+p[2], +p[1]-1, +p[0]);
+        } else if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          const p = dateStr.split('-');
+          obj._date = new Date(+p[0], +p[1]-1, +p[2]);
         } else {
           obj._date = new Date(dv);
         }
-        // Use formatted date string from sheet if available
-        obj['Date'] = r.c[0] ? (r.c[0].f || obj['Date']) : obj['Date'];
+        obj['Date'] = dateStr || obj['Date'];
         try { obj._dateStr = obj._date ? obj._date.toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : obj['Date']; } catch(e) { obj._dateStr = obj['Date'] || ''; }
         obj._hcp = parseFloat(obj['GA Handicap']) || null;
         obj._playedTo = parseFloat(obj['Gross Diff']) || null;
