@@ -627,20 +627,19 @@ function renderTrends(rows) {
 function renderHcpTracker(rows) {
   const last20 = rows.slice(-20);
 
-  // Flag logic: use Prior GA Hcp column (= Gross Diff on golf.com.au)
-  // Pending = Gross Diff is 0 (round not yet processed)
-  const diffs = last20.map((r,i) => ({
-    i,
-    diff: parseFloat(r['Prior GA Hcp']),
-    pending: !r['Gross Diff'] || parseFloat(r['Gross Diff']) === 0
-  }));
-  const validDiffs = diffs.filter(d => !d.pending && !isNaN(d.diff) && d.diff > 0);
+  // Flag logic: lowest 8 values from 'Played To' col (actual score differentials)
+  // Sheet col J = 'Played To' contains values like 10.4, 12.9, 16.4 etc
+  // Pending = value is 0 or missing (not yet processed by GA)
+  const diffs = last20.map((r,i) => {
+    const val = parseFloat(r['Played To']);
+    return { i, diff: val, pending: !val || val === 0 || isNaN(val) };
+  });
+  const validDiffs = diffs.filter(d => !d.pending);
   const sorted = [...validDiffs].sort((a,b) => a.diff - b.diff);
-  // Flag ALL rounds <= 8th smallest (includes ties)
-  const threshold = sorted.length >= 8 ? sorted[7].diff : Infinity;
+  const threshold = sorted.length >= 8 ? sorted[7].diff : (sorted.length > 0 ? sorted[sorted.length-1].diff : Infinity);
   const best8idx = new Set(validDiffs.filter(d => d.diff <= threshold).map(d => d.i));
 
-  // Summary: use actual best 8 (first 8 sorted)
+  // Summary: best 8 diffs
   const best8diffs = sorted.slice(0,8).map(d => d.diff);
   const avg8 = best8diffs.length ? best8diffs.reduce((a,b)=>a+b,0)/best8diffs.length : 0;
   const calcHcp = (avg8 * 0.96).toFixed(1);
