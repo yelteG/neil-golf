@@ -322,7 +322,7 @@ async function loadData() {
         obj['Date'] = r.c[0] ? (r.c[0].f || obj['Date']) : obj['Date'];
         obj._dateStr = obj._date ? obj._date.toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : obj['Date'];
         obj._hcp = parseFloat(obj['GA Handicap']) || null;
-        obj._playedTo = parseFloat(obj['Played To']) || null;
+        obj._playedTo = parseFloat(obj['Prior GA Hcp']) || null;
         return obj;
       })
       .filter(r => r._score > 0 && r._date && !isNaN(r._date));
@@ -590,7 +590,7 @@ function renderHcpTracker(rows) {
   const diffs = last20.map((r,i) => ({
     i,
     diff: parseFloat(r['Gross Diff']),
-    pending: !r['Prior GA Hcp'] || parseFloat(r['Prior GA Hcp']) === 0
+    pending: !r['Gross Diff'] || parseFloat(r['Gross Diff']) === 0
   }));
   const validDiffs = diffs.filter(d => !d.pending && !isNaN(d.diff));
   const sorted = [...validDiffs].sort((a,b) => a.diff - b.diff);
@@ -651,14 +651,15 @@ function renderHcpTracker(rows) {
     const origIdx = last20.length - 1 - revIdx;
     const isBest    = best8idx.has(origIdx);
     const isPending = diffs[origIdx].pending;
-    const diff      = parseFloat(r['Prior GA Hcp']); // Gross Diff display = Prior GA Hcp col
-    const score     = parseInt(r['Score']);
-    const dailyDiff = r['Daily Diff'];
-    const scratchRating = r['Scratch Rating'];
-    const slope     = r['Slope'];
-    const dailyHcp  = r['Daily Hcp'];               // Daily Hcp display = Daily Hcp col
-    const priorHcp  = r['Gross Diff'];              // Prior GA Hcp display = Gross Diff col
-    const tee       = r['Tee'];
+    // Columns read exactly as named in Google Sheet
+    const score        = parseInt(r['Score']) || 0;
+    const scratchRating= r['Scratch Rating'] || '';
+    const slope        = r['Slope'] || '';
+    const dailyDiff    = r['Daily Diff'] || '';
+    const dailyHcp     = r['Daily Hcp'] || '';
+    const diff         = parseFloat(r['Gross Diff']);   // Gross Diff = best 8 flag logic
+    const priorHcp     = r['Prior GA Hcp'] || '';
+    const tee          = r['Tee'] || '';
 
     const diffDisplay = isPending
       ? `--${HOURGLASS_SVG}`
