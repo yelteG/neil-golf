@@ -306,6 +306,7 @@ async function loadData() {
       .map(r => {
         const obj = {};
         cols.forEach((c, i) => { if (c) obj[c] = r.c[i] ? (r.c[i].f ?? r.c[i].v ?? '') : ''; });
+
         obj._score = parseInt(obj['Score']) || 0;
         // Date comes as Date(year, month0indexed, day) from Google Sheets
         const dv = r.c[0] ? r.c[0].v : '';
@@ -627,12 +628,10 @@ function renderTrends(rows) {
 function renderHcpTracker(rows) {
   const last20 = rows.slice(-20);
 
-  // Flag logic: lowest 8 values from 'Played To' col (actual score differentials)
-  // Sheet col J = 'Played To' contains values like 10.4, 12.9, 16.4 etc
-  // Pending = value is 0 or missing (not yet processed by GA)
+  // Flag logic: col J = 'Gross Diff' = actual score differentials (10.4, 12.9, 16.4 etc)
   const diffs = last20.map((r,i) => {
-    const val = parseFloat(r['Played To']);
-    return { i, diff: val, pending: !val || val === 0 || isNaN(val) };
+    const val = parseFloat(r['Gross Diff']);
+    return { i, diff: val, pending: isNaN(val) || val === 0 };
   });
   const validDiffs = diffs.filter(d => !d.pending);
   const sorted = [...validDiffs].sort((a,b) => a.diff - b.diff);
@@ -700,7 +699,7 @@ function renderHcpTracker(rows) {
     const slope        = r['Slope'] || '';
     const dailyDiff    = r['Daily Diff'] || '';
     const dailyHcp     = r['Daily Hcp'] || '';
-    const diff         = parseFloat(r['Gross Diff']);   // Gross Diff = best 8 flag logic
+    const diff         = parseFloat(r['Gross Diff']);
     const priorHcp     = r['Prior GA Hcp'] || '';
     const tee          = r['Tee'] || '';
 
