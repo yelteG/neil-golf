@@ -449,26 +449,35 @@ function renderInsights(stats) {
   const hcpDiff = (stats.currentHcp - 10).toFixed(1);
   const trendText = parseFloat(stats.trend) > 0 ? 'Your recent form is trending down — focus on consistency.' : 'Your recent form is trending upward — keep it going! ▲';
 
-  // Dynamically calculate score needed to reach HCP 10
-  // Work out what diff is needed so that avg8*0.93 = 10
-  // Use last round's course params
-  const lastR = ALL_ROWS[ALL_ROWS.length - 1];
-  const sr10  = parseFloat(lastR['Scratch Rating']) || 72;
-  const sl10  = parseFloat(lastR['Slope']) || 131;
-  const par10 = 72;
+  // Dynamically calculate realistic score targets using last round's course params
+  const lastR  = ALL_ROWS[ALL_ROWS.length - 1];
+  const sr10   = parseFloat(lastR['Scratch Rating']) || 72;
+  const sl10   = parseFloat(lastR['Slope']) || 131;
+  const par10  = 72;
   const last20for10 = ALL_ROWS.slice(-20);
   const diffs10 = last20for10.map(r => parseFloat(r['Gross Diff'])).filter(v => !isNaN(v) && v > 0).sort((a,b)=>a-b);
-  const worst8for10 = diffs10[7] || diffs10[diffs10.length-1];
-  const sum7for10 = diffs10.slice(0,7).reduce((a,b)=>a+b,0);
-  const targetDiff10 = (10 / 0.93) * 8 - sum7for10; // diff needed so avg*0.93 = 10
+  const best8diffs10 = diffs10.slice(0, 8);
+  const worst8 = best8diffs10[7] || best8diffs10[best8diffs10.length - 1];
+  const sum7   = best8diffs10.slice(0, 7).reduce((a,b) => a+b, 0);
+  const sumBest8_10 = best8diffs10.reduce((a,b) => a+b, 0);
+  const calcHcp10 = (sumBest8_10 / 8) * 0.93;
   const dailyHcp10 = Math.round((stats.currentHcp * sl10 / 113 + (sr10 - par10)) * 0.93 * 0.9986);
-  const scoreFor10 = Math.ceil(36 + dailyHcp10 + par10 - sr10 - (targetDiff10 * sl10 / 113));
+
+  // Score to drop HCP by 0.5 and 1.0 — realistic next goals
+  function scoreForDrop(drop) {
+    const target = Math.round((calcHcp10 - drop) * 10) / 10;
+    const needed = (target / 0.93) * 8 - (sumBest8_10 - worst8);
+    return { target: target.toFixed(1), score: Math.ceil(36 + dailyHcp10 + par10 - sr10 - (needed * sl10 / 113)) };
+  }
+  const goal1 = scoreForDrop(0.5);
+  const goal2 = scoreForDrop(1.0);
 
   document.getElementById('hcp10-text').innerHTML =
     `Your current handicap is <strong style="color:var(--gold)">${stats.currentHcp}</strong>. You need to drop <strong style="color:var(--text)">${hcpDiff} strokes</strong> to reach 10.
     Your low handicap over the past year is <strong style="color:var(--green)">${stats.lowHcp}</strong> — so you've been close recently.
-    Your average score is <strong style="color:var(--text)">${stats.avg} pts</strong>.
-    To get to HCP 10 you need to consistently score <strong style="color:var(--green)">${scoreFor10}+ pts</strong> (based on your current best 8 differentials at ${sr10} scratch · ${sl10} slope).
+    Your average score is <strong style="color:var(--text)">${stats.avg} pts</strong>.<br><br>
+    🎯 <strong style="color:var(--green)">Next goal — HCP ${goal1.target}:</strong> score <strong style="color:var(--green)">${goal1.score}+ pts</strong> in your next round.<br>
+    🏆 <strong style="color:var(--blue)">Bigger goal — HCP ${goal2.target}:</strong> score <strong style="color:var(--blue)">${goal2.score}+ pts</strong> in your next round.<br><br>
     ${trendText}`;
 }
 
