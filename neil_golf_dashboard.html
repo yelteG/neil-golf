@@ -602,26 +602,31 @@ function renderHcpTracker(rows) {
   const calcHcp = (avg8 * 0.96).toFixed(1);
   const currentHcp = parseFloat(last20[last20.length-1]['GA Handicap']) || 14;
 
-  // Calculate score thresholds using last round's course params
-  const lastRound    = last20[last20.length - 1];
+  // Use last round's course params for calculations
+  const lastRound     = last20[last20.length - 1];
   const scratchRating = parseFloat(lastRound['Scratch Rating']) || 72.0;
   const slopeRating   = parseFloat(lastRound['Slope']) || 131;
+  const par           = 72;
+  const pcc           = 0;
   const worstBest8    = Math.max(...best8diffs);
   const sumBest8      = best8diffs.reduce((a,b)=>a+b,0);
 
-  // Score to IMPROVE HCP by 0.1: need new diff that lowers avg
-  // New diff replaces worst_best8: new_avg = (sumBest8 - worstBest8 + newDiff)/8
-  // Target: new_avg * 0.96 = currentHcp - 0.1
-  const targetAvgDown  = (currentHcp - 0.1) / 0.96;
-  const neededDiffDown = targetAvgDown * 8 - (sumBest8 - worstBest8);
-  const scoreToImprove = Math.round(scratchRating - (neededDiffDown * 113 / slopeRating) + 0.5);
+  // Daily HCP formula from xlsx: (GA_HCP * (Slope/113) + (ScratchRating - Par)) * 0.93
+  const dailyHcp = Math.round((currentHcp * (slopeRating/113) + (scratchRating - par)) * 0.93);
 
-  // Score to WORSEN HCP by 0.1: worst round drops off next revision
-  // If new diff is worse than worstBest8, it won't enter best 8 — HCP unchanged
-  // HCP worsens when oldest best-8 round drops out of 20 window
-  // Approximate: score that produces diff = worstBest8 + 1 (clearly outside best 8)
-  const neededDiffUp  = worstBest8 + 1.0;
-  const scoreToWorsen = Math.round(scratchRating - (neededDiffUp * 113 / slopeRating) + 0.5);
+  // Played To (Gross Diff) formula from xlsx:
+  // PlayedTo = ((36 - Stableford) + DailyHcp + Par - (ScratchRating + PCC)) * (113/Slope)
+  // Rearranged for Stableford needed to improve HCP:
+  // Need new PlayedTo < worstBest8 to replace it in best 8
+  // Target: new_avg * 0.96 = currentHcp - 0.1
+  const targetAvgDown   = (currentHcp - 0.1) / 0.96;
+  const neededPlayedTo  = targetAvgDown * 8 - (sumBest8 - worstBest8);
+  // Stableford = 36 + DailyHcp + Par - ScratchRating - PCC - (neededPlayedTo * Slope/113)
+  const scoreToImprove  = Math.ceil(36 + dailyHcp + par - scratchRating - pcc - (neededPlayedTo * slopeRating / 113));
+
+  // Score to WORSEN: need PlayedTo > worstBest8 so it doesn't enter best 8
+  const neededPlayedToUp = worstBest8 + 0.1;
+  const scoreToWorsen    = Math.floor(36 + dailyHcp + par - scratchRating - pcc - (neededPlayedToUp * slopeRating / 113));
 
   document.getElementById('hcp-summary-bar').innerHTML = `
     <div class="hcp-summary-item"><div class="hcp-summary-label">Current HCP</div><div class="hcp-summary-value" style="color:var(--gold)">${currentHcp}</div></div>
@@ -629,12 +634,12 @@ function renderHcpTracker(rows) {
     <div class="hcp-summary-item">
       <div class="hcp-summary-label">Score to improve HCP ▼</div>
       <div class="hcp-summary-value" style="color:#3db870;">${scoreToImprove}+ pts</div>
-      <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">at ${scratchRating} scratch / ${slopeRating} slope</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">Daily HCP ${dailyHcp} · ${scratchRating} scratch · ${slopeRating} slope</div>
     </div>
     <div class="hcp-summary-item">
       <div class="hcp-summary-label">Score to worsen HCP ▲</div>
       <div class="hcp-summary-value" style="color:#e05c5c;">${scoreToWorsen} pts or less</div>
-      <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">at ${scratchRating} scratch / ${slopeRating} slope</div>
+      <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">Daily HCP ${dailyHcp} · ${scratchRating} scratch · ${slopeRating} slope</div>
     </div>`;
 
   // Table rows — newest first
