@@ -590,7 +590,7 @@ function renderHcpTracker(rows) {
   const diffs = last20.map((r,i) => ({
     i,
     diff: parseFloat(r['Gross Diff']),
-    pending: !r['Daily Hcp'] || parseFloat(r['Daily Hcp']) === 0
+    pending: !r['Prior GA Hcp'] || parseFloat(r['Prior GA Hcp']) === 0
   }));
   const validDiffs = diffs.filter(d => !d.pending && !isNaN(d.diff));
   const sorted = [...validDiffs].sort((a,b) => a.diff - b.diff);
@@ -651,13 +651,13 @@ function renderHcpTracker(rows) {
     const origIdx = last20.length - 1 - revIdx;
     const isBest    = best8idx.has(origIdx);
     const isPending = diffs[origIdx].pending;
-    const diff      = parseFloat(r['Daily Hcp']);   // Gross Diff display = Daily Hcp col
+    const diff      = parseFloat(r['Prior GA Hcp']); // Gross Diff display = Prior GA Hcp col
     const score     = parseInt(r['Score']);
     const dailyDiff = r['Daily Diff'];
     const scratchRating = r['Scratch Rating'];
     const slope     = r['Slope'];
-    const dailyHcp  = r['Gross Diff'];              // Daily Hcp display = Gross Diff col
-    const priorHcp  = r['Prior GA Hcp'];
+    const dailyHcp  = r['Daily Hcp'];               // Daily Hcp display = Daily Hcp col
+    const priorHcp  = r['Gross Diff'];              // Prior GA Hcp display = Gross Diff col
     const tee       = r['Tee'];
 
     const diffDisplay = isPending
