@@ -216,11 +216,11 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
 <div id="trends" class="view">
   <div class="container">
     <div class="card">
-      <div class="card-title">Score trend — all rounds</div>
+      <div class="card-title">Score trend — last 365 days</div>
       <div class="chart-wrap"><canvas id="scoreChart" role="img" aria-label="Score trend">Score trend chart.</canvas></div>
     </div>
     <div class="card">
-      <div class="card-title">Handicap trend</div>
+      <div class="card-title">Handicap trend — last 20 rounds (Gross Diff)</div>
       <div class="chart-wrap"><canvas id="hcpChart" role="img" aria-label="Handicap trend">Handicap trend chart.</canvas></div>
     </div>
     <div class="card">
@@ -385,6 +385,8 @@ function buildStats(rows) {
     startHcp:   hcps[0],
     hcpChange:  hcps.length ? (hcps[hcps.length-1]-Math.min(...hcps)).toFixed(1) : 0,
     lowHcp:     Math.min(...hcps).toFixed(1),
+    // Note: GA Handicap in sheet is always current HCP — low HCP needs to come from golf.com.au directly
+    // Using hardcoded low HCP from golf.com.au (10.2 set 14 Dec 2025) — update manually when it changes
     trend,
     last5avg:   (last5.reduce((a,b)=>a+b,0)/last5.length).toFixed(1),
     great:      scores.filter(s=>s>=36).length,
@@ -425,7 +427,7 @@ function renderInsights(stats) {
   const items = [
     ['📈','Recent form', `<span style="color:${trendUp?'#e05c5c':'#3db870'}">${trendUp?'▲':'▼'} ${Math.abs(stats.trend)}</span>`, 'vs previous 5 rounds'],
     ['🏆','Best month', stats.bestMonth, `${stats.bestMonthAvg} avg score`],
-    ['⛳','Best course', stats.bestCourse.split(' ')[0], `${stats.bestCourseAvg} avg · ${stats.bestCourseRounds} rounds`],
+    ['⛳','Best course', stats.bestCourse, `${stats.bestCourseAvg} avg · ${stats.bestCourseRounds} rounds`],
     ['🎯','Best played to', stats.bestPlayedTo ? stats.bestPlayedTo._playedTo : '—', stats.bestPlayedTo ? `${stats.bestPlayedTo._score} pts · ${stats.bestPlayedTo._dateStr}` : ''],
     ['😬','Bad rounds', `${stats.bad}/${stats.total}`, 'Scored under 28 pts'],
     ['⭐','Great rounds', `${stats.great}/${stats.total}`, 'Scored 36+ pts'],
@@ -442,7 +444,7 @@ function renderInsights(stats) {
   const trendText = parseFloat(stats.trend) > 0 ? 'Your recent form is trending down — focus on consistency.' : 'Your recent form is trending upward — keep it going! ▲';
   document.getElementById('hcp10-text').innerHTML =
     `Your current handicap is <strong style="color:var(--gold)">${stats.currentHcp}</strong>. You need to drop <strong style="color:var(--text)">${hcpDiff} strokes</strong> to reach 10.
-    Your <strong style="color:var(--text)">GA Low Handicap over the past year is <strong style="color:var(--green)">10.2</strong> — so you've been there recently.
+    Your <strong style="color:var(--text)">GA Low Handicap over the past year is <strong style="color:var(--green)">${stats.lowHcp}</strong> — so you've been there recently.
     Your average score is <strong style="color:var(--text)">${stats.avg} pts</strong>.
     To improve your handicap you need to consistently score <strong style="color:var(--green)">33+ pts</strong>.
     ${trendText}`;
@@ -547,34 +549,68 @@ function filterCourses() {
 }
 
 function renderTrends(rows) {
-  // Score trend — sample every 5 rounds to reduce clutter
-  const sample = rows.filter((_,i) => i % 3 === 0);
-  const labels = sample.map(r => r._date.getFullYear());
-  const scores = sample.map(r => r._score);
-  const hcps   = sample.map(r => r._hcp);
+  // Score trend — last 365 days only
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+  const recentRows = rows.filter(r => r._date >= oneYearAgo);
+  const scoreLabels = recentRows.map(r => r._date.toLocaleDateString('en-AU', {day:'numeric', month:'short'}));
+  const scores = recentRows.map(r => r._score);
 
   new Chart(document.getElementById('scoreChart'), {
     type: 'line',
-    data: { labels, datasets: [{ data: scores, borderColor: '#3db870', backgroundColor: 'rgba(61,184,112,0.06)', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: true }] },
-    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:i=>i.raw+' pts'}} }, scales:{ x:{ticks:{color:'#4a6450',maxTicksLimit:8}}, y:{min:5,max:50,ticks:{color:'#4a6450'},grid:{color:'rgba(255,255,255,0.04)'}} } }
+    data: { labels: scoreLabels, datasets: [{ data: scores, borderColor: '#3db870', backgroundColor: 'rgba(61,184,112,0.06)', borderWidth: 2, pointRadius: 4, pointBackgroundColor: scores.map(s => s >= 36 ? '#3db870' : s < 28 ? '#e05c5c' : '#d4a843'), tension: 0.3, fill: true }] },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:i=>i.raw+' pts'}} },
+      scales:{
+        x:{ticks:{color:'#4a6450', maxTicksLimit:10, maxRotation:45}, grid:{display:false}},
+        y:{min:15, max:45, ticks:{color:'#4a6450'}, grid:{color:'rgba(255,255,255,0.04)'}}
+      }
+    }
+  });
+
+  // Handicap trend — last 20 rounds, Gross Diff oldest→newest, last point = current HCP
+  const last20 = rows.slice(-20);
+  const hcpLabels = last20.map(r => r._date.toLocaleDateString('en-AU', {day:'numeric', month:'short'}));
+  const grossDiffs = last20.map((r, i) => {
+    if (i === last20.length - 1) return parseFloat(r['GA Handicap']) || null; // last round = current HCP
+    const gd = parseFloat(r['Gross Diff']);
+    return (!isNaN(gd) && gd > 0) ? gd : null;
   });
 
   new Chart(document.getElementById('hcpChart'), {
     type: 'line',
-    data: { labels, datasets: [{ data: hcps, borderColor: '#d4a843', backgroundColor: 'rgba(212,168,67,0.06)', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: true, spanGaps: true }] },
-    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:i=>'HCP '+i.raw}} }, scales:{ x:{ticks:{color:'#4a6450',maxTicksLimit:8}}, y:{reverse:true, ticks:{color:'#4a6450'}, grid:{color:'rgba(255,255,255,0.04)'}} } }
+    data: { labels: hcpLabels, datasets: [{
+      data: grossDiffs,
+      borderColor: '#d4a843',
+      backgroundColor: 'rgba(212,168,67,0.06)',
+      borderWidth: 2,
+      pointRadius: grossDiffs.map((v,i) => i === grossDiffs.length-1 ? 6 : 4),
+      pointBackgroundColor: grossDiffs.map((v,i) => i === grossDiffs.length-1 ? '#d4a843' : 'rgba(212,168,67,0.6)'),
+      tension: 0.3,
+      fill: true,
+      spanGaps: true,
+    }]},
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{
+        label: (i) => i.dataIndex === grossDiffs.length-1 ? 'Current HCP: '+i.raw : 'Gross Diff: '+i.raw
+      }}},
+      scales:{
+        x:{ticks:{color:'#4a6450', maxTicksLimit:10, maxRotation:45}, grid:{display:false}},
+        y:{ticks:{color:'#4a6450'}, grid:{color:'rgba(255,255,255,0.04)'}}
+      }
+    }
   });
 
   // 12-month rolling avg
   const rolling = [];
   const rollingLabels = [];
   for (let i = 0; i < rows.length; i++) {
-    const window = rows.slice(Math.max(0, i-20), i+1);
-    rolling.push((window.reduce((a,r)=>a+r._score,0)/window.length).toFixed(1));
+    const win = rows.slice(Math.max(0, i-20), i+1);
+    rolling.push((win.reduce((a,r)=>a+r._score,0)/win.length).toFixed(1));
     rollingLabels.push(rows[i]._date.getFullYear());
   }
   const rollSample = rolling.filter((_,i)=>i%3===0);
-  const rollLabels = rollingLabels.filter((_,i)=>i%3===0);
+  const rollLabels  = rollingLabels.filter((_,i)=>i%3===0);
 
   new Chart(document.getElementById('rollingChart'), {
     type: 'line',
