@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neil's Golf Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0f1f12;--surface:#162019;--card:#1c2b1f;--card2:#1a2a1d;
+  --green:#3db870;--green-dim:#2a7a4c;--green-dark:#1a4d30;
+  --gold:#d4a843;--gold-dim:#8a6e1e;
+  --red:#e05c5c;--red-dim:#3d1a1a;
+  --blue:#5a9fd4;--blue-dim:#1a2a3d;
+  --text:#e8ede9;--text-muted:#7a9480;--text-faint:#4a6450;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.04);
+  --font:'DM Sans',sans-serif;--font-d:'Fraunces',serif;
+  --radius:14px;--radius-sm:8px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* Loading */
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;}
+#loading .spinner{width:40px;height:40px;border:3px solid var(--green-dark);border-top-color:var(--green);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:16px;}
+#loading p{color:var(--text-muted);font-size:14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Header */
+.header{padding:18px 24px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10;}
+.header-icon{width:42px;height:42px;border-radius:50%;background:var(--green-dim);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.header-title{font-family:var(--font-d);font-size:20px;font-weight:600;}
+.header-sub{font-size:12px;color:var(--text-muted);margin-top:1px;}
+.hcp-badge{margin-left:auto;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 16px;text-align:right;flex-shrink:0;}
+.hcp-label{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-faint);}
+.hcp-value{font-family:var(--font-d);font-size:26px;font-weight:600;color:var(--gold);line-height:1;}
+
+/* Stats strip */
+.stats-strip{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.stats-strip::-webkit-scrollbar{display:none;}
+.stat{padding:12px 20px;border-right:1px solid var(--border);white-space:nowrap;flex-shrink:0;}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);}
+.stat-value{font-size:17px;font-weight:500;color:var(--text);margin-top:3px;}
+.stat-value.g{color:var(--green);}
+.stat-value.r{color:var(--red);}
+.stat-value.gold{color:var(--gold);}
+
+/* Tabs */
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:13px 22px;border:none;background:none;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;color:var(--text-muted);border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;}
+.tab.active{color:var(--green);border-bottom-color:var(--green);}
+.tab:hover{color:var(--text);}
+
+/* Views */
+.view{display:none;animation:fadeIn 0.2s ease;}
+.view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.container{max-width:780px;margin:0 auto;padding:24px 20px;}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+.card-title{font-family:var(--font-d);font-size:16px;font-weight:600;margin-bottom:16px;color:var(--text);}
+
+/* Insight grid */
+.insight-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;}
+.insight{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;}
+.insight-icon{font-size:22px;margin-bottom:8px;}
+.insight-label{font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:4px;}
+.insight-value{font-family:var(--font-d);font-size:20px;font-weight:600;line-height:1.1;}
+.insight-sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
+
+/* Score pills */
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500;}
+.pill.great{background:var(--green-dark);color:var(--green);}
+.pill.good{background:var(--blue-dim);color:var(--blue);}
+.pill.avg{background:#2a2a1a;color:var(--gold);}
+.pill.bad{background:var(--red-dim);color:var(--red);}
+
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{text-align:left;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);border-bottom:1px solid var(--border);font-weight:500;}
+.tbl td{padding:10px 10px;border-bottom:1px solid var(--border2);}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,0.02);}
+.tc{color:var(--text-muted);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hc{color:var(--text-faint);font-size:12px;}
+
+/* Year rows */
+.yr-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border2);}
+.yr-row:last-child{border-bottom:none;}
+.yr-label{font-size:14px;font-weight:500;width:44px;flex-shrink:0;}
+.yr-bar-wrap{flex:1;height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+.yr-bar{height:6px;border-radius:3px;}
+.yr-stats{font-size:12px;color:var(--text-muted);width:160px;text-align:right;flex-shrink:0;}
+
+/* Search */
+.search-wrap{position:relative;margin-bottom:16px;}
+.search-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px 10px 38px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;}
+.search-input:focus{border-color:var(--green-dim);}
+.search-input::placeholder{color:var(--text-faint);}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-faint);font-size:16px;}
+
+/* Chart */
+.chart-wrap{position:relative;width:100%;height:220px;}
+
+/* Filter row */
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--text-muted);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;}
+.filter-btn.active{background:var(--green-dark);color:var(--green);border-color:var(--green-dim);}
+
+footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);border-top:1px solid var(--border);}
+
+@media(max-width:500px){
+  .insight-grid{grid-template-columns:1fr;}
+  .container{padding:14px;}
+  .header{padding:12px 14px;}
+  .hcp-value{font-size:20px;}
+}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Loading your rounds from Google Sheets...</p>
+</div>
+
+<div id="app" style="display:none;">
+
+<div class="header">
+  <div class="header-icon">⛳</div>
+  <div>
+    <div class="header-title">Neil's Golf Dashboard</div>
+    <div class="header-sub" id="header-sub">Loading...</div>
+  </div>
+  <div class="hcp-badge">
+    <div class="hcp-label">Current HCP</div>
+    <div class="hcp-value" id="hcp-val">—</div>
+  </div>
+</div>
+
+<div class="stats-strip" id="stats-strip"></div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('overview',this)">Overview</button>
+  <button class="tab" onclick="showTab('rounds',this)">Rounds</button>
+  <button class="tab" onclick="showTab('trends',this)">Trends</button>
+  <button class="tab" onclick="showTab('years',this)">By year</button>
+  <button class="tab" onclick="showTab('courses',this)">Courses</button>
+</div>
+
+<!-- OVERVIEW -->
+<div id="overview" class="view active">
+  <div class="container">
+    <div class="insight-grid" id="insight-grid"></div>
+    <div class="card">
+      <div class="card-title">To get to HCP 10</div>
+      <p id="hcp10-text" style="font-size:14px;color:var(--text-muted);line-height:1.8;"></p>
+    </div>
+    <div class="card">
+      <div class="card-title">Last 5 rounds</div>
+      <table class="tbl" id="last5-tbl">
+        <thead><tr><th>Date</th><th>Course</th><th>Score</th><th>Played To</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ROUNDS -->
+<div id="rounds" class="view">
+  <div class="container">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input class="search-input" id="search" placeholder="Search by course, date or score..." oninput="filterRounds()">
+    </div>
+    <div class="filter-row" id="score-filters">
+      <button class="filter-btn active" onclick="setScoreFilter('all',this)">All</button>
+      <button class="filter-btn" onclick="setScoreFilter('great',this)">36+ pts</button>
+      <button class="filter-btn" onclick="setScoreFilter('bad',this)">Under 28</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table class="tbl" id="rounds-tbl">
+        <thead><tr><th>Date</th><th>Course</th><th>Score</th><th>HCP</th><th>Played To</th></tr></thead>
+        <tbody id="rounds-body"></tbody>
+      </table>
+    </div>
+    <div id="rounds-count" style="text-align:center;padding:12px;font-size:12px;color:var(--text-faint);"></div>
+  </div>
+</div>
+
+<!-- TRENDS -->
+<div id="trends" class="view">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">Score trend — all rounds</div>
+      <div class="chart-wrap"><canvas id="scoreChart" role="img" aria-label="Score trend">Score trend chart.</canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Handicap trend</div>
+      <div class="chart-wrap"><canvas id="hcpChart" role="img" aria-label="Handicap trend">Handicap trend chart.</canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">12-month rolling average</div>
+      <div class="chart-wrap"><canvas id="rollingChart" role="img" aria-label="Rolling average">Rolling average chart.</canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- YEARS -->
+<div id="years" class="view">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">Year by year</div>
+      <div id="year-rows"></div>
+    </div>
+  </div>
+</div>
+
+<!-- COURSES -->
+<div id="courses" class="view">
+  <div class="container">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input class="search-input" id="course-search" placeholder="Search courses..." oninput="filterCourses()">
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table class="tbl" id="courses-tbl">
+        <thead><tr><th>Course</th><th>Rounds</th><th>Avg</th><th>Best</th><th>Last played</th></tr></thead>
+        <tbody id="courses-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<footer id="footer"></footer>
+
+<script>
+const SHEET_ID  = '1hySN7Csgydi_zg1sNGf7Z-3-Z6PS4J-zzTef8uk26QQ';
+const TAB_NAME  = 'Neil Rounds';
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(TAB_NAME)}`;
+
+let ALL_ROWS = [];
+let filteredRows = [];
+let scoreFilter = 'all';
+let allCourseData = [];
+
+async function loadData() {
+  try {
+    const res  = await fetch(SHEET_URL);
+    const text = await res.text();
+    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+    const cols = json.table.cols.map(c => c.label);
+    const rows = json.table.rows
+      .filter(r => r && r.c && r.c[0] && r.c[0].v)
+      .map(r => {
+        const obj = {};
+        cols.forEach((c, i) => { if (c) obj[c] = r.c[i] ? (r.c[i].f ?? r.c[i].v ?? '') : ''; });
+        obj._score = parseInt(obj['Score']) || 0;
+        // Date comes as Date(year, month0indexed, day) from Google Sheets
+        const dv = r.c[0] ? r.c[0].v : '';
+        if (typeof dv === 'string' && dv.includes('Date(')) {
+          const m = dv.match(/Date\((\d+),(\d+),(\d+)\)/);
+          if (m) obj._date = new Date(+m[1], +m[2], +m[3]); // month is 0-indexed
+        } else if (typeof dv === 'string' && dv.includes('/')) {
+          const p = dv.split('/');
+          obj._date = new Date(+p[2], +p[1]-1, +p[0]);
+        } else {
+          obj._date = new Date(dv);
+        }
+        // Use formatted date string from sheet if available
+        obj['Date'] = r.c[0] ? (r.c[0].f || obj['Date']) : obj['Date'];
+        obj._dateStr = obj._date ? obj._date.toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}) : obj['Date'];
+        obj._hcp = parseFloat(obj['GA Handicap']) || null;
+        obj._playedTo = parseFloat(obj['Played To']) || null;
+        return obj;
+      })
+      .filter(r => r._score > 0 && r._date && !isNaN(r._date));
+
+    rows.sort((a,b) => a._date - b._date);
+    return rows;
+  } catch(e) {
+    console.error('Failed to load sheet:', e);
+    throw e;
+  }
+}
+
+function scoreClass(s) {
+  if (s >= 36) return 'great';
+  if (s >= 32) return 'good';
+  if (s < 28)  return 'bad';
+  return 'avg';
+}
+
+function buildStats(rows) {
+  const scores  = rows.map(r => r._score);
+  const hcps    = rows.map(r => r._hcp).filter(Boolean);
+  const last5   = scores.slice(-5);
+  const prev5   = scores.slice(-10, -5);
+  const trend   = prev5.length ? (last5.reduce((a,b)=>a+b,0)/last5.length - prev5.reduce((a,b)=>a+b,0)/prev5.length).toFixed(1) : 0;
+
+  const monthly = {};
+  rows.forEach(r => {
+    const k = r._date.toLocaleDateString('en-AU', {month:'short',year:'numeric'});
+    if (!monthly[k]) monthly[k] = [];
+    monthly[k].push(r._score);
+  });
+  const bestMonth  = Object.entries(monthly).sort((a,b) => (b[1].reduce((x,y)=>x+y,0)/b[1].length) - (a[1].reduce((x,y)=>x+y,0)/a[1].length))[0];
+  const worstMonth = Object.entries(monthly).sort((a,b) => (a[1].reduce((x,y)=>x+y,0)/a[1].length) - (b[1].reduce((x,y)=>x+y,0)/b[1].length))[0];
+
+  const courses = {};
+  rows.forEach(r => {
+    if (!courses[r.Course]) courses[r.Course] = {scores:[], dates:[]};
+    courses[r.Course].scores.push(r._score);
+    courses[r.Course].dates.push(r._date);
+  });
+  const bestCourse = Object.entries(courses).filter(([,v])=>v.scores.length>=3).sort((a,b)=>(b[1].scores.reduce((x,y)=>x+y,0)/b[1].scores.length)-(a[1].scores.reduce((x,y)=>x+y,0)/a[1].scores.length))[0];
+
+  const yearly = {};
+  rows.forEach(r => {
+    const yr = r._date.getFullYear();
+    if (!yearly[yr]) yearly[yr] = [];
+    yearly[yr].push(r._score);
+  });
+
+  // Best played to
+  const bestPT = rows.filter(r=>r._playedTo).sort((a,b)=>a._playedTo-b._playedTo)[0];
+
+  return {
+    total:      rows.length,
+    avg:        (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1),
+    best:       Math.max(...scores),
+    worst:      Math.min(...scores),
+    currentHcp: hcps[hcps.length-1],
+    startHcp:   hcps[0],
+    hcpChange:  hcps.length ? (hcps[hcps.length-1]-Math.min(...hcps)).toFixed(1) : 0,
+    lowHcp:     Math.min(...hcps).toFixed(1),
+    trend,
+    last5avg:   (last5.reduce((a,b)=>a+b,0)/last5.length).toFixed(1),
+    great:      scores.filter(s=>s>=36).length,
+    bad:        scores.filter(s=>s<28).length,
+    bestMonth:  bestMonth ? bestMonth[0] : '',
+    bestMonthAvg: bestMonth ? (bestMonth[1].reduce((a,b)=>a+b,0)/bestMonth[1].length).toFixed(1) : 0,
+    worstMonth: worstMonth ? worstMonth[0] : '',
+    worstMonthAvg: worstMonth ? (worstMonth[1].reduce((a,b)=>a+b,0)/worstMonth[1].length).toFixed(1) : 0,
+    bestCourse: bestCourse ? bestCourse[0] : '',
+    bestCourseAvg: bestCourse ? (bestCourse[1].scores.reduce((a,b)=>a+b,0)/bestCourse[1].scores.length).toFixed(1) : 0,
+    bestCourseRounds: bestCourse ? bestCourse[1].scores.length : 0,
+    yearly,
+    courses,
+    bestPlayedTo: bestPT,
+    lastRound: rows[rows.length-1],
+  };
+}
+
+function renderHeader(stats, lastUpdated) {
+  document.getElementById('hcp-val').textContent = stats.currentHcp || '—';
+  document.getElementById('header-sub').textContent = `${stats.total} rounds · Last updated ${lastUpdated}`;
+
+  const strip = document.getElementById('stats-strip');
+  const items = [
+    ['Rounds', stats.total, ''],
+    ['Avg score', stats.avg, ''],
+    ['Best', stats.best, 'g'],
+    ['Worst', stats.worst, 'r'],
+    ['Last 5 avg', stats.last5avg, ''],
+    ['Low HCP', stats.lowHcp, 'gold'],
+    ['Great rounds', stats.great, 'g'],
+  ];
+  strip.innerHTML = items.map(([l,v,c])=>`<div class="stat"><div class="stat-label">${l}</div><div class="stat-value ${c}">${v}</div></div>`).join('');
+}
+
+function renderInsights(stats) {
+  const trendUp = parseFloat(stats.trend) > 0;
+  const items = [
+    ['📈','Recent form', `<span style="color:${trendUp?'#e05c5c':'#3db870'}">${trendUp?'▲':'▼'} ${Math.abs(stats.trend)}</span>`, 'vs previous 5 rounds'],
+    ['🏆','Best month', stats.bestMonth, `${stats.bestMonthAvg} avg score`],
+    ['⛳','Best course', stats.bestCourse.split(' ')[0], `${stats.bestCourseAvg} avg · ${stats.bestCourseRounds} rounds`],
+    ['🎯','Best played to', stats.bestPlayedTo ? stats.bestPlayedTo._playedTo : '—', stats.bestPlayedTo ? `${stats.bestPlayedTo._score} pts · ${stats.bestPlayedTo._dateStr}` : ''],
+    ['😬','Bad rounds', `${stats.bad}/${stats.total}`, 'Scored under 28 pts'],
+    ['⭐','Great rounds', `${stats.great}/${stats.total}`, 'Scored 36+ pts'],
+  ];
+  document.getElementById('insight-grid').innerHTML = items.map(([icon,label,val,sub])=>`
+    <div class="insight">
+      <div class="insight-icon">${icon}</div>
+      <div class="insight-label">${label}</div>
+      <div class="insight-value">${val}</div>
+      <div class="insight-sub">${sub}</div>
+    </div>`).join('');
+
+  const hcpDiff = (stats.currentHcp - 10).toFixed(1);
+  document.getElementById('hcp10-text').innerHTML =
+    `Your current handicap is <strong style="color:var(--gold)">${stats.currentHcp}</strong>. You need to drop <strong style="color:var(--text)">${hcpDiff} strokes</strong> to reach 10.
+    Your <strong style="color:var(--text)">lowest ever handicap</strong> was <strong style="color:var(--green)">${stats.lowHcp}</strong>, so you've done it before.
+    Your average score is <strong style="color:var(--text)">${stats.avg} pts</strong>.
+    To improve your handicap you need to consistently score <strong style="color:var(--green)">33+ pts</strong>.
+    ${parseFloat(stats.trend) > 0 ? 'Your recent form is trending down — focus on consistency.' : 'Your recent form is trending upward — keep it going! ▲'}`;
+}
+
+function renderLast5(rows) {
+  const last5 = rows.slice(-5).reverse();
+  const tbody = document.querySelector('#last5-tbl tbody');
+  tbody.innerHTML = last5.map(r => `
+    <tr>
+      <td>${r._dateStr}</td>
+      <td class="tc">${r.Course}</td>
+      <td><span class="pill ${scoreClass(r._score)}">${r._score}</span></td>
+      <td class="hc">${r._playedTo || '—'}</td>
+    </tr>`).join('');
+}
+
+function renderRounds(rows) {
+  filteredRows = rows;
+  const tbody = document.getElementById('rounds-body');
+  const display = rows.slice(-200).reverse();
+  tbody.innerHTML = display.map(r => `
+    <tr>
+      <td style="white-space:nowrap;font-size:12px;">${r._dateStr}</td>
+      <td class="tc">${r.Course}</td>
+      <td><span class="pill ${scoreClass(r._score)}">${r._score}</span></td>
+      <td class="hc">${r._hcp || '—'}</td>
+      <td class="hc">${r._playedTo || '—'}</td>
+    </tr>`).join('');
+  document.getElementById('rounds-count').textContent = `Showing ${Math.min(200, rows.length)} of ${rows.length} rounds`;
+}
+
+function filterRounds() {
+  const q = document.getElementById('search').value.toLowerCase();
+  let rows = ALL_ROWS;
+  if (q) rows = rows.filter(r => r.Course.toLowerCase().includes(q) || r._dateStr.toLowerCase().includes(q) || String(r._score).includes(q));
+  if (scoreFilter === 'great') rows = rows.filter(r => r._score >= 36);
+  if (scoreFilter === 'bad')   rows = rows.filter(r => r._score < 28);
+  renderRounds(rows);
+}
+
+function setScoreFilter(f, btn) {
+  scoreFilter = f;
+  document.querySelectorAll('#score-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterRounds();
+}
+
+function renderYears(stats) {
+  const maxAvg = Math.max(...Object.values(stats.yearly).map(s=>s.reduce((a,b)=>a+b,0)/s.length));
+  const el = document.getElementById('year-rows');
+  el.innerHTML = Object.entries(stats.yearly).sort((a,b)=>b[0]-a[0]).map(([yr, scores]) => {
+    const avg = (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1);
+    const bar = Math.round(avg/maxAvg*100);
+    const cls = avg >= 32 ? 'great' : avg >= 28 ? 'good' : 'bad';
+    const col = avg >= 32 ? 'var(--green)' : avg >= 28 ? 'var(--blue)' : 'var(--red)';
+    return `<div class="yr-row">
+      <div class="yr-label" style="color:var(--text-muted)">${yr}</div>
+      <div class="yr-bar-wrap"><div class="yr-bar" style="width:${bar}%;background:${col};"></div></div>
+      <div class="yr-stats">${avg} avg · ${scores.length} rounds · best ${Math.max(...scores)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderCourses(stats) {
+  allCourseData = Object.entries(stats.courses).map(([name, data]) => ({
+    name,
+    rounds: data.scores.length,
+    avg: (data.scores.reduce((a,b)=>a+b,0)/data.scores.length).toFixed(1),
+    best: Math.max(...data.scores),
+    last: new Date(Math.max(...data.dates)).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}),
+  })).sort((a,b) => b.rounds - a.rounds);
+  renderCoursesTable(allCourseData);
+}
+
+function renderCoursesTable(data) {
+  document.getElementById('courses-body').innerHTML = data.map(c => `
+    <tr>
+      <td style="font-weight:500;">${c.name}</td>
+      <td class="hc">${c.rounds}</td>
+      <td><span class="pill ${scoreClass(Math.round(c.avg))}">${c.avg}</span></td>
+      <td class="hc">${c.best}</td>
+      <td class="hc" style="white-space:nowrap;">${c.last}</td>
+    </tr>`).join('');
+}
+
+function filterCourses() {
+  const q = document.getElementById('course-search').value.toLowerCase();
+  renderCoursesTable(q ? allCourseData.filter(c => c.name.toLowerCase().includes(q)) : allCourseData);
+}
+
+function renderTrends(rows) {
+  // Score trend — sample every 5 rounds to reduce clutter
+  const sample = rows.filter((_,i) => i % 3 === 0);
+  const labels = sample.map(r => r._date.getFullYear());
+  const scores = sample.map(r => r._score);
+  const hcps   = sample.map(r => r._hcp);
+
+  new Chart(document.getElementById('scoreChart'), {
+    type: 'line',
+    data: { labels, datasets: [{ data: scores, borderColor: '#3db870', backgroundColor: 'rgba(61,184,112,0.06)', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: true }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:i=>i.raw+' pts'}} }, scales:{ x:{ticks:{color:'#4a6450',maxTicksLimit:8}}, y:{min:5,max:50,ticks:{color:'#4a6450'},grid:{color:'rgba(255,255,255,0.04)'}} } }
+  });
+
+  new Chart(document.getElementById('hcpChart'), {
+    type: 'line',
+    data: { labels, datasets: [{ data: hcps, borderColor: '#d4a843', backgroundColor: 'rgba(212,168,67,0.06)', borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: true, spanGaps: true }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:i=>'HCP '+i.raw}} }, scales:{ x:{ticks:{color:'#4a6450',maxTicksLimit:8}}, y:{reverse:true, ticks:{color:'#4a6450'}, grid:{color:'rgba(255,255,255,0.04)'}} } }
+  });
+
+  // 12-month rolling avg
+  const rolling = [];
+  const rollingLabels = [];
+  for (let i = 0; i < rows.length; i++) {
+    const window = rows.slice(Math.max(0, i-20), i+1);
+    rolling.push((window.reduce((a,r)=>a+r._score,0)/window.length).toFixed(1));
+    rollingLabels.push(rows[i]._date.getFullYear());
+  }
+  const rollSample = rolling.filter((_,i)=>i%3===0);
+  const rollLabels = rollingLabels.filter((_,i)=>i%3===0);
+
+  new Chart(document.getElementById('rollingChart'), {
+    type: 'line',
+    data: { labels: rollLabels, datasets: [{ data: rollSample, borderColor: '#5a9fd4', backgroundColor: 'rgba(90,159,212,0.06)', borderWidth: 2, pointRadius: 0, tension: 0.4, fill: true }] },
+    options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:i=>i.raw+' pts avg'}} }, scales:{ x:{ticks:{color:'#4a6450',maxTicksLimit:8}}, y:{min:15,max:42,ticks:{color:'#4a6450'},grid:{color:'rgba(255,255,255,0.04)'}} } }
+  });
+}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'trends' && !window.trendsBuilt) { renderTrends(ALL_ROWS); window.trendsBuilt = true; }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+(async () => {
+  try {
+    ALL_ROWS = await loadData();
+    const stats = buildStats(ALL_ROWS);
+    const lastUpdated = ALL_ROWS[ALL_ROWS.length-1]._dateStr;
+
+    renderHeader(stats, lastUpdated);
+    renderInsights(stats);
+    renderLast5(ALL_ROWS);
+    renderRounds(ALL_ROWS);
+    renderYears(stats);
+    renderCourses(stats);
+
+    document.getElementById('footer').textContent =
+      `Neil's Golf Dashboard · ${stats.total} rounds · ${ALL_ROWS[0]._date.getFullYear()}–${ALL_ROWS[ALL_ROWS.length-1]._date.getFullYear()} · Live from Google Sheets`;
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+  } catch(e) {
+    document.getElementById('loading').innerHTML =
+      '<p style="color:#e05c5c;padding:20px;text-align:center;">Failed to load data.<br>Make sure the Google Sheet is publicly readable.<br><small>' + e.message + '</small></p>';
+  }
+})();
+</script>
+</body>
+</html>
