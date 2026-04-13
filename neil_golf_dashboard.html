@@ -393,12 +393,13 @@ function renderInsights(stats) {
     </div>`).join('');
 
   const hcpDiff = (stats.currentHcp - 10).toFixed(1);
+  const trendText = parseFloat(stats.trend) > 0 ? 'Your recent form is trending down — focus on consistency.' : 'Your recent form is trending upward — keep it going! ▲';
   document.getElementById('hcp10-text').innerHTML =
     `Your current handicap is <strong style="color:var(--gold)">${stats.currentHcp}</strong>. You need to drop <strong style="color:var(--text)">${hcpDiff} strokes</strong> to reach 10.
-    Your <strong style="color:var(--text)">lowest ever handicap</strong> was <strong style="color:var(--green)">${stats.lowHcp}</strong>, so you've done it before.
+    Your <strong style="color:var(--text)">GA Low Handicap over the past year is <strong style="color:var(--green)">10.2</strong> — so you've been there recently.
     Your average score is <strong style="color:var(--text)">${stats.avg} pts</strong>.
     To improve your handicap you need to consistently score <strong style="color:var(--green)">33+ pts</strong>.
-    ${parseFloat(stats.trend) > 0 ? 'Your recent form is trending down — focus on consistency.' : 'Your recent form is trending upward — keep it going! ▲'}`;
+    ${trendText}`;
 }
 
 function renderLast5(rows) {
