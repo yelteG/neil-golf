@@ -258,25 +258,25 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
 
 <!-- HCP TRACKER -->
 <div id="hcptrack" class="view">
-  <div class="container">
+  <div style="max-width:900px;margin:0 auto;padding:20px 16px;">
     <div class="hcp-summary-bar" id="hcp-summary-bar"></div>
-    <div class="card-title" style="margin-bottom:12px;">Last 20 rounds — best 8 differentials highlighted</div>
-    <div class="card" style="padding:0;overflow:hidden;">
-      <div style="display:flex;gap:10px;padding:8px 16px;border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);">
-        <div style="width:22px;"></div>
-        <div style="width:90px;">Date</div>
-        <div style="flex:1;">Course</div>
-        <div style="width:52px;text-align:center;">Score</div>
-        <div style="width:48px;text-align:right;">Diff</div>
-        <div style="width:60px;text-align:right;">HCP Δ</div>
-      </div>
-      <div id="hcp-rows"></div>
-    </div>
-    <div class="card" style="margin-top:16px;">
-      <div class="card-title">Handicap movement — last 20 rounds</div>
-      <div style="position:relative;width:100%;height:200px;">
-        <canvas id="hcpMoveChart" role="img" aria-label="Handicap movement chart">Handicap movement over last 20 rounds.</canvas>
-      </div>
+    <div style="overflow-x:auto;">
+      <table id="hcp-table" style="width:100%;border-collapse:collapse;font-size:13px;min-width:680px;">
+        <thead>
+          <tr style="background:#0d1f2d;color:rgba(255,255,255,0.7);">
+            <th style="padding:12px 14px;text-align:left;font-size:11px;font-weight:500;letter-spacing:0.05em;white-space:nowrap;">Played</th>
+            <th style="padding:12px 14px;text-align:left;font-size:11px;font-weight:500;letter-spacing:0.05em;">Course &amp; Tee Marker</th>
+            <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:500;letter-spacing:0.05em;white-space:nowrap;">Hcp Score</th>
+            <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:500;letter-spacing:0.05em;white-space:nowrap;">Scratch Rating</th>
+            <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:500;letter-spacing:0.05em;">Slope</th>
+            <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:500;letter-spacing:0.05em;white-space:nowrap;">Daily Diff</th>
+            <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:500;letter-spacing:0.05em;white-space:nowrap;">Daily Hcp</th>
+            <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:500;letter-spacing:0.05em;white-space:nowrap;">Gross Diff</th>
+            <th style="padding:12px 14px;text-align:center;font-size:11px;font-weight:500;letter-spacing:0.05em;white-space:nowrap;">Prior GA Hcp</th>
+          </tr>
+        </thead>
+        <tbody id="hcp-rows"></tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -573,13 +573,19 @@ function renderTrends(rows) {
 
 function renderHcpTracker(rows) {
   const last20 = rows.slice(-20);
-  // Best 8 = lowest 8 gross differentials (Gross Diff col)
-  const diffs = last20.map((r,i) => ({i, diff: parseFloat(r['Gross Diff']) || 999}));
-  const sorted = [...diffs].sort((a,b) => a.diff - b.diff);
+
+  // Best 8 = lowest 8 gross differentials (excluding pending rounds with diff=0)
+  const diffs = last20.map((r,i) => ({
+    i,
+    diff: parseFloat(r['Gross Diff']),
+    pending: !r['Gross Diff'] || parseFloat(r['Gross Diff']) === 0
+  }));
+  const validDiffs = diffs.filter(d => !d.pending && !isNaN(d.diff));
+  const sorted = [...validDiffs].sort((a,b) => a.diff - b.diff);
   const best8idx = new Set(sorted.slice(0,8).map(d => d.i));
 
   // Summary
-  const best8diffs = sorted.slice(0,8).map(d => d.diff).filter(d => d < 999);
+  const best8diffs = sorted.slice(0,8).map(d => d.diff);
   const avg8 = best8diffs.length ? best8diffs.reduce((a,b)=>a+b,0)/best8diffs.length : 0;
   const calcHcp = (avg8 * 0.96).toFixed(1);
   const currentHcp = parseFloat(last20[last20.length-1]['GA Handicap']) || 14;
@@ -587,58 +593,50 @@ function renderHcpTracker(rows) {
   document.getElementById('hcp-summary-bar').innerHTML = `
     <div class="hcp-summary-item"><div class="hcp-summary-label">Current HCP</div><div class="hcp-summary-value" style="color:var(--gold)">${currentHcp}</div></div>
     <div class="hcp-summary-item"><div class="hcp-summary-label">Avg best 8 diff</div><div class="hcp-summary-value">${avg8.toFixed(2)}</div></div>
-    <div class="hcp-summary-item"><div class="hcp-summary-label">Calc HCP index</div><div class="hcp-summary-value" style="color:var(--green)">${calcHcp}</div></div>
-    <div class="hcp-summary-item"><div class="hcp-summary-label">Rounds counted</div><div class="hcp-summary-value">${best8diffs.length} of 20</div></div>`;
+    <div class="hcp-summary-item"><div class="hcp-summary-label">Calculated index</div><div class="hcp-summary-value" style="color:var(--green)">${calcHcp}</div></div>
+    <div class="hcp-summary-item"><div class="hcp-summary-label">Flag rounds</div><div class="hcp-summary-value">${best8diffs.length} of 20</div></div>`;
 
-  // Rows (newest first)
-  const display = [...last20].reverse();
-  const revBest8 = new Set([...best8idx].map(i => last20.length - 1 - i));
+  // Table rows — newest first
+  const FLAG_SVG = `<svg width="14" height="14" viewBox="0 0 14 14" style="margin-left:5px;vertical-align:middle;" fill="none"><path d="M2 1v12M2 1l8 3-8 3" stroke="#3db870" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const HOURGLASS_SVG = `<svg width="14" height="14" viewBox="0 0 14 14" style="margin-left:5px;vertical-align:middle;" fill="none"><path d="M3 1h8M3 13h8M4 1c0 3 6 3 6 6S4 10 4 13" stroke="#d4a843" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+
   let html = '';
-  display.forEach((r, revIdx) => {
+  [...last20].reverse().forEach((r, revIdx) => {
     const origIdx = last20.length - 1 - revIdx;
-    const isBest = best8idx.has(origIdx);
-    const diff = parseFloat(r['Gross Diff']);
-    const score = parseInt(r['Score']);
-    const hcp = parseFloat(r['GA Handicap']);
-    const prevHcp = origIdx > 0 ? parseFloat(last20[origIdx-1]['GA Handicap']) : hcp;
-    const hcpChange = hcp - prevHcp;
-    const changeStr = hcpChange > 0.05 ? `+${hcpChange.toFixed(1)}` : hcpChange < -0.05 ? `${hcpChange.toFixed(1)}` : '—';
-    const changeCls = hcpChange > 0.05 ? 'up' : hcpChange < -0.05 ? 'dn' : 'nc';
-    const pillCls = score >= 36 ? 'great' : score >= 32 ? 'good' : score < 28 ? 'bad' : 'avg';
-    const roundNum = last20.length - origIdx;
-    html += `<div class="hcp-row ${isBest ? 'best8' : ''}">
-      <div class="hcp-round-num">${roundNum}</div>
-      <div class="hcp-date">${r['Date']}</div>
-      <div class="hcp-course">${r['Course']}${isBest ? '<span class="best8-badge">TOP 8</span>' : ''}</div>
-      <div class="hcp-score-cell"><span class="pill ${pillCls}">${score}</span></div>
-      <div class="hcp-diff ${isBest ? 'best'  : ''}">${isNaN(diff) ? '—' : diff.toFixed(1)}</div>
-      <div class="hcp-change ${changeCls}">${changeStr}</div>
-    </div>`;
+    const isBest    = best8idx.has(origIdx);
+    const isPending = diffs[origIdx].pending;
+    const diff      = parseFloat(r['Gross Diff']);
+    const score     = parseInt(r['Score']);
+    const dailyDiff = r['Daily Diff'];
+    const scratchRating = r['Scratch Rating'];
+    const slope     = r['Slope'];
+    const dailyHcp  = r['Daily Hcp'];
+    const priorHcp  = r['Prior GA Hcp'];
+    const tee       = r['Tee'];
+
+    const diffDisplay = isPending
+      ? `--${HOURGLASS_SVG}`
+      : `${isNaN(diff) ? '--' : diff.toFixed(1)}${isBest ? FLAG_SVG : ''}`;
+
+    const rowBg = isBest ? 'rgba(61,184,112,0.04)' : 'transparent';
+    const borderLeft = isBest ? 'border-left:3px solid #3db870;' : 'border-left:3px solid transparent;';
+
+    html += `<tr style="background:${rowBg};${borderLeft}border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:14px 14px;white-space:nowrap;font-size:13px;color:var(--text-muted);">${r['Date']}</td>
+      <td style="padding:14px 14px;">
+        <div style="font-size:13px;font-weight:500;color:var(--text);">${r['Course']}</div>
+        <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">${tee}</div>
+      </td>
+      <td style="padding:14px 14px;text-align:center;font-size:13px;font-weight:600;color:var(--text);">${score}</td>
+      <td style="padding:14px 14px;text-align:center;font-size:13px;color:var(--text-muted);">${scratchRating}</td>
+      <td style="padding:14px 14px;text-align:center;font-size:13px;color:var(--text-muted);">${slope}</td>
+      <td style="padding:14px 14px;text-align:center;font-size:13px;color:var(--text-muted);">${dailyDiff || '--'}</td>
+      <td style="padding:14px 14px;text-align:center;font-size:13px;color:var(--text-muted);">${dailyHcp}</td>
+      <td style="padding:14px 14px;text-align:center;font-size:13px;font-weight:${isBest?'600':'400'};color:${isBest?'#3db870':'var(--text-muted)'};">${diffDisplay}</td>
+      <td style="padding:14px 14px;text-align:center;font-size:13px;color:var(--text-muted);">${priorHcp || '--'}</td>
+    </tr>`;
   });
   document.getElementById('hcp-rows').innerHTML = html;
-
-  // Chart
-  const chartLabels = last20.map(r => r['Date'].slice(0,5));
-  const chartHcps   = last20.map(r => parseFloat(r['GA Handicap']));
-  const chartDiffs  = last20.map(r => parseFloat(r['Gross Diff']) || null);
-  new Chart(document.getElementById('hcpMoveChart'), {
-    type: 'line',
-    data: {
-      labels: chartLabels,
-      datasets: [
-        { label: 'GA Handicap', data: chartHcps, borderColor: '#d4a843', backgroundColor: 'rgba(212,168,67,0.08)', borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#d4a843', tension: 0.3, fill: true },
-        { label: 'Gross Diff', data: chartDiffs, borderColor: '#3db870', backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 3, pointBackgroundColor: chartDiffs.map((_,i) => best8idx.has(i) ? '#3db870' : 'rgba(61,184,112,0.4)'), borderDash: [4,3], tension: 0.3, spanGaps: true },
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: true, labels: { color: '#7a9480', font: { size: 11 } } }, tooltip: { callbacks: { label: i => i.dataset.label + ': ' + i.raw } } },
-      scales: {
-        x: { ticks: { color: '#4a6450', maxTicksLimit: 10, maxRotation: 45 }, grid: { display: false } },
-        y: { ticks: { color: '#4a6450' }, grid: { color: 'rgba(255,255,255,0.04)' } }
-      }
-    }
-  });
 }
 
 function showTab(id, btn) {
