@@ -235,11 +235,26 @@ function sinPctPill(pct) {
 }
 
 async function loadData() {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
-  const res  = await fetch(url);
+  // Fetch main 2026 sheet + Golfers tab (for fees per player) in parallel
+  const [res, golfersRes] = await Promise.all([
+    fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`),
+    fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Golfers`),
+  ]);
   const text = await res.text();
   const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
   const rows = json.table.rows;
+
+  // Build fees map: player name → total fees (col 3 "Fees" from Golfers tab)
+  const feesMap = {};
+  try {
+    const gText = await golfersRes.text();
+    const gJson = JSON.parse(gText.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+    gJson.table.rows.forEach(r => {
+      const name = r.c[0]?.v;
+      const fees = r.c[3]?.v;
+      if (name && fees != null) feesMap[name.trim()] = Number(fees);
+    });
+  } catch(e) { console.warn('Could not load Golfers tab', e); }
 
   // --- Round data (cols 0-8) ---
   const rounds = rows
@@ -276,7 +291,8 @@ async function loadData() {
       sinPaid:   parseMoney(r.c[25]?.f || r.c[25]?.v),
       sinPct:    r.c[26]?.v ? parseInt(String(r.c[26].v).replace('%','')) : 0,
       rank:      r.c[31]?.v || 0,
-      sinCost:   r.c[32]?.f || r.c[32]?.v || '',
+      sinCost:   (() => { const f=r.c[32]?.f, v=r.c[32]?.v; return f ? f : (v != null ? `$${Number(v).toFixed(2)}` : '—'); })(),
+      fees:      feesMap[name] || null,
       roundAdj:  r.c[33]?.v || 0,
       proposed:  parseMoney(r.c[36]?.f || r.c[36]?.v),
     };
@@ -303,7 +319,11 @@ function renderApp(data) {
       const adjText = adjAmt === 0 ? 'no adjustment'
         : adjAmt > 0 ? `+$${adjAmt.toFixed(0)} round benefit`
         : `-$${Math.abs(adjAmt).toFixed(0)} round penalty`;
-      return { name, ...s, ...st, adjText,
+      const rounds = st.rounds || s.rounds || 1;
+      const costPerRound = s.fees != null && rounds > 0
+        ? `$${(s.fees / rounds).toFixed(2)}`
+        : s.sinCost;
+      return { name, ...s, ...st, adjText, costPerRound,
         sinPct: s.sinPct || Math.round(st.sins / (st.rounds || 1) * 100),
         sinPaid: s.sinPaid || st.sinPaid,
       };
@@ -339,7 +359,7 @@ function renderApp(data) {
         <div class="avatar" style="background:${cfg.bg};color:${cfg.col};">${cfg.init}</div>
         <div class="player-info">
           <div class="player-name">${p.name}</div>
-          <div class="player-meta"><span class="rank-pip">${p.rank}</span>${p.sinCost}/round &middot; ${p.adjText}</div>
+          <div class="player-meta"><span class="rank-pip">${p.rank}</span>${p.costPerRound}/round &middot; ${p.adjText}</div>
         </div>
         <div class="proposed-total">
           <div class="proposed-amt" style="color:${proposedColor};">$${p.proposed.toFixed(2)}</div>
@@ -389,7 +409,7 @@ function renderApp(data) {
       <td style="text-align:center;padding:10px 4px;font-family:var(--mono);">${p.rank}</td>
       <td style="text-align:center;padding:10px 4px;">${sinPctPill(p.sinPct)}</td>
       <td style="text-align:center;padding:10px 4px;font-family:var(--mono);">$${p.sinPaid}</td>
-      <td style="text-align:center;padding:10px 4px;font-family:var(--mono);">${p.sinCost}</td>
+      <td style="text-align:center;padding:10px 4px;font-family:var(--mono);">${p.costPerRound}</td>
       <td style="text-align:center;padding:10px 4px;font-family:var(--mono);">${daysAgo(p.lastPlayed)}</td>
       <td style="text-align:right;padding:10px 0;font-family:var(--mono);font-weight:600;color:${propColor};">$${p.proposed.toFixed(2)}</td>
     </tr>`;
