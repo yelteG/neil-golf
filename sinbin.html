@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riversdale GC — Sin Bin 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--green:#1a7a4a;--green-light:#e8f5ee;--red:#c0392b;--red-light:#fdecea;--amber:#d4820a;--amber-light:#fef3e2;--bg:#f4f1eb;--card:#ffffff;--text:#1a1a16;--text-muted:#6b6b60;--text-faint:#a8a89c;--border:rgba(0,0,0,0.08);--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--radius:12px;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+#loading{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px;}
+.spinner{width:36px;height:36px;border:3px solid rgba(26,122,74,0.2);border-top-color:#1a7a4a;border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.hero{background:#0f2d1a;color:white;padding:48px 40px 36px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:300px;height:300px;border-radius:50%;background:rgba(45,158,101,0.15);}
+.hero::after{content:'';position:absolute;bottom:-80px;left:30%;width:200px;height:200px;border-radius:50%;background:rgba(45,158,101,0.08);}
+.hero-tag{font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:#2d9e65;margin-bottom:12px;}
+.hero-title{font-size:36px;font-weight:600;line-height:1.1;margin-bottom:6px;position:relative;z-index:1;}
+.hero-sub{font-size:15px;color:rgba(255,255,255,0.5);position:relative;z-index:1;}
+.hero-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:36px;border-top:1px solid rgba(255,255,255,0.1);padding-top:28px;position:relative;z-index:1;}
+.hero-metric{padding-right:24px;}
+.hero-metric+.hero-metric{border-left:1px solid rgba(255,255,255,0.1);padding-left:24px;}
+.hero-metric-label{font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+.hero-metric-value{font-size:28px;font-weight:600;color:white;line-height:1;}
+.hero-metric-sub{font-size:12px;color:rgba(255,255,255,0.35);margin-top:4px;}
+.container{max-width:960px;margin:0 auto;padding:32px 24px;}
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:24px;}
+.tab{flex:1;padding:10px 12px;border-radius:9px;border:none;background:none;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;color:var(--text-muted);transition:all 0.15s;}
+.tab:hover{background:var(--bg);color:var(--text);}
+.tab.active{background:#0f2d1a;color:white;}
+.view{display:none;animation:fadeIn 0.2s ease;}
+.view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+.section-label{font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:16px;}
+.player-grid{display:flex;flex-direction:column;gap:10px;}
+.player-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;transition:box-shadow 0.15s;}
+.player-card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.07);}
+.player-top{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;font-family:var(--mono);}
+.player-info{flex:1;}
+.player-name{font-size:15px;font-weight:600;}
+.player-meta{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.proposed-total{text-align:right;}
+.proposed-amt{font-size:22px;font-weight:600;font-family:var(--mono);}
+.proposed-lbl{font-size:11px;color:var(--text-faint);margin-top:1px;}
+.player-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+.pstat-label{font-size:11px;color:var(--text-faint);margin-bottom:3px;}
+.pstat-value{font-size:14px;font-weight:500;font-family:var(--mono);}
+.sin-bar-bg{height:4px;background:var(--bg);border-radius:2px;margin-top:14px;overflow:hidden;}
+.sin-bar-fill{height:4px;border-radius:2px;}
+.rank-pip{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:600;font-family:var(--mono);background:#0f2d1a;color:white;margin-right:6px;}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;}
+.chart-title{font-size:14px;font-weight:600;margin-bottom:4px;}
+.chart-sub{font-size:12px;color:var(--text-muted);margin-bottom:20px;}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:16px;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+.fun-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.fun-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;}
+.fun-emoji{font-size:24px;margin-bottom:10px;}
+.fun-title{font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:6px;}
+.fun-value{font-size:18px;font-weight:600;line-height:1.2;}
+.fun-sub{font-size:12px;color:var(--text-muted);margin-top:4px;}
+.shame-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.shame-row:last-child{border-bottom:none;}
+.shame-pos{font-size:13px;font-weight:600;font-family:var(--mono);color:var(--text-faint);width:20px;}
+.shame-name{flex:1;font-size:14px;font-weight:500;}
+.shame-val{font-size:14px;font-weight:600;font-family:var(--mono);}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;}
+.pill-red{background:var(--red-light);color:var(--red);}
+.pill-green{background:var(--green-light);color:var(--green);}
+.pill-amber{background:var(--amber-light);color:var(--amber);}
+footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);border-top:1px solid var(--border);}
+@media(max-width:600px){
+  .hero{padding:32px 20px 28px;}.hero-title{font-size:26px;}
+  .hero-metrics{grid-template-columns:repeat(2,1fr);gap:16px;}
+  .hero-metric+.hero-metric{border-left:none;padding-left:0;}
+  .hero-metric:nth-child(3),.hero-metric:nth-child(4){border-top:1px solid rgba(255,255,255,0.1);padding-top:16px;}
+  .player-stats{grid-template-columns:repeat(2,1fr);}
+  .fun-grid{grid-template-columns:1fr;}
+  .tabs{flex-wrap:wrap;}
+  .container{padding:20px 16px;}
+}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div style="font-size:13px;color:#6b6b60;">Loading Sin Bin data...</div>
+</div>
+
+<div id="app" style="display:none;">
+<div class="hero">
+  <div class="hero-tag">Riversdale Golf Club</div>
+  <div class="hero-title">Sin Bin 2026</div>
+  <div class="hero-sub" id="hero-sub"></div>
+  <div class="hero-metrics">
+    <div class="hero-metric">
+      <div class="hero-metric-label">Sin Jar total</div>
+      <div class="hero-metric-value" id="h-sinjar"></div>
+      <div class="hero-metric-sub">net of earnings</div>
+    </div>
+    <div class="hero-metric">
+      <div class="hero-metric-label">Proposed total</div>
+      <div class="hero-metric-value" id="h-proposed"></div>
+      <div class="hero-metric-sub">incl. adjustments</div>
+    </div>
+    <div class="hero-metric">
+      <div class="hero-metric-label">Sin rounds</div>
+      <div class="hero-metric-value" id="h-sinrounds"></div>
+      <div class="hero-metric-sub" id="h-sinrounds-sub"></div>
+    </div>
+    <div class="hero-metric">
+      <div class="hero-metric-label">Biggest sinner</div>
+      <div class="hero-metric-value" id="h-sinner"></div>
+      <div class="hero-metric-sub" id="h-sinner-sub"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('leaderboard',this)">Leaderboard</button>
+    <button class="tab" onclick="showTab('charts',this)">Charts</button>
+    <button class="tab" onclick="showTab('fun',this)">Stats &amp; records</button>
+  </div>
+
+  <div id="leaderboard" class="view active">
+    <div class="section-label">Proposed total — sorted by most owed</div>
+    <div class="player-grid" id="player-grid"></div>
+  </div>
+
+  <div id="charts" class="view">
+    <div style="display:grid;gap:16px;">
+      <div class="chart-card">
+        <div class="chart-title">Sin percentage by player</div>
+        <div class="chart-sub">Sin rounds &divide; total rounds. Each round under 30 pts = 1 sin.</div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#c0392b;"></div>High sinners (&gt;30%)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#1a7a4a;"></div>Clean players (&le;30%)</div>
+        </div>
+        <div style="position:relative;width:100%;height:260px;">
+          <canvas id="sinChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Rounds played vs group average</div>
+        <div class="chart-sub" id="rounds-chart-sub"></div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#1a7a4a;"></div>Above average</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#c0392b;"></div>Below average</div>
+        </div>
+        <div style="position:relative;width:100%;height:260px;">
+          <canvas id="roundsChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="fun" class="view">
+    <div class="section-label">Records &amp; highlights</div>
+    <div class="fun-grid" id="fun-grid" style="margin-bottom:24px;"></div>
+    <div class="section-label">Sin leaderboard — total penalties paid</div>
+    <div class="chart-card" id="shame-list" style="margin-bottom:16px;"></div>
+    <div class="chart-card">
+      <div class="chart-title" style="margin-bottom:16px;">Full summary</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border);">
+            <th style="text-align:left;padding:8px 0;font-weight:600;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Player</th>
+            <th style="text-align:center;padding:8px 4px;font-weight:600;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Rnds</th>
+            <th style="text-align:center;padding:8px 4px;font-weight:600;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Rank</th>
+            <th style="text-align:center;padding:8px 4px;font-weight:600;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Sin %</th>
+            <th style="text-align:center;padding:8px 4px;font-weight:600;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Paid</th>
+            <th style="text-align:center;padding:8px 4px;font-weight:600;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">$/Round</th>
+            <th style="text-align:center;padding:8px 4px;font-weight:600;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Last Round</th>
+            <th style="text-align:right;padding:8px 0;font-weight:600;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Proposed</th>
+          </tr>
+        </thead>
+        <tbody id="summary-table"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer id="footer"></footer>
+</div>
+
+<script>
+const SHEET_ID = '1xuvNuznPiwCkdKhpVDDiecYltKG8MkJrOs2yhJDkvyU';
+const GID     = '792179785';
+
+const PLAYER_CONFIG = {
+  'Neil Hua':           { init:'NH', bg:'#FCEBEB', col:'#501313', bar:'#A32D2D' },
+  'Geoff Camilleri':    { init:'GC', bg:'#FBEAF0', col:'#4B1528', bar:'#993556' },
+  'Nick Ooi':           { init:'NO', bg:'#EEEDFE', col:'#26215C', bar:'#533AB7' },
+  'Dan Phan':           { init:'DP', bg:'#FAEEDA', col:'#412402', bar:'#854F0B' },
+  'Williams Rodriguez': { init:'WR', bg:'#EAF3DE', col:'#173404', bar:'#3B6D11' },
+  'Lawrence Walshe':    { init:'LW', bg:'#F1EFE8', col:'#2C2C2A', bar:'#5F5E5A' },
+  'Mick Lawlor':        { init:'ML', bg:'#E6F1FB', col:'#0C447C', bar:'#185FA5' },
+  'Geoffrey Soo':       { init:'GS', bg:'#E1F5EE', col:'#04342C', bar:'#0F6E56' },
+  'Brett Adams':        { init:'BA', bg:'#EAF3DE', col:'#173404', bar:'#1a7a4a' },
+  'Andy Bryant':        { init:'AB', bg:'#FAECE7', col:'#4A1B0C', bar:'#993C1D' },
+};
+
+function parseMoney(str) {
+  if (!str) return 0;
+  return Math.abs(parseFloat(String(str).replace(/[$,\s]/g,'')) || 0);
+}
+
+function parseDateStr(str) {
+  if (!str) return null;
+  // "13-Apr-2026" or "2-Jan-2026"
+  const months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  const m = String(str).match(/(\d+)-([A-Za-z]+)-(\d+)/);
+  if (m) return new Date(+m[3], months[m[2]], +m[1]);
+  return new Date(str);
+}
+
+function daysAgo(dateStr) {
+  const d = parseDateStr(dateStr);
+  if (!d || isNaN(d)) return '—';
+  const diff = Math.floor((new Date() - d) / 86400000);
+  return diff === 0 ? 'today' : diff === 1 ? '1 day ago' : `${diff} days ago`;
+}
+
+function sinPctPill(pct) {
+  const p = typeof pct === 'string' ? parseInt(pct) : pct;
+  if (p > 30) return `<span class="pill pill-red">${p}%</span>`;
+  if (p > 15) return `<span class="pill pill-amber">${p}%</span>`;
+  return `<span class="pill pill-green">${p}%</span>`;
+}
+
+async function loadData() {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}`;
+  const res  = await fetch(url);
+  const text = await res.text();
+  const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+  const rows = json.table.rows;
+
+  // --- Round data (cols 0-8) ---
+  const rounds = rows
+    .filter(r => r.c[0]?.v && r.c[1]?.v && r.c[4]?.v !== undefined && r.c[4]?.v !== null)
+    .map(r => ({
+      dateStr:  r.c[0]?.f || String(r.c[0]?.v || ''),
+      player:   String(r.c[1]?.v || ''),
+      score:    Number(r.c[4]?.v || 0),
+      gaHcp:    r.c[6]?.v,
+      penalty:  parseMoney(r.c[7]?.f || r.c[7]?.v),
+      lastPlayed: r.c[3]?.f || r.c[3]?.v || '',
+    }));
+
+  // --- Per-player stats from round data ---
+  const today = new Date();
+  const stats = {};
+  rounds.forEach(r => {
+    if (!stats[r.player]) stats[r.player] = { rounds:0, sins:0, sinPaid:0, lastPlayed:'', gaHcp:null };
+    const p = stats[r.player];
+    p.rounds++;
+    if (r.score < 30) { p.sins++; p.sinPaid += r.penalty; }
+    if (r.lastPlayed) p.lastPlayed = r.lastPlayed; // same for all rows of same player
+    if (r.gaHcp !== null && r.gaHcp !== undefined) p.gaHcp = r.gaHcp;
+  });
+
+  // --- Summary table (right side of sheet) ---
+  // Row i: col 23=player, col 12=rounds, col 25=sinPaid, col 26=sin%, col 31=rank, col 32=sinCost, col 36=proposed
+  const summary = {};
+  rows.forEach(r => {
+    const name = r.c[23]?.v;
+    if (!name || typeof name !== 'string' || !name.match(/^[A-Z][a-z]/)) return;
+    summary[name] = {
+      rounds:    r.c[12]?.v || 0,
+      sinPaid:   parseMoney(r.c[25]?.f || r.c[25]?.v),
+      sinPct:    r.c[26]?.v ? parseInt(String(r.c[26].v).replace('%','')) : 0,
+      rank:      r.c[31]?.v || 0,
+      sinCost:   r.c[32]?.f || r.c[32]?.v || '',
+      roundAdj:  r.c[33]?.v || 0,
+      proposed:  parseMoney(r.c[36]?.f || r.c[36]?.v),
+    };
+  });
+
+  // --- Global totals ---
+  const sinJarTotal  = rows[0]?.c[11]?.f || rows[0]?.c[11]?.v || '';
+  const proposedTotal = rows[2]?.c[11]?.f || rows[2]?.c[11]?.v || '';
+  const totalRounds  = rounds.length;
+  const totalSins    = Object.values(stats).reduce((a,p) => a + p.sins, 0);
+
+  return { rounds, stats, summary, sinJarTotal, proposedTotal, totalRounds, totalSins };
+}
+
+function renderApp(data) {
+  const { stats, summary, sinJarTotal, proposedTotal, totalRounds, totalSins } = data;
+
+  // Build merged player list from summary (it has all 10 players)
+  const players = Object.entries(summary)
+    .filter(([name]) => PLAYER_CONFIG[name])
+    .map(([name, s]) => {
+      const st = stats[name] || { rounds:0, sins:0, sinPaid:0, lastPlayed:'', gaHcp:null };
+      const adjAmt = s.sinPaid - s.proposed;
+      const adjText = adjAmt === 0 ? 'no adjustment'
+        : adjAmt > 0 ? `+$${adjAmt.toFixed(0)} round benefit`
+        : `-$${Math.abs(adjAmt).toFixed(0)} round penalty`;
+      return { name, ...s, ...st, adjText,
+        sinPct: s.sinPct || Math.round(st.sins / (st.rounds || 1) * 100),
+        sinPaid: s.sinPaid || st.sinPaid,
+      };
+    })
+    .sort((a,b) => b.proposed - a.proposed);
+
+  // Biggest sinner by sin %
+  const biggestSinner = players.reduce((a,b) => a.sinPct > b.sinPct ? a : b);
+  const mostCommitted = players.reduce((a,b) => a.rounds > b.rounds ? a : b);
+  const cleanest      = players.reduce((a,b) => a.sinPct < b.sinPct ? a : b);
+  const deepest       = players[0];
+  const avgRounds     = (totalRounds / players.length).toFixed(1);
+
+  // --- Hero ---
+  document.getElementById('hero-sub').textContent =
+    `${totalRounds} rounds · ${players.length} players · as at ${new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}`;
+  document.getElementById('h-sinjar').textContent    = sinJarTotal;
+  document.getElementById('h-proposed').textContent  = proposedTotal;
+  document.getElementById('h-sinrounds').textContent = `${totalSins} / ${totalRounds}`;
+  document.getElementById('h-sinrounds-sub').textContent = `${Math.round(totalSins/totalRounds*100)}% of rounds sinned`;
+  document.getElementById('h-sinner').textContent = biggestSinner.name.split(' ')[0];
+  document.getElementById('h-sinner-sub').textContent = `${biggestSinner.sinPct}% sin rate`;
+
+  // --- Leaderboard cards ---
+  const maxProposed = players[0].proposed || 1;
+  document.getElementById('player-grid').innerHTML = players.map(p => {
+    const cfg = PLAYER_CONFIG[p.name];
+    const proposedColor = p.proposed > 0 ? '#c0392b' : '#1a7a4a';
+    const barWidth = Math.round(p.proposed / maxProposed * 100);
+    return `
+    <div class="player-card">
+      <div class="player-top">
+        <div class="avatar" style="background:${cfg.bg};color:${cfg.col};">${cfg.init}</div>
+        <div class="player-info">
+          <div class="player-name">${p.name}</div>
+          <div class="player-meta"><span class="rank-pip">${p.rank}</span>${p.sinCost}/round &middot; ${p.adjText}</div>
+        </div>
+        <div class="proposed-total">
+          <div class="proposed-amt" style="color:${proposedColor};">$${p.proposed.toFixed(2)}</div>
+          <div class="proposed-lbl">proposed</div>
+        </div>
+      </div>
+      <div class="player-stats">
+        <div><div class="pstat-label">Rounds</div><div class="pstat-value">${p.rounds}</div></div>
+        <div><div class="pstat-label">Sin %</div><div class="pstat-value">${p.sinPct}%</div></div>
+        <div><div class="pstat-label">Sin paid</div><div class="pstat-value">$${p.sinPaid}</div></div>
+        <div><div class="pstat-label">GA HCP</div><div class="pstat-value">${p.gaHcp !== null && p.gaHcp !== undefined ? p.gaHcp : '—'}</div></div>
+        <div><div class="pstat-label">Last round</div><div class="pstat-value" style="font-size:12px;">${daysAgo(p.lastPlayed)}</div></div>
+      </div>
+      <div class="sin-bar-bg"><div class="sin-bar-fill" style="width:${barWidth}%;background:${cfg.bar};"></div></div>
+    </div>`;
+  }).join('');
+
+  // --- Fun stats ---
+  document.getElementById('fun-grid').innerHTML = `
+    <div class="fun-card"><div class="fun-emoji">🏆</div><div class="fun-title">Most committed</div>
+      <div class="fun-value">${mostCommitted.name}</div><div class="fun-sub">${mostCommitted.rounds} rounds played</div></div>
+    <div class="fun-card"><div class="fun-emoji">😇</div><div class="fun-title">Cleanest player</div>
+      <div class="fun-value">${cleanest.name}</div><div class="fun-sub">${cleanest.sinPct}% sin rate</div></div>
+    <div class="fun-card"><div class="fun-emoji">😈</div><div class="fun-title">Biggest sinner</div>
+      <div class="fun-value">${biggestSinner.name}</div><div class="fun-sub">${biggestSinner.sinPct}% sin rate &amp; $${biggestSinner.sinPaid} in penalties</div></div>
+    <div class="fun-card"><div class="fun-emoji">💸</div><div class="fun-title">Deepest in the hole</div>
+      <div class="fun-value">${deepest.name}</div><div class="fun-sub">$${deepest.proposed.toFixed(2)} proposed total</div></div>`;
+
+  // --- Shame leaderboard ---
+  const shameSorted = [...players].sort((a,b) => b.sinPaid - a.sinPaid);
+  document.getElementById('shame-list').innerHTML = shameSorted.map((p, i) => {
+    const cfg = PLAYER_CONFIG[p.name];
+    return `<div class="shame-row">
+      <div class="shame-pos">${i+1}</div>
+      <div class="avatar" style="width:30px;height:30px;font-size:10px;background:${cfg.bg};color:${cfg.col};">${cfg.init}</div>
+      <div class="shame-name">${p.name}</div>
+      <div class="shame-val" style="color:#c0392b;">$${p.sinPaid}</div>
+    </div>`;
+  }).join('');
+
+  // --- Summary table ---
+  document.getElementById('summary-table').innerHTML = players.map(p => {
+    const propColor = p.proposed > 20 ? '#c0392b' : '#1a7a4a';
+    return `<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px 0;font-weight:500;">${p.name}</td>
+      <td style="text-align:center;padding:10px 4px;font-family:var(--mono);">${p.rounds}</td>
+      <td style="text-align:center;padding:10px 4px;font-family:var(--mono);">${p.rank}</td>
+      <td style="text-align:center;padding:10px 4px;">${sinPctPill(p.sinPct)}</td>
+      <td style="text-align:center;padding:10px 4px;font-family:var(--mono);">$${p.sinPaid}</td>
+      <td style="text-align:center;padding:10px 4px;font-family:var(--mono);">${p.sinCost}</td>
+      <td style="text-align:center;padding:10px 4px;font-family:var(--mono);">${daysAgo(p.lastPlayed)}</td>
+      <td style="text-align:right;padding:10px 0;font-family:var(--mono);font-weight:600;color:${propColor};">$${p.proposed.toFixed(2)}</td>
+    </tr>`;
+  }).join('');
+
+  // --- Footer ---
+  document.getElementById('footer').textContent =
+    `Riversdale Golf Club · Sin Bin 2026 · ${players.length} players · ${totalRounds} rounds · Live from Google Sheets`;
+
+  // --- Charts ---
+  document.getElementById('rounds-chart-sub').textContent =
+    `Average is ${avgRounds} rounds. Green = above average (benefit), red = below (penalty).`;
+
+  window._chartData = { players, avgRounds: parseFloat(avgRounds) };
+}
+
+function buildCharts() {
+  if (!window._chartData) return;
+  const { players, avgRounds } = window._chartData;
+
+  const sinSorted = [...players].sort((a,b) => b.sinPct - a.sinPct);
+  new Chart(document.getElementById('sinChart'), {
+    type: 'bar',
+    data: {
+      labels: sinSorted.map(p => p.name.split(' ').map((w,i) => i===0 ? w : w[0]).join(' ')),
+      datasets: [{ label: 'Sin %',
+        data: sinSorted.map(p => p.sinPct),
+        backgroundColor: sinSorted.map(p => p.sinPct > 30 ? PLAYER_CONFIG[p.name].bar : '#1a7a4a'),
+        borderRadius: 5 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label: i => i.raw+'%'}} },
+      scales:{ x:{grid:{display:false}}, y:{max:70, ticks:{callback:v=>v+'%'}, grid:{color:'rgba(0,0,0,0.05)'}}}
+    }
+  });
+
+  const roundsSorted = [...players].sort((a,b) => b.rounds - a.rounds);
+  const maxRounds = roundsSorted[0].rounds;
+  new Chart(document.getElementById('roundsChart'), {
+    type: 'bar',
+    data: {
+      labels: roundsSorted.map(p => p.name.split(' ').map((w,i) => i===0 ? w : w[0]).join(' ')),
+      datasets: [{ label: 'Rounds',
+        data: roundsSorted.map(p => p.rounds),
+        backgroundColor: roundsSorted.map(p => p.rounds >= avgRounds ? '#1a7a4a' : '#c0392b'),
+        borderRadius: 5 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:i=>i.raw+' rounds'}} },
+      scales:{ x:{grid:{display:false}}, y:{max: maxRounds + 3, grid:{color:'rgba(0,0,0,0.05)'}}}
+    },
+    plugins: [{
+      afterDraw(chart) {
+        const { ctx, chartArea:{left,right}, scales:{y} } = chart;
+        const yp = y.getPixelForValue(avgRounds);
+        ctx.save(); ctx.strokeStyle='#aaa'; ctx.setLineDash([4,4]); ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(left,yp); ctx.lineTo(right,yp); ctx.stroke();
+        ctx.fillStyle='#aaa'; ctx.font='11px DM Sans,sans-serif';
+        ctx.fillText(`avg ${avgRounds}`, right-52, yp-5);
+        ctx.restore();
+      }
+    }]
+  });
+}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'charts' && !window.chartsBuilt) { buildCharts(); window.chartsBuilt = true; }
+}
+
+// Init
+(async () => {
+  try {
+    const data = await loadData();
+    renderApp(data);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  } catch(e) {
+    document.getElementById('loading').innerHTML =
+      `<div style="color:#c0392b;font-size:14px;">Failed to load data.<br><small>${e.message}</small></div>`;
+  }
+})();
+</script>
+</body>
+</html>
