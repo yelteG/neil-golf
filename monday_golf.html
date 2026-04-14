@@ -278,11 +278,14 @@ function renderAll(rounds, players) {
   const bestRound   = rounds.find(r => r.Score === seasonBest);
 
   // Season Best: purely from live data — only updates when a new round beats the current best
-  // Season Worst: hardcoded as Aaron Wong 24 (RACV Cape Schanck) until live data shows ≤24
+  // Season Worst: hardcoded as Aaron Wong 24 (RACV Cape Schanck).
+  // Only replaced if someone OTHER than Aaron Wong shoots 24 or lower at a Monday round.
   const HARDCODED_WORST = { score: 24, player: 'Aaron Wong', sub: '(RACV Cape Schanck)' };
-  const useDataWorst = dataWorst <= HARDCODED_WORST.score;  // replace when someone shoots 24 or lower
-  const seasonWorst  = useDataWorst ? dataWorst : HARDCODED_WORST.score;
-  const worstRound   = useDataWorst ? rounds.find(r => r.Score === dataWorst) : null;
+  const othersScores  = rounds.filter(r => r.Player !== 'Aaron Wong').map(r => r.Score).filter(s => !isNaN(s));
+  const othersWorst   = othersScores.length ? Math.min(...othersScores) : Infinity;
+  const useDataWorst  = othersWorst <= HARDCODED_WORST.score;
+  const seasonWorst   = useDataWorst ? othersWorst : HARDCODED_WORST.score;
+  const worstRound    = useDataWorst ? rounds.find(r => r.Player !== 'Aaron Wong' && r.Score === othersWorst) : null;
 
   document.getElementById('stat-total-rounds').textContent = totalRounds;
   document.getElementById('stat-total-sub').textContent    = `across ${numMondays} Monday${numMondays!==1?'s':''}`;
@@ -475,8 +478,4 @@ async function init() {
 
     renderAll(riversdaleRounds, players);
     document.getElementById('loading').style.display = 'none';
-    document.getElementById('main').style.display    = 'block';
-  } catch(e) {
-    document.getElementById('loading').innerHTML =
-      `<div class="error-box" style="margin:0;"><strong>Could not load data</strong><br><br>${e.message}<br><br>
-      Make sure the sheet is shared publicly (Anyone with t
+    document.getElementById('main').style.display
