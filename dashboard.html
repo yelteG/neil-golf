@@ -671,7 +671,7 @@ function renderHcpTracker(rows) {
 
   // Flag logic: col J = 'Gross Diff' = actual score differentials (10.4, 12.9, 16.4 etc)
   const diffs = last20.map((r,i) => {
-    const val = parseFloat(r['Gross Diff']);
+    const val = parseFloat(r['Prior GA Hcp']);
     return { i, diff: val, pending: isNaN(val) || val === 0 };
   });
   const validDiffs = diffs.filter(d => !d.pending);
