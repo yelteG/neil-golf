@@ -442,6 +442,7 @@ function buildCharts() {
 
 // ── Bootstrap ────────────────────────────────────────────────────────────────
 async function init() {
+  console.log('init() called, SHEET_ID:', SHEET_ID);
   if (SHEET_ID === 'YOUR_SHEET_ID_HERE') {
     document.getElementById('loading').innerHTML =
       '<div class="error-box" style="margin:0;"><strong>Sheet not configured</strong><br><br>Open this file and replace <code>YOUR_SHEET_ID_HERE</code> with your Monday Golf Google Sheet ID.</div>';
@@ -449,7 +450,9 @@ async function init() {
   }
 
   try {
+    console.log('Fetching sheet...');
     const rawRows = await fetchSheet('Rounds');
+    console.log('Got rows:', rawRows ? rawRows.length : 'null');
     if (!rawRows || rawRows.length === 0) throw new Error('No data found in Rounds sheet');
 
     // Normalise: the scraper uses "Player Name" — map to "Player" for renderAll
@@ -475,7 +478,3 @@ async function init() {
     const riversdaleRounds = rounds.filter(r => r.Course.toLowerCase().includes('riversdale'));
 
     if (riversdaleRounds.length === 0) throw new Error('No Riversdale rounds found');
-
-    renderAll(riversdaleRounds, players);
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('main').style.display
