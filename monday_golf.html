@@ -123,6 +123,7 @@ const SHEET_ID = '1xfDsiBHesvJvEMDD8Rq9vhRfOKV2ZmIs5URPSa96kWc'; // Monday Golf 
   <div class="tabs">
     <button class="tab active" onclick="showTab('leaderboard',this)">Leaderboard</button>
     <button class="tab" onclick="showTab('weekly',this)">Weekly results</button>
+    <button class="tab" onclick="showTab('best',this)">Best scores</button>
     <button class="tab" onclick="showTab('chart',this)">Form chart</button>
     <button class="tab" onclick="showTab('records',this)">Records</button>
   </div>
@@ -142,6 +143,12 @@ const SHEET_ID = '1xfDsiBHesvJvEMDD8Rq9vhRfOKV2ZmIs5URPSa96kWc'; // Monday Golf 
         <tbody id="weekly-body"></tbody>
       </table>
     </div>
+  </div>
+
+  <div id="best" class="view">
+    <div class="section-eyebrow">Personal bests</div>
+    <div class="section-title">Highest score ranking</div>
+    <div class="card" id="best-list"></div>
   </div>
 
   <div id="chart" class="view">
@@ -318,6 +325,41 @@ function renderAll(rounds, players) {
         <div class="score-block"><div class="score-label">Avg</div><div class="score-value">${s.avg.toFixed(1)}</div></div>
         <div class="score-block"><div class="score-label">Best</div><div class="score-value high">${s.best}</div></div>
         <div class="score-block"><div class="score-label">Worst</div><div class="score-value low">${s.worst}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── Best scores tab ─────────────────────────────────────────────────────────
+  // Sort players by their personal best score, highest first
+  const bestSorted = Object.entries(stats)
+    .filter(([,s]) => s.rounds > 0)
+    .sort(([,a],[,b]) => b.best - a.best);
+
+  const topBest = bestSorted.length ? bestSorted[0][1].best : 1;
+
+  const bl = document.getElementById('best-list');
+  bl.innerHTML = bestSorted.map(([name, s], i) => {
+    const cfg = PLAYERS[name] || { initials: name.split(' ').map(w=>w[0]).join(''), bg:'#eee', color:'#333', bar:'#666' };
+    // Find the round where this best score was achieved
+    const bestRound = s.scores.find(r => r.Score === s.best);
+    const bestDate  = bestRound ? bestRound.Date : '—';
+    const bestCourse = bestRound ? (bestRound.Course || '') : '';
+    const pct = ((s.best / topBest) * 100).toFixed(1);
+    const hcpVal = hcpMap[name];
+    const hcpStr = hcpVal != null ? ` · HCP ${parseFloat(hcpVal).toFixed(1)}` : '';
+    const pillCls = scorePillClass(s.best);
+    return `<div class="player-row">
+      <div class="player-pos ${posClass(i)}">${i+1}</div>
+      <div class="player-avatar" style="background:${cfg.bg};color:${cfg.color};">${cfg.initials}</div>
+      <div class="player-info">
+        <div class="player-name">${name}</div>
+        <div class="player-meta">${bestDate}${bestCourse ? ' · ' + bestCourse : ''}${hcpStr}</div>
+        <div class="player-bar-bg"><div class="player-bar" style="width:${pct}%;background:${cfg.bar};"></div></div>
+      </div>
+      <div class="player-scores">
+        <div class="score-block"><div class="score-label">Best</div><div class="score-value high">${s.best}</div></div>
+        <div class="score-block"><div class="score-label">Avg</div><div class="score-value">${s.avg.toFixed(1)}</div></div>
+        <div class="score-block"><div class="score-label">Rounds</div><div class="score-value" style="font-size:14px;">${s.rounds}</div></div>
       </div>
     </div>`;
   }).join('');
