@@ -676,8 +676,7 @@ function renderHcpTracker(rows) {
   });
   const validDiffs = diffs.filter(d => !d.pending);
   const sorted = [...validDiffs].sort((a,b) => a.diff - b.diff);
-  const threshold = sorted.length >= 8 ? sorted[7].diff : (sorted.length > 0 ? sorted[sorted.length-1].diff : Infinity);
-  const best8idx = new Set(validDiffs.filter(d => d.diff <= threshold).map(d => d.i));
+  const best8idx = new Set(sorted.slice(0, 8).map(d => d.i));
 
   // Summary: best 8 diffs
   const best8diffs = sorted.slice(0,8).map(d => d.diff);
