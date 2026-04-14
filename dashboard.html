@@ -671,7 +671,7 @@ function renderHcpTracker(rows) {
 
   // Flag logic: col J = 'Gross Diff' = actual score differentials (10.4, 12.9, 16.4 etc)
   const diffs = last20.map((r,i) => {
-    const val = parseFloat(r['Prior GA Hcp']);
+    const val = parseFloat(r['Gross Diff']);
     return { i, diff: val, pending: isNaN(val) || val === 0 };
   });
   const validDiffs = diffs.filter(d => !d.pending);
@@ -741,8 +741,8 @@ function renderHcpTracker(rows) {
     const slope        = r['Slope'] || '';
     const dailyDiff    = r['Daily Diff'] || '';
     const dailyHcp     = r['Daily Hcp'] || '';
-    const diff         = parseFloat(r['Prior GA Hcp']);
-    const priorHcp     = r['Gross Diff'] || '';
+    const diff         = parseFloat(r['Gross Diff']);
+    const priorHcp     = r['Prior GA Hcp'] || '';
     const tee          = r['Tee'] || '';
 
     const diffDisplay = isPending
