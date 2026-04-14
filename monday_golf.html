@@ -283,7 +283,7 @@ function renderAll(rounds, players) {
   const HARDCODED_WORST = { score: 24, player: 'Aaron Wong', sub: '(RACV Cape Schanck)' };
   const othersScores  = rounds.filter(r => r.Player !== 'Aaron Wong').map(r => r.Score).filter(s => !isNaN(s));
   const othersWorst   = othersScores.length ? Math.min(...othersScores) : Infinity;
-  const useDataWorst  = othersWorst <= HARDCODED_WORST.score;
+  const useDataWorst  = othersWorst < HARDCODED_WORST.score;
   const seasonWorst   = useDataWorst ? othersWorst : HARDCODED_WORST.score;
   const worstRound    = useDataWorst ? rounds.find(r => r.Player !== 'Aaron Wong' && r.Score === othersWorst) : null;
 
