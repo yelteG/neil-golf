@@ -173,6 +173,17 @@ const PLAYERS = {
 };
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function parseGvizDate(val) {
+  if (!val) return '';
+  // gviz returns sheet DATE() formulas as "Date(yyyy,m,d)" — month is 0-indexed
+  const m = String(val).match(/Date\((\d+),(\d+),(\d+)\)/);
+  if (m) return `${parseInt(m[3])} ${MONTHS[parseInt(m[2])]} ${m[1]}`;
+  // Already a readable string (e.g. manually typed "12 Jan 2026") — return as-is
+  return String(val);
+}
+
 function scorePillClass(s) {
   return s >= 36 ? 'great' : s >= 32 ? 'good' : s >= 28 ? 'avg' : 'bad';
 }
@@ -433,7 +444,7 @@ async function init() {
     // Also pick up GA Handicap per player from the data (no separate Players tab needed)
     const rounds = rawRows.map(r => ({
       Player:  (r['Player Name'] || r['Player'] || '').trim(),
-      Date:    r['Date'] || '',
+      Date:    parseGvizDate(r['Date']),
       Score:   Number(r['Score']),
       Course:  r['Course'] || '',
       Tee:     r['Tee']    || '',
