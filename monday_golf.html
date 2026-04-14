@@ -478,3 +478,19 @@ async function init() {
     const riversdaleRounds = rounds.filter(r => r.Course.toLowerCase().includes('riversdale'));
 
     if (riversdaleRounds.length === 0) throw new Error('No Riversdale rounds found');
+
+    renderAll(riversdaleRounds, players);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('main').style.display    = 'block';
+  } catch(e) {
+    console.error('init() error:', e);
+    document.getElementById('loading').innerHTML =
+      `<div class="error-box" style="margin:0;"><strong>Could not load data</strong><br><br>${e.message}<br><br>
+      Make sure the sheet is shared publicly (Anyone with the link → Viewer).</div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
