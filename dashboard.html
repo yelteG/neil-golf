@@ -479,21 +479,32 @@ function renderInsights(stats) {
   const calcHcp10 = (sumBest8_10 / 8) * 0.93;
   const dailyHcp10 = Math.round((stats.currentHcp * sl10 / 113 + (sr10 - par10)) * 0.93 * 0.9986);
 
-  // Score to drop HCP by 0.5 and 1.0 — realistic next goals
-  function scoreForDrop(drop) {
-    const target = Math.round((calcHcp10 - drop) * 10) / 10;
-    const needed = (target / 0.93) * 8 - (sumBest8_10 - worst8);
-    return { target: target.toFixed(1), score: Math.ceil(36 + dailyHcp10 + par10 - sr10 - (needed * sl10 / 113)) };
+  // Calculate resulting HCP for a given stableford score
+  function hcpForScore(stableford) {
+    const diff = (36 + dailyHcp10 + par10 - sr10 - stableford) * (113 / sl10);
+    if (diff >= worst8) return null; // doesn't enter best 8
+    const newSum = sumBest8_10 - worst8 + diff;
+    return (Math.round((newSum / 8) * 0.93 * 10) / 10).toFixed(1);
   }
-  const goal1 = scoreForDrop(0.5);
-  const goal2 = scoreForDrop(1.0);
+
+  // Score just needed to enter best 8 at all (replace worst diff)
+  const minScore = Math.ceil(36 + dailyHcp10 + par10 - sr10 - (worst8 - 0.1) * sl10 / 113);
+  // Three realistic tiers: solid, good, great
+  const tier1Score = Math.max(minScore, 34);
+  const tier2Score = tier1Score + 2;
+  const tier3Score = tier1Score + 4;
+  const tier1Hcp = hcpForScore(tier1Score);
+  const tier2Hcp = hcpForScore(tier2Score);
+  const tier3Hcp = hcpForScore(tier3Score);
 
   document.getElementById('hcp10-text').innerHTML =
     `Your current handicap is <strong style="color:var(--gold)">${stats.currentHcp}</strong>. You need to drop <strong style="color:var(--text)">${hcpDiff} strokes</strong> to reach 10.
     Your low handicap over the past year is <strong style="color:var(--green)">${stats.lowHcp}</strong> — so you've been close recently.
     Your average score is <strong style="color:var(--text)">${stats.avg} pts</strong>.<br><br>
-    🎯 <strong style="color:var(--green)">Next goal — HCP ${goal1.target}:</strong> score <strong style="color:var(--green)">${goal1.score}+ pts</strong> in your next round.<br>
-    🏆 <strong style="color:var(--blue)">Bigger goal — HCP ${goal2.target}:</strong> score <strong style="color:var(--blue)">${goal2.score}+ pts</strong> in your next round.<br><br>
+    📌 <strong style="color:var(--text-muted)">Score ${minScore} pts</strong> to enter your best 8 at all — any lower won't move your HCP.<br>
+    🎯 <strong style="color:var(--green)">Score ${tier1Score} pts</strong> → HCP <strong style="color:var(--green)">${tier1Hcp || stats.currentHcp}</strong><br>
+    ⛳ <strong style="color:var(--blue)">Score ${tier2Score} pts</strong> → HCP <strong style="color:var(--blue)">${tier2Hcp || tier1Hcp}</strong><br>
+    🏆 <strong style="color:var(--gold)">Score ${tier3Score} pts</strong> → HCP <strong style="color:var(--gold)">${tier3Hcp || tier2Hcp}</strong><br><br>
     ${trendText}`;
 }
 
