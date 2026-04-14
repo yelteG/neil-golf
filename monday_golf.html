@@ -280,7 +280,7 @@ function renderAll(rounds, players) {
   // Season Best: purely from live data — only updates when a new round beats the current best
   // Season Worst: hardcoded as Aaron Wong 24 (RACV Cape Schanck) until live data shows ≤24
   const HARDCODED_WORST = { score: 24, player: 'Aaron Wong', sub: '(RACV Cape Schanck)' };
-  const useDataWorst = dataWorst < HARDCODED_WORST.score;  // strictly less — data only wins if it beats 24
+  const useDataWorst = dataWorst <= HARDCODED_WORST.score;  // replace when someone shoots 24 or lower
   const seasonWorst  = useDataWorst ? dataWorst : HARDCODED_WORST.score;
   const worstRound   = useDataWorst ? rounds.find(r => r.Score === dataWorst) : null;
 
