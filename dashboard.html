@@ -741,8 +741,8 @@ function renderHcpTracker(rows) {
     const slope        = r['Slope'] || '';
     const dailyDiff    = r['Daily Diff'] || '';
     const dailyHcp     = r['Daily Hcp'] || '';
-    const diff         = parseFloat(r['Gross Diff']);
-    const priorHcp     = r['Prior GA Hcp'] || '';
+    const diff         = parseFloat(r['Prior GA Hcp']);
+    const priorHcp     = r['Gross Diff'] || '';
     const tee          = r['Tee'] || '';
 
     const diffDisplay = isPending
