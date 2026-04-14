@@ -10,10 +10,6 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{--navy:#0d1f2d;--green:#2e7d52;--gold:#c9a84c;--gold-light:#e8c96a;--cream:#f7f3eb;--cream-dark:#ede8dd;--text:#1a1a16;--text-muted:#6b6458;--text-faint:#a09890;--border:rgba(0,0,0,0.08);--font-display:'Playfair Display',serif;--font:'Outfit',sans-serif;--radius:14px;}
 body{font-family:var(--font);background:var(--cream);color:var(--text);min-height:100vh;}
-#loading{position:fixed;inset:0;background:var(--cream);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px;}
-.spinner{width:36px;height:36px;border:3px solid rgba(13,31,45,0.15);border-top-color:var(--navy);border-radius:50%;animation:spin 0.8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-#main{display:none;}
 .hero{background:var(--navy);padding:56px 40px 48px;position:relative;overflow:hidden;}
 .hero::before{content:'';position:absolute;top:-100px;right:-80px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(46,125,82,0.2) 0%,transparent 70%);}
 .hero::after{content:'';position:absolute;bottom:-60px;left:20%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.1) 0%,transparent 70%);}
@@ -42,7 +38,6 @@ body{font-family:var(--font);background:var(--cream);color:var(--text);min-heigh
 .player-bar-bg{height:4px;background:var(--cream-dark);border-radius:2px;margin-top:8px;overflow:hidden;}
 .player-bar{height:4px;border-radius:2px;}
 .player-scores{display:flex;gap:20px;flex-shrink:0;text-align:right;}
-.score-block{min-width:36px;}
 .score-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);}
 .score-value{font-size:18px;font-weight:600;color:var(--text);font-family:var(--font-display);}
 .score-value.high{color:#2e7d52;}.score-value.low{color:#c0392b;}
@@ -66,7 +61,6 @@ body{font-family:var(--font);background:var(--cream);color:var(--text);min-heigh
 .tab:hover{background:var(--cream);}.tab.active{background:var(--navy);color:white;}
 .view{display:none;}.view.active{display:block;}
 footer{text-align:center;padding:28px;font-size:12px;color:var(--text-faint);border-top:1px solid var(--border);}
-.error-box{background:#fdecea;border:1px solid #f5c6c6;border-radius:var(--radius);padding:24px;text-align:center;color:#c0392b;margin:40px auto;max-width:500px;}
 @media(max-width:600px){
   .hero{padding:36px 20px 32px;}.hero-title{font-size:36px;}
   .hero-stats{grid-template-columns:repeat(2,1fr);gap:16px;}
@@ -79,42 +73,30 @@ footer{text-align:center;padding:28px;font-size:12px;color:var(--text-faint);bor
 </head>
 <body>
 
-<!-- ===== CONFIGURATION — update SHEET_ID after creating your Google Sheet ===== -->
-<script>
-const SHEET_ID = '1xfDsiBHesvJvEMDD8Rq9vhRfOKV2ZmIs5URPSa96kWc'; // Monday Golf 2026
-</script>
-<!-- =========================================================================== -->
-
-<div id="loading">
-  <div class="spinner"></div>
-  <div style="font-size:13px;color:var(--text-muted);">Loading Monday Golf data…</div>
-</div>
-
-<div id="main">
 <div class="hero">
   <div class="hero-eyebrow">Riversdale Golf Club</div>
   <div class="hero-title">Monday <span>Golf</span></div>
-  <div class="hero-sub" id="hero-sub">2026 Season · Riversdale GC rounds only</div>
+  <div class="hero-sub">2026 Season &middot; Riversdale GC rounds only &middot; as at 13 Apr 2026</div>
   <div class="hero-stats">
     <div class="hero-stat">
       <div class="hero-stat-label">Total rounds</div>
-      <div class="hero-stat-value" id="stat-total-rounds">—</div>
-      <div class="hero-stat-sub" id="stat-total-sub">—</div>
+      <div class="hero-stat-value">53</div>
+      <div class="hero-stat-sub">across 12 Mondays</div>
     </div>
     <div class="hero-stat">
       <div class="hero-stat-label">Players</div>
-      <div class="hero-stat-value" id="stat-players">—</div>
+      <div class="hero-stat-value">7</div>
       <div class="hero-stat-sub">active this season</div>
     </div>
     <div class="hero-stat">
       <div class="hero-stat-label">Season best</div>
-      <div class="hero-stat-value" id="stat-best-score">—</div>
-      <div class="hero-stat-sub" id="stat-best-sub">—</div>
+      <div class="hero-stat-value">40</div>
+      <div class="hero-stat-sub">Justin Khor, 16 Mar</div>
     </div>
     <div class="hero-stat">
       <div class="hero-stat-label">Season worst</div>
-      <div class="hero-stat-value" id="stat-worst-score">—</div>
-      <div class="hero-stat-sub" id="stat-worst-sub">—</div>
+      <div class="hero-stat-value">24</div>
+      <div class="hero-stat-sub">Aaron Wong, (RACV Cape Schanck)</div>
     </div>
   </div>
 </div>
@@ -130,7 +112,105 @@ const SHEET_ID = '1xfDsiBHesvJvEMDD8Rq9vhRfOKV2ZmIs5URPSa96kWc'; // Monday Golf 
   <div id="leaderboard" class="view active">
     <div class="section-eyebrow">Season standings</div>
     <div class="section-title">Average score leaderboard</div>
-    <div class="card" id="leaderboard-list"></div>
+    <div class="card">
+      <div class="player-row">
+        <div class="player-pos gold">1</div>
+        <div class="player-avatar" style="background:#e8f5ee;color:#1a5c3a;">AR</div>
+        <div class="player-info">
+          <div class="player-name">Adam Rugg</div>
+          <div class="player-meta">8 rounds &middot; HCP 7.9</div>
+          <div class="player-bar-bg"><div class="player-bar" style="width:100%;background:#2e7d52;"></div></div>
+        </div>
+        <div class="player-scores">
+          <div class="score-block"><div class="score-label">Avg</div><div class="score-value">34.2</div></div>
+          <div class="score-block"><div class="score-label">Best</div><div class="score-value high">39</div></div>
+          <div class="score-block"><div class="score-label">Worst</div><div class="score-value low">31</div></div>
+        </div>
+      </div>
+      <div class="player-row">
+        <div class="player-pos silver">2</div>
+        <div class="player-avatar" style="background:#fef9e7;color:#8a6e1e;">JK</div>
+        <div class="player-info">
+          <div class="player-name">Justin Khor</div>
+          <div class="player-meta">6 rounds &middot; HCP 11.4</div>
+          <div class="player-bar-bg"><div class="player-bar" style="width:96%;background:#c9a84c;"></div></div>
+        </div>
+        <div class="player-scores">
+          <div class="score-block"><div class="score-label">Avg</div><div class="score-value">32.8</div></div>
+          <div class="score-block"><div class="score-label">Best</div><div class="score-value high">40</div></div>
+          <div class="score-block"><div class="score-label">Worst</div><div class="score-value low">29</div></div>
+        </div>
+      </div>
+      <div class="player-row">
+        <div class="player-pos bronze">3</div>
+        <div class="player-avatar" style="background:#E1F5EE;color:#04342C;">EC</div>
+        <div class="player-info">
+          <div class="player-name">Edo Chan</div>
+          <div class="player-meta">1 rounds &middot; HCP 9.0</div>
+          <div class="player-bar-bg"><div class="player-bar" style="width:94%;background:#0F6E56;"></div></div>
+        </div>
+        <div class="player-scores">
+          <div class="score-block"><div class="score-label">Avg</div><div class="score-value">32.0</div></div>
+          <div class="score-block"><div class="score-label">Best</div><div class="score-value high">32</div></div>
+          <div class="score-block"><div class="score-label">Worst</div><div class="score-value low">32</div></div>
+        </div>
+      </div>
+      <div class="player-row">
+        <div class="player-pos ">4</div>
+        <div class="player-avatar" style="background:#e6f1fb;color:#0c3d73;">HN</div>
+        <div class="player-info">
+          <div class="player-name">Henry Nguo</div>
+          <div class="player-meta">10 rounds &middot; HCP 14.9</div>
+          <div class="player-bar-bg"><div class="player-bar" style="width:91%;background:#185FA5;"></div></div>
+        </div>
+        <div class="player-scores">
+          <div class="score-block"><div class="score-label">Avg</div><div class="score-value">31.2</div></div>
+          <div class="score-block"><div class="score-label">Best</div><div class="score-value high">38</div></div>
+          <div class="score-block"><div class="score-label">Worst</div><div class="score-value low">24</div></div>
+        </div>
+      </div>
+      <div class="player-row">
+        <div class="player-pos ">5</div>
+        <div class="player-avatar" style="background:#faeeda;color:#5a3507;">GW</div>
+        <div class="player-info">
+          <div class="player-name">Greg Wong</div>
+          <div class="player-meta">11 rounds &middot; HCP 16.8</div>
+          <div class="player-bar-bg"><div class="player-bar" style="width:91%;background:#854F0B;"></div></div>
+        </div>
+        <div class="player-scores">
+          <div class="score-block"><div class="score-label">Avg</div><div class="score-value">31.0</div></div>
+          <div class="score-block"><div class="score-label">Best</div><div class="score-value high">36</div></div>
+          <div class="score-block"><div class="score-label">Worst</div><div class="score-value low">25</div></div>
+        </div>
+      </div>
+      <div class="player-row">
+        <div class="player-pos ">6</div>
+        <div class="player-avatar" style="background:#fbeaf0;color:#6b2239;">AW</div>
+        <div class="player-info">
+          <div class="player-name">Aaron Wong</div>
+          <div class="player-meta">11 rounds &middot; HCP 10.6</div>
+          <div class="player-bar-bg"><div class="player-bar" style="width:90%;background:#993556;"></div></div>
+        </div>
+        <div class="player-scores">
+          <div class="score-block"><div class="score-label">Avg</div><div class="score-value">30.7</div></div>
+          <div class="score-block"><div class="score-label">Best</div><div class="score-value high">37</div></div>
+          <div class="score-block"><div class="score-label">Worst</div><div class="score-value low">23</div></div>
+        </div>
+      </div>
+      <div class="player-row">
+        <div class="player-pos ">7</div>
+        <div class="player-avatar" style="background:#fcebeb;color:#6e1e1e;">NH</div>
+        <div class="player-info">
+          <div class="player-name">Neil Hua</div>
+          <div class="player-meta">6 rounds &middot; HCP 14.0</div>
+          <div class="player-bar-bg"><div class="player-bar" style="width:83%;background:#A32D2D;"></div></div>
+        </div>
+        <div class="player-scores">
+          <div class="score-block"><div class="score-label">Avg</div><div class="score-value">28.5</div></div>
+          <div class="score-block"><div class="score-label">Best</div><div class="score-value high">36</div></div>
+          <div class="score-block"><div class="score-label">Worst</div><div class="score-value low">24</div></div>
+        </div>
+      </div></div>
   </div>
 
   <div id="weekly" class="view">
@@ -139,7 +219,325 @@ const SHEET_ID = '1xfDsiBHesvJvEMDD8Rq9vhRfOKV2ZmIs5URPSa96kWc'; // Monday Golf 
     <div class="card">
       <table class="week-table">
         <thead><tr><th>Date</th><th>Player</th><th>Score</th><th>Result</th></tr></thead>
-        <tbody id="weekly-body"></tbody>
+        <tbody>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;">12 Jan</td>
+          <td style="font-weight:500;">Adam Rugg</td>
+          <td><span class="score-pill good">35</span></td>
+          <td><span class="winner-badge">WINNER</span></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Greg Wong</td>
+          <td><span class="score-pill good">34</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Henry Nguo</td>
+          <td><span class="score-pill good">33</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Neil Hua</td>
+          <td><span class="score-pill bad">27</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Aaron Wong</td>
+          <td><span class="score-pill bad">23</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;">19 Jan</td>
+          <td style="font-weight:500;">Greg Wong</td>
+          <td><span class="score-pill good">33</span></td>
+          <td><span class="winner-badge">WINNER</span></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Justin Khor</td>
+          <td><span class="score-pill good">32</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Aaron Wong</td>
+          <td><span class="score-pill avg">31</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Adam Rugg</td>
+          <td><span class="score-pill avg">31</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Henry Nguo</td>
+          <td><span class="score-pill avg">31</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;">2 Feb</td>
+          <td style="font-weight:500;">Adam Rugg</td>
+          <td><span class="score-pill great">36</span></td>
+          <td><span class="winner-badge">WINNER</span></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Greg Wong</td>
+          <td><span class="score-pill good">33</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Justin Khor</td>
+          <td><span class="score-pill avg">29</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Aaron Wong</td>
+          <td><span class="score-pill avg">28</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Henry Nguo</td>
+          <td><span class="score-pill bad">24</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;">9 Feb</td>
+          <td style="font-weight:500;">Henry Nguo</td>
+          <td><span class="score-pill great">36</span></td>
+          <td><span class="winner-badge">WINNER</span></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Aaron Wong</td>
+          <td><span class="score-pill good">35</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Greg Wong</td>
+          <td><span class="score-pill good">33</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;">16 Feb</td>
+          <td style="font-weight:500;">Greg Wong</td>
+          <td><span class="score-pill great">36</span></td>
+          <td><span class="winner-badge">WINNER</span></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Aaron Wong</td>
+          <td><span class="score-pill good">35</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Justin Khor</td>
+          <td><span class="score-pill avg">30</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Henry Nguo</td>
+          <td><span class="score-pill bad">26</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Neil Hua</td>
+          <td><span class="score-pill bad">24</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;">23 Feb</td>
+          <td style="font-weight:500;">Justin Khor</td>
+          <td><span class="score-pill great">36</span></td>
+          <td><span class="winner-badge">WINNER</span></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Aaron Wong</td>
+          <td><span class="score-pill good">32</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Adam Rugg</td>
+          <td><span class="score-pill avg">31</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Neil Hua</td>
+          <td><span class="score-pill avg">31</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Henry Nguo</td>
+          <td><span class="score-pill avg">30</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Greg Wong</td>
+          <td><span class="score-pill bad">25</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;">2 Mar</td>
+          <td style="font-weight:500;">Henry Nguo</td>
+          <td><span class="score-pill good">33</span></td>
+          <td><span class="winner-badge">WINNER</span></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Edo Chan</td>
+          <td><span class="score-pill good">32</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;">9 Mar</td>
+          <td style="font-weight:500;">Adam Rugg</td>
+          <td><span class="score-pill good">32</span></td>
+          <td><span class="winner-badge">WINNER</span></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Aaron Wong</td>
+          <td><span class="score-pill avg">30</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Greg Wong</td>
+          <td><span class="score-pill bad">25</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;">16 Mar</td>
+          <td style="font-weight:500;">Justin Khor</td>
+          <td><span class="score-pill great">40</span></td>
+          <td><span class="winner-badge">WINNER</span></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Adam Rugg</td>
+          <td><span class="score-pill great">39</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Henry Nguo</td>
+          <td><span class="score-pill great">38</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Neil Hua</td>
+          <td><span class="score-pill great">36</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Greg Wong</td>
+          <td><span class="score-pill good">33</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Aaron Wong</td>
+          <td><span class="score-pill avg">30</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;">30 Mar</td>
+          <td style="font-weight:500;">Adam Rugg</td>
+          <td><span class="score-pill great">36</span></td>
+          <td><span class="winner-badge">WINNER</span></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Henry Nguo</td>
+          <td><span class="score-pill good">33</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Aaron Wong</td>
+          <td><span class="score-pill avg">30</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Justin Khor</td>
+          <td><span class="score-pill avg">30</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Neil Hua</td>
+          <td><span class="score-pill bad">26</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Greg Wong</td>
+          <td><span class="score-pill bad">25</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;">6 Apr</td>
+          <td style="font-weight:500;">Greg Wong</td>
+          <td><span class="score-pill good">32</span></td>
+          <td><span class="winner-badge">WINNER</span></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Aaron Wong</td>
+          <td><span class="score-pill bad">27</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;">13 Apr</td>
+          <td style="font-weight:500;">Aaron Wong</td>
+          <td><span class="score-pill great">37</span></td>
+          <td><span class="winner-badge">WINNER</span></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Adam Rugg</td>
+          <td><span class="score-pill good">34</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Greg Wong</td>
+          <td><span class="score-pill good">32</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Henry Nguo</td>
+          <td><span class="score-pill avg">28</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:var(--text-muted);font-size:12px;"></td>
+          <td style="font-weight:500;">Neil Hua</td>
+          <td><span class="score-pill bad">27</span></td>
+          <td></td>
+        </tr></tbody>
       </table>
     </div>
   </div>
@@ -153,328 +551,193 @@ const SHEET_ID = '1xfDsiBHesvJvEMDD8Rq9vhRfOKV2ZmIs5URPSa96kWc'; // Monday Golf 
   <div id="records" class="view">
     <div class="section-eyebrow">Hall of fame</div>
     <div class="section-title">Season records</div>
-    <div class="records-grid" id="records-grid"></div>
+    <div class="records-grid">
+      <div class="record-card">
+        <div class="record-icon">🏆</div>
+        <div class="record-label">Season best score</div>
+        <div class="record-value">40</div>
+        <div class="record-sub">Justin Khor &middot; 16 Mar</div>
+      </div>
+      <div class="record-card">
+        <div class="record-icon">😬</div>
+        <div class="record-label">Lowest score (all-time)</div>
+        <div class="record-value">24</div>
+        <div class="record-sub">Aaron Wong &middot; (RACV Cape Schanck)</div>
+      </div>
+      <div class="record-card">
+        <div class="record-icon">📅</div>
+        <div class="record-label">Most rounds played</div>
+        <div class="record-value">11 rounds</div>
+        <div class="record-sub">Greg Wong</div>
+      </div>
+      <div class="record-card">
+        <div class="record-icon">📊</div>
+        <div class="record-label">Best average</div>
+        <div class="record-value">34.2</div>
+        <div class="record-sub">Adam Rugg (min 3 rounds)</div>
+      </div>
+      <div class="record-card">
+        <div class="record-icon">🎯</div>
+        <div class="record-label">Most consistent</div>
+        <div class="record-value">Adam Rugg</div>
+        <div class="record-sub">Lowest score variance</div>
+      </div>
+      <div class="record-card">
+        <div class="record-icon">🥇</div>
+        <div class="record-label">Most Monday wins</div>
+        <div class="record-value">4 wins</div>
+        <div class="record-sub">Adam Rugg</div>
+      </div></div>
   </div>
 </div>
 
-<footer id="footer">Riversdale Golf Club · Monday Group 2026</footer>
-</div>
+<footer>Riversdale Golf Club &middot; Monday Group 2026 &middot; Riversdale GC rounds only &middot; Generated 13 Apr 2026</footer>
 
 <script>
-// ── Player config ──────────────────────────────────────────────────────────
-const PLAYERS = {
-  'Adam Rugg':   { initials:'AR', bg:'#e8f5ee', color:'#1a5c3a', bar:'#2e7d52'   },
-  'Justin Khor': { initials:'JK', bg:'#fef9e7', color:'#8a6e1e', bar:'#c9a84c'   },
-  'Edo Chan':    { initials:'EC', bg:'#E1F5EE', color:'#04342C', bar:'#0F6E56'   },
-  'Henry Nguo':  { initials:'HN', bg:'#e6f1fb', color:'#0c3d73', bar:'#185FA5'   },
-  'Greg Wong':   { initials:'GW', bg:'#faeeda', color:'#5a3507', bar:'#854F0B'   },
-  'Aaron Wong':  { initials:'AW', bg:'#fbeaf0', color:'#6b2239', bar:'#993556'   },
-  'Neil Hua':    { initials:'NH', bg:'#fcebeb', color:'#6e1e1e', bar:'#A32D2D'   },
-};
-
-// ── Helpers ─────────────────────────────────────────────────────────────────
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-function parseGvizDate(val) {
-  if (!val) return '';
-  // gviz returns sheet DATE() formulas as "Date(yyyy,m,d)" — month is 0-indexed
-  const m = String(val).match(/Date\((\d+),(\d+),(\d+)\)/);
-  if (m) return `${parseInt(m[3])} ${MONTHS[parseInt(m[2])]} ${m[1]}`;
-  // Already a readable string (e.g. manually typed "12 Jan 2026") — return as-is
-  return String(val);
-}
-
-function scorePillClass(s) {
-  return s >= 36 ? 'great' : s >= 32 ? 'good' : s >= 28 ? 'avg' : 'bad';
-}
-
-function posClass(i) {
-  return i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
-}
-
-function fmt(v) { return v !== null && v !== undefined ? v : '—'; }
-
-// Parse gviz JSON response
-function parseGviz(raw) {
-  const json = JSON.parse(raw.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, ''));
-  const cols = json.table.cols.map(c => c.label);
-  const rows = (json.table.rows || []).map(r =>
-    Object.fromEntries(cols.map((c, i) => [c, r.c[i] ? r.c[i].v : null]))
-  );
-  return rows;
-}
-
-// Fetch a sheet tab by name
-async function fetchSheet(sheetName) {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return parseGviz(await res.text());
-}
-
-// ── Tab logic ────────────────────────────────────────────────────────────────
 function showTab(id, btn) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   btn.classList.add('active');
-  if (id === 'chart' && !window.chartBuilt) { buildCharts(); window.chartBuilt = true; }
+  if (id === 'chart' && !window.chartBuilt) { buildChart(); window.chartBuilt = true; }
 }
 
-// ── Render functions ─────────────────────────────────────────────────────────
-let _chartData = null;
-
-function renderAll(rounds, players) {
-  // Build HCP lookup from players array
-  const hcpMap = {};
-  players.forEach(p => { if (p.Player) hcpMap[p.Player.trim()] = p.HCP; });
-
-  // Compute winner per date = highest scorer (no manual Winner column needed)
-  const maxPerDate = {};
-  rounds.forEach(r => {
-    if (!maxPerDate[r.Date] || r.Score > maxPerDate[r.Date]) maxPerDate[r.Date] = r.Score;
-  });
-  rounds.forEach(r => { r.Winner = (r.Score === maxPerDate[r.Date]); });
-
-  // Sort by date order (assume rows are in chronological order in sheet)
-  // Get unique ordered dates
-  const dateOrder = [];
-  const seenDates = new Set();
-  rounds.forEach(r => { if (!seenDates.has(r.Date)) { seenDates.add(r.Date); dateOrder.push(r.Date); }});
-
-  // Per-player stats
-  const playerNames = [...new Set(rounds.map(r => r.Player).filter(Boolean))];
-  const stats = {};
-  playerNames.forEach(name => {
-    const pr = rounds.filter(r => r.Player === name);
-    const scores = pr.map(r => r.Score).filter(s => !isNaN(s));
-    const wins = pr.filter(r => r.Winner).length;
-    const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
-    stats[name] = {
-      rounds: scores.length,
-      avg: avg,
-      best: Math.max(...scores),
-      worst: Math.min(...scores),
-      wins,
-      hcp: hcpMap[name] || null,
-      scores: pr, // all round rows in sheet order
-    };
-  });
-
-  // Sort leaderboard by avg desc
-  const sorted = Object.entries(stats)
-    .filter(([,s]) => s.rounds > 0)
-    .sort(([,a],[,b]) => b.avg - a.avg);
-
-  const maxAvg = sorted.length ? sorted[0][1].avg : 1;
-
-  // ── Hero stats ─────────────────────────────────────────────────────────────
-  const totalRounds = rounds.length;
-  const numMondays = dateOrder.length;
-  const allScores = rounds.map(r => r.Score).filter(s => !isNaN(s));
-  const seasonBest  = Math.max(...allScores);
-  const seasonWorst = Math.min(...allScores);
-  const bestRound   = rounds.find(r => r.Score === seasonBest);
-  const worstRound  = rounds.find(r => r.Score === seasonWorst);
-
-  document.getElementById('stat-total-rounds').textContent = totalRounds;
-  document.getElementById('stat-total-sub').textContent    = `across ${numMondays} Monday${numMondays!==1?'s':''}`;
-  document.getElementById('stat-players').textContent      = playerNames.length;
-  document.getElementById('stat-best-score').textContent   = seasonBest;
-  document.getElementById('stat-best-sub').textContent     = bestRound ? `${bestRound.Player}, ${bestRound.Date}` : '—';
-  document.getElementById('stat-worst-score').textContent  = seasonWorst;
-  document.getElementById('stat-worst-sub').textContent    = worstRound ? `${worstRound.Player}, ${worstRound.Date}` : '—';
-
-  const lastDate = dateOrder[dateOrder.length - 1] || '';
-  document.getElementById('hero-sub').textContent = `2026 Season · Riversdale GC rounds only · as at ${lastDate}`;
-  document.getElementById('footer').textContent   = `Riversdale Golf Club · Monday Group 2026 · Generated ${new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}`;
-
-  // ── Leaderboard ─────────────────────────────────────────────────────────────
-  const lb = document.getElementById('leaderboard-list');
-  lb.innerHTML = sorted.map(([name, s], i) => {
-    const cfg  = PLAYERS[name] || { initials: name.split(' ').map(w=>w[0]).join(''), bg:'#eee', color:'#333', bar:'#666' };
-    const pct  = ((s.avg / maxAvg) * 100).toFixed(1);
-    const hcpVal = hcpMap[name];
-    const hcpStr = hcpVal != null ? ` · HCP ${parseFloat(hcpVal).toFixed(1)}` : '';
-    return `<div class="player-row">
-      <div class="player-pos ${posClass(i)}">${i+1}</div>
-      <div class="player-avatar" style="background:${cfg.bg};color:${cfg.color};">${cfg.initials}</div>
-      <div class="player-info">
-        <div class="player-name">${name}</div>
-        <div class="player-meta">${s.rounds} round${s.rounds!==1?'s':''}${hcpStr}</div>
-        <div class="player-bar-bg"><div class="player-bar" style="width:${pct}%;background:${cfg.bar};"></div></div>
-      </div>
-      <div class="player-scores">
-        <div class="score-block"><div class="score-label">Avg</div><div class="score-value">${s.avg.toFixed(1)}</div></div>
-        <div class="score-block"><div class="score-label">Best</div><div class="score-value high">${s.best}</div></div>
-        <div class="score-block"><div class="score-label">Worst</div><div class="score-value low">${s.worst}</div></div>
-      </div>
-    </div>`;
-  }).join('');
-
-  // ── Weekly results ──────────────────────────────────────────────────────────
-  // Group rounds by date, sort by score desc within each date
-  const byDate = {};
-  rounds.forEach(r => {
-    if (!byDate[r.Date]) byDate[r.Date] = [];
-    byDate[r.Date].push(r);
-  });
-
-  let weeklyHTML = '';
-  dateOrder.forEach(date => {
-    const group = (byDate[date] || []).slice().sort((a,b) => b.Score - a.Score);
-    group.forEach((r, idx) => {
-      const isWinner = r.Winner || (idx === 0); // fallback: highest score is winner
-      const pilcls   = scorePillClass(r.Score);
-      weeklyHTML += `<tr>
-        <td style="color:var(--text-muted);font-size:12px;">${idx === 0 ? date : ''}</td>
-        <td style="font-weight:500;">${r.Player}</td>
-        <td><span class="score-pill ${pilcls}">${r.Score}</span></td>
-        <td>${isWinner ? '<span class="winner-badge">WINNER</span>' : ''}</td>
-      </tr>`;
-    });
-  });
-  document.getElementById('weekly-body').innerHTML = weeklyHTML;
-
-  // ── Records ──────────────────────────────────────────────────────────────────
-  // Most wins
-  const mostWins  = sorted.slice().sort(([,a],[,b]) => b.wins - a.wins)[0];
-  // Most rounds
-  const mostRnds  = sorted.slice().sort(([,a],[,b]) => b.rounds - a.rounds)[0];
-  // Best average (min 3 rounds)
-  const bestAvgP  = sorted.filter(([,s]) => s.rounds >= 3).sort(([,a],[,b]) => b.avg - a.avg)[0];
-  // Most consistent = lowest std dev (min 3 rounds)
-  let consistentPlayer = null, lowestStd = Infinity;
-  sorted.filter(([,s]) => s.rounds >= 3).forEach(([name, s]) => {
-    const sc  = s.scores.map(r=>r.Score).filter(v=>!isNaN(v));
-    const avg = sc.reduce((a,b)=>a+b,0)/sc.length;
-    const std = Math.sqrt(sc.reduce((a,b)=>a+Math.pow(b-avg,2),0)/sc.length);
-    if (std < lowestStd) { lowestStd = std; consistentPlayer = name; }
-  });
-
-  const recs = [
-    { icon:'🏆', label:'Season best score',    value: seasonBest,  sub: bestRound ? `${bestRound.Player} · ${bestRound.Date}` : '—' },
-    { icon:'😬', label:'Season worst score',   value: seasonWorst, sub: worstRound ? `${worstRound.Player} · ${worstRound.Date}` : '—' },
-    { icon:'📅', label:'Most rounds played',   value: mostRnds ? `${mostRnds[1].rounds} rounds` : '—', sub: mostRnds ? mostRnds[0] : '' },
-    { icon:'📊', label:'Best average',         value: bestAvgP ? bestAvgP[1].avg.toFixed(1) : '—', sub: bestAvgP ? `${bestAvgP[0]} (min 3 rounds)` : '' },
-    { icon:'🎯', label:'Most consistent',      value: consistentPlayer || '—', sub: consistentPlayer ? 'Lowest score variance' : '' },
-    { icon:'🥇', label:'Most Monday wins',     value: mostWins ? `${mostWins[1].wins} win${mostWins[1].wins!==1?'s':''}` : '—', sub: mostWins ? mostWins[0] : '' },
-  ];
-
-  document.getElementById('records-grid').innerHTML = recs.map(r =>
-    `<div class="record-card">
-      <div class="record-icon">${r.icon}</div>
-      <div class="record-label">${r.label}</div>
-      <div class="record-value">${r.value}</div>
-      <div class="record-sub">${r.sub}</div>
-    </div>`
-  ).join('');
-
-  // ── Store chart data for lazy build ─────────────────────────────────────────
-  _chartData = { sorted, dateOrder, byDate };
-}
-
-// ── Chart tab (lazy) ─────────────────────────────────────────────────────────
-function buildCharts() {
-  if (!_chartData) return;
-  const { sorted, dateOrder, byDate } = _chartData;
+function buildChart() {
   const container = document.getElementById('player-charts');
-  container.innerHTML = '';
+  const datasets = [
+    {
+      label: 'Adam Rugg',
+      data: [35,31,36,null,null,31,null,32,39,36,null,34],
+      borderColor: '#2e7d52',
+      backgroundColor: '#2e7d5222',
+      borderWidth: 2,
+      pointRadius: [35,31,36,null,null,31,null,32,39,36,null,34].map(v => v === null ? 0 : 5),
+      pointBackgroundColor: '#2e7d52',
+      tension: 0.3,
+      spanGaps: true,
+    },
+    {
+      label: 'Justin Khor',
+      data: [null,32,29,null,30,36,null,null,40,30,null,null],
+      borderColor: '#c9a84c',
+      backgroundColor: '#c9a84c22',
+      borderWidth: 2,
+      pointRadius: [null,32,29,null,30,36,null,null,40,30,null,null].map(v => v === null ? 0 : 5),
+      pointBackgroundColor: '#c9a84c',
+      tension: 0.3,
+      spanGaps: true,
+    },
+    {
+      label: 'Edo Chan',
+      data: [null,null,null,null,null,null,32,null,null,null,null,null],
+      borderColor: '#0F6E56',
+      backgroundColor: '#0F6E5622',
+      borderWidth: 2,
+      pointRadius: [null,null,null,null,null,null,32,null,null,null,null,null].map(v => v === null ? 0 : 5),
+      pointBackgroundColor: '#0F6E56',
+      tension: 0.3,
+      spanGaps: true,
+    },
+    {
+      label: 'Henry Nguo',
+      data: [33,31,24,36,26,30,33,null,38,33,null,28],
+      borderColor: '#185FA5',
+      backgroundColor: '#185FA522',
+      borderWidth: 2,
+      pointRadius: [33,31,24,36,26,30,33,null,38,33,null,28].map(v => v === null ? 0 : 5),
+      pointBackgroundColor: '#185FA5',
+      tension: 0.3,
+      spanGaps: true,
+    },
+    {
+      label: 'Greg Wong',
+      data: [34,33,33,33,36,25,null,25,33,25,32,32],
+      borderColor: '#854F0B',
+      backgroundColor: '#854F0B22',
+      borderWidth: 2,
+      pointRadius: [34,33,33,33,36,25,null,25,33,25,32,32].map(v => v === null ? 0 : 5),
+      pointBackgroundColor: '#854F0B',
+      tension: 0.3,
+      spanGaps: true,
+    },
+    {
+      label: 'Aaron Wong',
+      data: [23,31,28,35,35,32,null,30,30,30,27,37],
+      borderColor: '#993556',
+      backgroundColor: '#99355622',
+      borderWidth: 2,
+      pointRadius: [23,31,28,35,35,32,null,30,30,30,27,37].map(v => v === null ? 0 : 5),
+      pointBackgroundColor: '#993556',
+      tension: 0.3,
+      spanGaps: true,
+    },
+    {
+      label: 'Neil Hua',
+      data: [27,null,null,null,24,31,null,null,36,26,null,27],
+      borderColor: '#A32D2D',
+      backgroundColor: '#A32D2D22',
+      borderWidth: 2,
+      pointRadius: [27,null,null,null,24,31,null,null,36,26,null,27].map(v => v === null ? 0 : 5),
+      pointBackgroundColor: '#A32D2D',
+      tension: 0.3,
+      spanGaps: true,
+    },
+  ];
+  const labels = ['12/1','19/1','2/2','9/2','16/2','23/2','2/3','9/3','16/3','30/3','6/4','13/4'];
 
-  sorted.forEach(([name, s]) => {
-    const cfg    = PLAYERS[name] || { bar:'#666', bg:'#eee', color:'#333', initials:'??' };
-    const scores = dateOrder.map(date => {
-      const r = (byDate[date]||[]).find(x => x.Player === name);
-      return r ? r.Score : null;
-    });
-    const nonNull = scores.filter(v => v !== null);
-    if (nonNull.length === 0) return;
-    const avg = (nonNull.reduce((a,b)=>a+b,0)/nonNull.length).toFixed(1);
-
-    // Filter to only dates this player played
-    const roundLabels = [], roundData = [], barColors = [];
-    dateOrder.forEach((lbl, i) => {
-      if (scores[i] !== null) {
-        roundLabels.push(lbl);
-        roundData.push(scores[i]);
-        barColors.push(scores[i] >= 36 ? '#2e7d52' : scores[i] < 28 ? '#c0392b' : cfg.bar);
-      }
-    });
+  datasets.forEach(function(ds) {
+    const scores = ds.data.filter(v => v !== null);
+    if (scores.length === 0) return;
+    const avg = (scores.reduce((a,b) => a+b, 0) / scores.length).toFixed(1);
 
     const wrap = document.createElement('div');
     wrap.style.cssText = 'background:white;border-radius:14px;border:1px solid rgba(0,0,0,0.08);padding:20px;';
-    const h = Math.max(60, roundData.length * 32);
-    wrap.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <span style="font-size:15px;font-weight:600;">${name}</span>
-      <span style="font-size:12px;color:#a09890;">avg <strong style="color:#1a1a16;">${avg}</strong></span>
-    </div>
-    <div style="position:relative;width:100%;height:${h}px;"><canvas role="img" aria-label="${name} scores"></canvas></div>`;
+
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;';
+    header.innerHTML = '<span style="font-size:15px;font-weight:600;color:#1a1a16;">' + ds.label + '</span>' +
+      '<span style="font-size:12px;color:#a09890;">avg <strong style="color:#1a1a16;">' + avg + '</strong></span>';
+    wrap.appendChild(header);
+
+    const h = Math.max(60, scores.length * 28);
+    const canvasWrap = document.createElement('div');
+    canvasWrap.style.cssText = 'position:relative;width:100%;height:' + h + 'px;';
+    const canvas = document.createElement('canvas');
+    canvas.setAttribute('role','img');
+    canvas.setAttribute('aria-label', ds.label + ' scores');
+    canvasWrap.appendChild(canvas);
+    wrap.appendChild(canvasWrap);
     container.appendChild(wrap);
-    const canvas = wrap.querySelector('canvas');
+
+    const roundLabels = [];
+    const roundData = [];
+    const barColors = [];
+    labels.forEach(function(lbl, i) {
+      if (ds.data[i] !== null) {
+        roundLabels.push(lbl);
+        roundData.push(ds.data[i]);
+        barColors.push(ds.data[i] >= 36 ? '#2e7d52' : ds.data[i] < 28 ? '#c0392b' : ds.borderColor);
+      }
+    });
 
     new Chart(canvas, {
       type: 'bar',
-      data: { labels: roundLabels, datasets: [{ data: roundData, backgroundColor: barColors, borderRadius: 6, barThickness: 18 }] },
+      data: {
+        labels: roundLabels,
+        datasets: [{ data: roundData, backgroundColor: barColors, borderRadius: 6, barThickness: 18 }]
+      },
       options: {
         indexAxis: 'y',
         responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display:false }, tooltip: { callbacks: { label: i => i.raw + ' pts' } } },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: i => i.raw + ' pts' } } },
         scales: {
-          x: { min:20, max:42, grid:{ color:'rgba(0,0,0,0.04)' }, ticks:{ color:'#a09890', font:{size:11} } },
-          y: { grid:{ display:false }, ticks:{ color:'#6b6458', font:{size:11} } }
+          x: { min: 20, max: 42, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { color: '#a09890', font: { size: 11 } } },
+          y: { grid: { display: false }, ticks: { color: '#6b6458', font: { size: 11 } } }
         }
       }
     });
   });
 }
-
-// ── Bootstrap ────────────────────────────────────────────────────────────────
-async function init() {
-  if (SHEET_ID === 'YOUR_SHEET_ID_HERE') {
-    document.getElementById('loading').innerHTML =
-      '<div class="error-box" style="margin:0;"><strong>Sheet not configured</strong><br><br>Open this file and replace <code>YOUR_SHEET_ID_HERE</code> with your Monday Golf Google Sheet ID.</div>';
-    return;
-  }
-
-  try {
-    const rawRows = await fetchSheet('Rounds');
-    if (!rawRows || rawRows.length === 0) throw new Error('No data found in Rounds sheet');
-
-    // Normalise: the scraper uses "Player Name" — map to "Player" for renderAll
-    // Also pick up GA Handicap per player from the data (no separate Players tab needed)
-    const rounds = rawRows.map(r => ({
-      Player:  (r['Player Name'] || r['Player'] || '').trim(),
-      Date:    parseGvizDate(r['Date']),
-      Score:   Number(r['Score']),
-      Course:  r['Course'] || '',
-      Tee:     r['Tee']    || '',
-      HCP:     r['GA Handicap'] || null,
-    })).filter(r => r.Player && !isNaN(r.Score) && r.Score > 0);
-
-    // Build HCP map: use the most-recently-scraped value per player
-    // (rows are oldest-first so last occurrence = most recent)
-    const hcpMap = {};
-    rounds.forEach(r => { if (r.HCP) hcpMap[r.Player] = r.HCP; });
-
-    // Create a synthetic "players" array for renderAll
-    const players = Object.entries(hcpMap).map(([Player, HCP]) => ({ Player, HCP }));
-
-    // Filter to Riversdale GC rounds only (Course contains "Riversdale")
-    const riversdaleRounds = rounds.filter(r => r.Course.toLowerCase().includes('riversdale'));
-
-    if (riversdaleRounds.length === 0) throw new Error('No Riversdale rounds found');
-
-    renderAll(riversdaleRounds, players);
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('main').style.display    = 'block';
-  } catch(e) {
-    document.getElementById('loading').innerHTML =
-      `<div class="error-box" style="margin:0;"><strong>Could not load data</strong><br><br>${e.message}<br><br>
-      Make sure the sheet is shared publicly (Anyone with the link → Viewer).</div>`;
-  }
-}
-
-init();
 </script>
 </body>
 </html>
