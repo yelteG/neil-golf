@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ask About My Golf</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0f1f12;--surface:#162019;--card:#1c2b1f;--card2:#1a2a1d;
+  --green:#3db870;--green-dim:#2a7a4c;--green-dark:#1a4d30;
+  --gold:#d4a843;--gold-dim:#8a6e1e;
+  --red:#e05c5c;--red-dim:#3d1a1a;
+  --blue:#5a9fd4;--blue-dim:#1a2a3d;
+  --text:#e8ede9;--text-muted:#7a9480;--text-faint:#4a6450;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.04);
+  --font:'DM Sans',sans-serif;--font-d:'Fraunces',serif;
+  --radius:14px;--radius-sm:8px;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+/* Header */
+.header{padding:18px 24px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:14px;flex-shrink:0;}
+.header-icon{width:42px;height:42px;border-radius:50%;background:var(--green-dim);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.header-title{font-family:var(--font-d);font-size:20px;font-weight:600;}
+.header-sub{font-size:12px;color:var(--text-muted);margin-top:1px;}
+.header-nav{margin-left:auto;display:flex;gap:8px;}
+.nav-link{padding:6px 14px;border-radius:8px;border:1px solid var(--border);color:var(--text-muted);font-size:12px;text-decoration:none;transition:all 0.15s;}
+.nav-link:hover{color:var(--text);border-color:var(--green);}
+
+/* API Key bar */
+.api-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.api-bar label{font-size:12px;color:var(--text-muted);white-space:nowrap;}
+.api-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;max-width:420px;}
+.api-input:focus{border-color:var(--green);}
+.api-status{font-size:11px;color:var(--text-faint);}
+.api-status.ok{color:var(--green);}
+
+/* Chat area */
+.chat-wrap{flex:1;overflow-y:auto;padding:24px 20px;display:flex;flex-direction:column;gap:16px;max-width:780px;width:100%;margin:0 auto;}
+
+/* Messages */
+.msg{display:flex;gap:12px;align-items:flex-start;animation:fadeIn 0.2s ease;}
+.msg.user{flex-direction:row-reverse;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.msg.user .avatar{background:var(--green-dim);}
+.msg.ai .avatar{background:#1a2a3d;}
+.bubble{max-width:82%;padding:13px 16px;border-radius:14px;font-size:14px;line-height:1.6;}
+.msg.user .bubble{background:var(--green-dark);border:1px solid var(--green-dim);color:var(--text);border-bottom-right-radius:4px;}
+.msg.ai .bubble{background:var(--card);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px;}
+.bubble p{margin-bottom:8px;}
+.bubble p:last-child{margin-bottom:0;}
+.bubble strong{color:var(--gold);}
+.bubble ul,.bubble ol{margin:6px 0 6px 18px;}
+.bubble li{margin-bottom:3px;}
+.bubble code{background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;font-size:12px;}
+
+/* Typing indicator */
+.typing{display:flex;gap:5px;align-items:center;padding:4px 0;}
+.typing span{width:7px;height:7px;background:var(--text-muted);border-radius:50%;animation:bounce 1.2s infinite;}
+.typing span:nth-child(2){animation-delay:0.2s;}
+.typing span:nth-child(3){animation-delay:0.4s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);}}
+
+/* Suggestions */
+.suggestions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+.suggestion{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:7px 14px;font-size:12px;color:var(--text-muted);cursor:pointer;transition:all 0.15s;}
+.suggestion:hover{border-color:var(--green);color:var(--green);}
+
+/* Data status */
+.data-pill{background:var(--green-dark);color:var(--green);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:500;}
+.data-pill.loading{background:var(--card);color:var(--text-muted);}
+
+/* Input bar */
+.input-bar{border-top:1px solid var(--border);background:var(--surface);padding:14px 20px;flex-shrink:0;}
+.input-inner{max-width:780px;margin:0 auto;display:flex;gap:10px;align-items:flex-end;}
+.input-wrap{flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:10px;transition:border-color 0.15s;}
+.input-wrap:focus-within{border-color:var(--green);}
+textarea{flex:1;background:none;border:none;color:var(--text);font-family:var(--font);font-size:14px;resize:none;outline:none;max-height:120px;line-height:1.5;}
+textarea::placeholder{color:var(--text-faint);}
+.send-btn{width:42px;height:42px;border-radius:12px;background:var(--green);border:none;color:#0f1f12;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:opacity 0.15s;}
+.send-btn:hover{opacity:0.85;}
+.send-btn:disabled{opacity:0.3;cursor:not-allowed;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">⛳</div>
+  <div>
+    <div class="header-title">Ask About My Golf</div>
+    <div class="header-sub" id="data-status"><span class="data-pill loading">Loading rounds...</span></div>
+  </div>
+  <div class="header-nav">
+    <a class="nav-link" href="dashboard.html">📊 Dashboard</a>
+    <a class="nav-link" href="monday_golf.html">⛳ Monday</a>
+  </div>
+</div>
+
+<div class="api-bar">
+  <label>Claude API Key</label>
+  <input class="api-input" type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off">
+  <span class="api-status" id="keyStatus">Enter your key to start chatting</span>
+</div>
+
+<div class="chat-wrap" id="chat">
+  <div class="msg ai">
+    <div class="avatar">🤖</div>
+    <div class="bubble">
+      <p>G'day Neil! I'm your golf AI assistant. Once your rounds are loaded and you've entered your Claude API key above, you can ask me anything about your golf data.</p>
+      <div class="suggestions" id="suggestions">
+        <span class="suggestion">What's my best round this year?</span>
+        <span class="suggestion">Which course do I score best at?</span>
+        <span class="suggestion">Am I improving over the last month?</span>
+        <span class="suggestion">How many rounds at Riversdale?</span>
+        <span class="suggestion">What score do I need to get to 13 HCP?</span>
+        <span class="suggestion">Show me my worst 5 rounds</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="input-bar">
+  <div class="input-inner">
+    <div class="input-wrap">
+      <textarea id="questionInput" rows="1" placeholder="Ask anything about your golf..."></textarea>
+    </div>
+    <button class="send-btn" id="sendBtn" disabled title="Send">➤</button>
+  </div>
+</div>
+
+<script>
+const SHEET_ID  = '1hySN7Csgydi_zg1sNGf7Z-3-Z6PS4J-zzTef8uk26QQ';
+const TAB_NAME  = 'Neil Rounds';
+const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(TAB_NAME)}`;
+
+let allRows = [];
+let isLoading = false;
+
+// ── Data loading ─────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const res  = await fetch(SHEET_URL);
+    const text = await res.text();
+    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+    const cols = json.table.cols.map(c => c.label);
+    allRows = json.table.rows
+      .filter(r => r && r.c && r.c[0] && r.c[0].v)
+      .map(r => {
+        const obj = {};
+        cols.forEach((c, i) => { if (c) obj[c] = r.c[i] ? (r.c[i].f ?? r.c[i].v ?? '') : ''; });
+        obj._score = parseInt(obj['Score']) || 0;
+        const dv = r.c[0] ? (r.c[0].v || '') : '';
+        const df = r.c[0] ? (r.c[0].f || '') : '';
+        const dateStr = df || (typeof dv === 'string' ? dv : '');
+        if (typeof dv === 'string' && dv.includes('Date(')) {
+          const m = dv.match(/Date\((\d+),(\d+),(\d+)\)/);
+          if (m) obj._date = new Date(+m[1], +m[2], +m[3]);
+        } else if (dateStr.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+          const p = dateStr.split('/'); obj._date = new Date(+p[2], +p[1]-1, +p[0]);
+        } else if (typeof dv === 'number') {
+          obj._date = new Date((dv - 25569) * 86400 * 1000);
+        } else { obj._date = new Date(dv); }
+        obj._dateStr = (obj._date && !isNaN(obj._date))
+          ? obj._date.toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'})
+          : dateStr;
+        return obj;
+      })
+      .filter(r => r._score > 0 && r._date && !isNaN(r._date))
+      .sort((a, b) => a._date - b._date);
+
+    document.getElementById('data-status').innerHTML =
+      `<span class="data-pill">✓ ${allRows.length} rounds loaded</span>`;
+    checkReady();
+  } catch(e) {
+    document.getElementById('data-status').innerHTML =
+      `<span class="data-pill loading">⚠ Failed to load rounds</span>`;
+  }
+}
+
+// ── API key ───────────────────────────────────────────────────────────────────
+const apiKeyInput = document.getElementById('apiKey');
+const keyStatus   = document.getElementById('keyStatus');
+const sendBtn     = document.getElementById('sendBtn');
+
+// Restore saved key
+const savedKey = localStorage.getItem('claude_api_key');
+if (savedKey) { apiKeyInput.value = savedKey; keyStatus.textContent = '✓ Key saved'; keyStatus.className = 'api-status ok'; }
+
+apiKeyInput.addEventListener('input', () => {
+  const k = apiKeyInput.value.trim();
+  if (k.startsWith('sk-ant-')) {
+    localStorage.setItem('claude_api_key', k);
+    keyStatus.textContent = '✓ Key saved';
+    keyStatus.className = 'api-status ok';
+  } else {
+    keyStatus.textContent = k ? 'Invalid key format' : 'Enter your key to start chatting';
+    keyStatus.className = 'api-status';
+  }
+  checkReady();
+});
+
+function checkReady() {
+  const hasKey  = apiKeyInput.value.trim().startsWith('sk-ant-');
+  const hasData = allRows.length > 0;
+  sendBtn.disabled = !(hasKey && hasData);
+}
+
+// ── Build golf context for Claude ────────────────────────────────────────────
+function buildContext() {
+  const scores   = allRows.map(r => r._score);
+  const lastR    = allRows[allRows.length - 1];
+  const recentHcp = parseFloat(lastR['GA Handicap']) || '?';
+
+  // Summary stats
+  const avg = (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1);
+  const best = Math.max(...scores);
+  const worst = Math.min(...scores);
+  const last20 = allRows.slice(-20);
+  const last20avg = (last20.map(r=>r._score).reduce((a,b)=>a+b,0)/last20.length).toFixed(1);
+
+  // Course breakdown
+  const courses = {};
+  allRows.forEach(r => {
+    if (!courses[r.Course]) courses[r.Course] = [];
+    courses[r.Course].push(r._score);
+  });
+  const courseLines = Object.entries(courses)
+    .sort((a,b) => b[1].length - a[1].length)
+    .map(([c,s]) => `  ${c}: ${s.length} rounds, avg ${(s.reduce((a,b)=>a+b,0)/s.length).toFixed(1)}, best ${Math.max(...s)}, worst ${Math.min(...s)}`)
+    .join('\n');
+
+  // All rounds (keep concise - date, course, score, hcp)
+  const roundLines = allRows.map(r =>
+    `${r._dateStr} | ${r.Course} | Score:${r._score} | DailyHcp:${r['Daily Hcp']||'?'} | GrossDiff:${r['Gross Diff']||'?'} | PriorGAHcp:${r['Prior GA Hcp']||'?'}`
+  ).join('\n');
+
+  return `You are a friendly golf statistics assistant for Neil Hua, an Australian golfer who plays Stableford scoring.
+
+ABOUT NEIL'S DATA:
+- Total rounds: ${allRows.length}
+- Current GA Handicap: ${recentHcp}
+- Overall avg Stableford score: ${avg}
+- Last 20 rounds avg: ${last20avg}
+- Best ever score: ${best} pts
+- Worst ever score: ${worst} pts
+- Data range: ${allRows[0]._dateStr} to ${lastR._dateStr}
+
+SCORING GUIDE (Stableford):
+- 36+ pts = great (played to or better than handicap)
+- 32-35 pts = good
+- 28-31 pts = average
+- Under 28 pts = bad round
+
+COURSE BREAKDOWN:
+${courseLines}
+
+ALL ROUNDS (newest last):
+${roundLines}
+
+Answer Neil's questions concisely and helpfully. Use specific data from his rounds. Keep responses focused and friendly. Format numbers clearly.`;
+}
+
+// ── Chat UI ───────────────────────────────────────────────────────────────────
+const chat    = document.getElementById('chat');
+const input   = document.getElementById('questionInput');
+
+// Suggestion clicks
+document.getElementById('suggestions').addEventListener('click', e => {
+  const s = e.target.closest('.suggestion');
+  if (s) { input.value = s.textContent; input.focus(); sendMessage(); }
+});
+
+// Auto-resize textarea
+input.addEventListener('input', () => {
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+});
+
+// Enter to send (shift+enter for newline)
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!sendBtn.disabled) sendMessage(); }
+});
+
+sendBtn.addEventListener('click', sendMessage);
+
+function addMessage(role, text) {
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const avatar = role === 'user' ? '🏌️' : '🤖';
+  div.innerHTML = `<div class="avatar">${avatar}</div><div class="bubble">${formatText(text)}</div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+function formatText(text) {
+  // Convert markdown-ish to HTML
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/`(.+?)`/g,'<code>$1</code>')
+    .replace(/^#{1,3}\s+(.+)$/gm,'<strong>$1</strong>')
+    .replace(/^\s*[-•]\s+(.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+    .split('\n\n').map(p => p.trim() ? `<p>${p.replace(/\n/g,'<br>')}</p>` : '').join('');
+}
+
+function addTyping() {
+  const div = document.createElement('div');
+  div.className = 'msg ai';
+  div.id = 'typing-indicator';
+  div.innerHTML = `<div class="avatar">🤖</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-indicator');
+  if (t) t.remove();
+}
+
+async function sendMessage() {
+  const question = input.value.trim();
+  if (!question || isLoading) return;
+
+  // Hide suggestions after first message
+  const sugg = document.getElementById('suggestions');
+  if (sugg) sugg.remove();
+
+  addMessage('user', question);
+  input.value = '';
+  input.style.height = 'auto';
+  sendBtn.disabled = true;
+  isLoading = true;
+  addTyping();
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKeyInput.value.trim(),
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        system: buildContext(),
+        messages: [{ role: 'user', content: question }]
+      })
+    });
+
+    const data = await response.json();
+    removeTyping();
+
+    if (data.error) throw new Error(data.error.message);
+    addMessage('ai', data.content[0].text);
+  } catch(e) {
+    removeTyping();
+    addMessage('ai', `⚠️ Error: ${e.message}. Check your API key and try again.`);
+  }
+
+  isLoading = false;
+  checkReady();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>
