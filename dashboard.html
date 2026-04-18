@@ -698,8 +698,10 @@ function renderHcpTracker(rows) {
   // Summary: best 8 diffs
   const best8diffs = sorted.slice(0,8).map(d => d.diff);
   const avg8 = best8diffs.length ? best8diffs.reduce((a,b)=>a+b,0)/best8diffs.length : 0;
-  const calcHcp = (avg8 * 0.96).toFixed(1);
+  const calcHcp = (avg8 * 0.94).toFixed(1);
   const currentHcp = parseFloat(last20[last20.length-1]['GA Handicap']) || 14;
+  const last20scores = last20.map(r => parseInt(r['Score'])).filter(s => !isNaN(s) && s > 0);
+  const last20avg = last20scores.length ? (last20scores.reduce((a,b) => a+b, 0) / last20scores.length).toFixed(1) : '—';
 
   // Use last round's course params for calculations
   const lastRound     = last20[last20.length - 1];
@@ -717,11 +719,11 @@ function renderHcpTracker(rows) {
   // PlayedTo = ((36 - Stableford) + DailyHcp + Par - (ScratchRating + PCC)) * (113/Slope)
   // Rearranged for Stableford needed to improve HCP:
   // Need new PlayedTo < worstBest8 to replace it in best 8
-  // Target: new_avg * 0.96 = currentHcp - 0.1
-  // Use calcHcp (best 8 avg * 0.93) as base, not official GA HCP
-  const calcHcpFloat  = avg8 * 0.93;
+  // Target: new_avg * 0.94 = currentHcp - 0.1
+  // Use calcHcp (best 8 avg * 0.94) as base, not official GA HCP
+  const calcHcpFloat  = avg8 * 0.94;
   const targetHcpDown = (Math.round(calcHcpFloat * 10) - 1) / 10;
-  const targetAvgDown = targetHcpDown / 0.93;
+  const targetAvgDown = targetHcpDown / 0.94;
   const neededPlayedTo = targetAvgDown * 8 - (sumBest8 - worstBest8);
   const scoreToImprove = Math.ceil(36 + dailyHcp + par - scratchRating - pcc - (neededPlayedTo * slopeRating / 113));
 
@@ -731,7 +733,7 @@ function renderHcpTracker(rows) {
 
   document.getElementById('hcp-summary-bar').innerHTML = `
     <div class="hcp-summary-item"><div class="hcp-summary-label">Current HCP</div><div class="hcp-summary-value" style="color:var(--gold)">${currentHcp}</div></div>
-    <div class="hcp-summary-item"><div class="hcp-summary-label">Calculated index</div><div class="hcp-summary-value" style="color:var(--green)">${calcHcp}</div></div>
+    <div class="hcp-summary-item"><div class="hcp-summary-label">Last 20 avg</div><div class="hcp-summary-value" style="color:var(--green)">${last20avg}</div></div>
     <div class="hcp-summary-item">
       <div class="hcp-summary-label">Score to improve HCP ▼</div>
       <div class="hcp-summary-value" style="color:#3db870;">${scoreToImprove}+ pts</div>
