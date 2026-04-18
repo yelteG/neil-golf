@@ -402,7 +402,7 @@ function buildStats(rows) {
   // Calculate current handicap dynamically from best 8 of last 20 Gross Diff values (WHS formula)
   const last20diffs = rows.slice(-20).map(r => parseFloat(r['Gross Diff'])).filter(v => !isNaN(v) && v > 0).sort((a,b) => a-b);
   const best8 = last20diffs.slice(0, 8);
-  const calcHcp = best8.length >= 1 ? Math.round((best8.reduce((a,b) => a+b, 0) / best8.length) * 0.96 * 10) / 10 : null;
+  const calcHcp = best8.length >= 1 ? Math.round((best8.reduce((a,b) => a+b, 0) / best8.length) * 0.94 * 10) / 10 : null;
   const currentHcp = calcHcp || hcps[hcps.length-1];
 
   return {
