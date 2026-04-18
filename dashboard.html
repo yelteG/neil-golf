@@ -399,14 +399,20 @@ function buildStats(rows) {
   // Best played to
   const bestPT = rows.filter(r=>r._playedTo).sort((a,b)=>a._playedTo-b._playedTo)[0];
 
+  // Calculate current handicap dynamically from best 8 of last 20 Gross Diff values (WHS formula)
+  const last20diffs = rows.slice(-20).map(r => parseFloat(r['Gross Diff'])).filter(v => !isNaN(v) && v > 0).sort((a,b) => a-b);
+  const best8 = last20diffs.slice(0, 8);
+  const calcHcp = best8.length >= 1 ? Math.round((best8.reduce((a,b) => a+b, 0) / best8.length) * 0.96 * 10) / 10 : null;
+  const currentHcp = calcHcp || hcps[hcps.length-1];
+
   return {
     total:      rows.length,
     avg:        (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1),
     best:       Math.max(...scores),
     worst:      Math.min(...scores),
-    currentHcp: hcps[hcps.length-1],
+    currentHcp,
     startHcp:   hcps[0],
-    hcpChange:  hcps.length ? (hcps[hcps.length-1]-Math.min(...hcps)).toFixed(1) : 0,
+    hcpChange:  hcps.length ? (currentHcp-Math.min(...hcps)).toFixed(1) : 0,
     lowHcp:     lowHcpDynamic || Math.min(...hcps).toFixed(1),
     trend,
     last5avg:   (last5.reduce((a,b)=>a+b,0)/last5.length).toFixed(1),
