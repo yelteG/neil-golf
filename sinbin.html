@@ -136,14 +136,11 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
   <div id="charts" class="view">
     <div style="display:grid;gap:16px;">
       <div class="chart-card">
-        <div class="chart-title">Sin percentage by player</div>
-        <div class="chart-sub">Sin rounds &divide; total rounds. Each round under 30 pts = 1 sin.</div>
-        <div class="legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#c0392b;"></div>High sinners (&gt;30%)</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#1a7a4a;"></div>Clean players (&le;30%)</div>
-        </div>
-        <div style="position:relative;width:100%;height:260px;">
-          <canvas id="sinChart"></canvas>
+        <div class="chart-title">Cumulative sin bin total per player</div>
+        <div class="chart-sub">Running total owed by each player over the season. Each round under 30 pts adds a sin.</div>
+        <div class="legend" id="trend-legend"></div>
+        <div style="position:relative;width:100%;height:320px;">
+          <canvas id="trendChart"></canvas>
         </div>
       </div>
       <div class="chart-card">
@@ -423,27 +420,83 @@ function renderApp(data) {
   document.getElementById('rounds-chart-sub').textContent =
     `Average is ${avgRounds} rounds. Green = above average (benefit), red = below (penalty).`;
 
-  window._chartData = { players, avgRounds: parseFloat(avgRounds) };
+  window._chartData = { players, avgRounds: parseFloat(avgRounds), rounds: data.rounds };
 }
 
 function buildCharts() {
   if (!window._chartData) return;
-  const { players, avgRounds } = window._chartData;
+  const { players, avgRounds, rounds } = window._chartData;
 
-  const sinSorted = [...players].sort((a,b) => b.sinPct - a.sinPct);
-  new Chart(document.getElementById('sinChart'), {
-    type: 'bar',
-    data: {
-      labels: sinSorted.map(p => p.name.split(' ').map((w,i) => i===0 ? w : w[0]).join(' ')),
-      datasets: [{ label: 'Sin %',
-        data: sinSorted.map(p => p.sinPct),
-        backgroundColor: sinSorted.map(p => p.sinPct > 30 ? PLAYER_CONFIG[p.name].bar : '#1a7a4a'),
-        borderRadius: 5 }]
-    },
+  // Sort all rounds chronologically
+  const sortedRounds = [...rounds].sort((a,b) => parseDateStr(a.dateStr) - parseDateStr(b.dateStr));
+
+  // All unique dates in order
+  const allDates = [...new Set(sortedRounds.map(r => r.dateStr))];
+
+  // Build cumulative totals per player at each date
+  const running = {};
+  players.forEach(p => { running[p.name] = 0; });
+
+  const snapshots = allDates.map(date => {
+    sortedRounds.filter(r => r.dateStr === date).forEach(r => {
+      if (running[r.player] !== undefined) running[r.player] += r.penalty;
+    });
+    return { date, totals: { ...running } };
+  });
+
+  // Track first round date per player (for spanGaps: only show from first round)
+  const firstDate = {};
+  players.forEach(p => {
+    const first = sortedRounds.find(r => r.player === p.name);
+    if (first) firstDate[p.name] = first.dateStr;
+  });
+
+  const datasets = players.map(p => {
+    const cfg = PLAYER_CONFIG[p.name];
+    return {
+      label: p.name.split(' ')[0],
+      data: snapshots.map(s => parseDateStr(s.date) >= parseDateStr(firstDate[p.name]) ? s.totals[p.name] ?? 0 : null),
+      borderColor: cfg.bar,
+      backgroundColor: cfg.bar + '18',
+      borderWidth: 2.5,
+      pointRadius: 3,
+      pointHoverRadius: 6,
+      tension: 0.25,
+      fill: false,
+      spanGaps: false,
+    };
+  });
+
+  // Build legend
+  document.getElementById('trend-legend').innerHTML = players.map(p => {
+    const cfg = PLAYER_CONFIG[p.name];
+    return `<div class="legend-item"><div class="legend-dot" style="background:${cfg.bar};border-radius:50%;"></div>${p.name.split(' ')[0]}</div>`;
+  }).join('');
+
+  // Short date labels
+  const labels = allDates.map(d => {
+    const dt = parseDateStr(d);
+    return dt ? dt.toLocaleDateString('en-AU', { day:'numeric', month:'short' }) : d;
+  });
+
+  new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: { labels, datasets },
     options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{callbacks:{label: i => i.raw+'%'}} },
-      scales:{ x:{grid:{display:false}}, y:{max:70, ticks:{callback:v=>v+'%'}, grid:{color:'rgba(0,0,0,0.05)'}}}
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: i => ` ${i.dataset.label}: $${i.raw?.toFixed(2) ?? '—'}`,
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxRotation: 45, maxTicksLimit: 12, font: { size: 11 } } },
+        y: { ticks: { callback: v => '$' + v }, grid: { color: 'rgba(0,0,0,0.05)' }, beginAtZero: true }
+      }
     }
   });
 
