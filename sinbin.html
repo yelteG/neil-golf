@@ -137,7 +137,7 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
     <div style="display:grid;gap:16px;">
       <div class="chart-card">
         <div class="chart-title">Cumulative sin bin total per player</div>
-        <div class="chart-sub">Running total owed by each player over the season. Each round under 30 pts adds a sin.</div>
+        <div class="chart-sub">Cumulative total owed per player — last 5 rounds. Shows who's been sinning recently.</div>
         <div class="legend" id="trend-legend"></div>
         <div style="position:relative;width:100%;height:320px;">
           <canvas id="trendChart"></canvas>
@@ -433,18 +433,22 @@ function buildCharts() {
   // All unique dates in order
   const allDates = [...new Set(sortedRounds.map(r => r.dateStr))];
 
-  // Build cumulative totals per player at each date
+  // Build cumulative totals across ALL dates first (so numbers are correct)
   const running = {};
   players.forEach(p => { running[p.name] = 0; });
 
-  const snapshots = allDates.map(date => {
+  const allSnapshots = allDates.map(date => {
     sortedRounds.filter(r => r.dateStr === date).forEach(r => {
       if (running[r.player] !== undefined) running[r.player] += r.penalty;
     });
     return { date, totals: { ...running } };
   });
 
-  // Track first round date per player (for spanGaps: only show from first round)
+  // Only show last 5 dates on the chart
+  const snapshots = allSnapshots.slice(-5);
+  const visibleDates = snapshots.map(s => s.date);
+
+  // Track first round date per player
   const firstDate = {};
   players.forEach(p => {
     const first = sortedRounds.find(r => r.player === p.name);
@@ -473,10 +477,10 @@ function buildCharts() {
     return `<div class="legend-item"><div class="legend-dot" style="background:${cfg.bar};border-radius:50%;"></div>${p.name.split(' ')[0]}</div>`;
   }).join('');
 
-  // Short date labels
-  const labels = allDates.map(d => {
-    const dt = parseDateStr(d);
-    return dt ? dt.toLocaleDateString('en-AU', { day:'numeric', month:'short' }) : d;
+  // Short date labels (last 5 only)
+  const labels = snapshots.map(s => {
+    const dt = parseDateStr(s.date);
+    return dt ? dt.toLocaleDateString('en-AU', { day:'numeric', month:'short' }) : s.date;
   });
 
   new Chart(document.getElementById('trendChart'), {
