@@ -335,8 +335,9 @@ function renderApp(data) {
   const avgRounds     = (totalRounds / players.length).toFixed(1);
 
   // --- Hero ---
+  const loadedAt = new Date().toLocaleString('en-AU', {day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'});
   document.getElementById('hero-sub').textContent =
-    `${totalRounds} rounds · ${players.length} players · as at ${new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}`;
+    `${totalRounds} rounds · ${players.length} players · Sheet loaded ${loadedAt}`;
   document.getElementById('h-sinjar').textContent    = sinJarTotal;
   document.getElementById('h-proposed').textContent  = proposedTotal;
   document.getElementById('h-sinrounds').textContent = `${totalSins} / ${totalRounds}`;
