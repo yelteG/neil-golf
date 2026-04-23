@@ -803,7 +803,9 @@ function showTab(id, btn) {
   try {
     ALL_ROWS = await loadData();
     const stats = buildStats(ALL_ROWS);
-    const lastUpdated = ALL_ROWS[ALL_ROWS.length-1]._dateStr;
+    const lastRoundDate = ALL_ROWS[ALL_ROWS.length-1]._dateStr;
+    const loadedAt = new Date().toLocaleString('en-AU', {day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'});
+    const lastUpdated = `${lastRoundDate} · Sheet loaded ${loadedAt}`;
 
     renderHeader(stats, lastUpdated);
     renderInsights(stats);
