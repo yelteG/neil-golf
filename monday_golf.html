@@ -486,7 +486,8 @@ async function init() {
       const metaRes  = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Meta`);
       const metaText = await metaRes.text();
       const metaJson = JSON.parse(metaText.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
-      const lastUpdated = metaJson.table.rows[0]?.c[0]?.v;
+      const cell = metaJson.table.rows[0]?.c[0];
+      const lastUpdated = cell ? String(cell.f || cell.v || '') : '';
       if (lastUpdated) {
         const sub = document.getElementById('hero-sub');
         sub.textContent += ` · Last updated: ${lastUpdated}`;
