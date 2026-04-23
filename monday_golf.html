@@ -298,7 +298,8 @@ function renderAll(rounds, players) {
     : `${HARDCODED_WORST.player} · ${HARDCODED_WORST.sub}`;
 
   const lastDate = dateOrder[dateOrder.length - 1] || '';
-  document.getElementById('hero-sub').textContent = `2026 Season · Riversdale GC rounds only · as at ${lastDate}`;
+  const loadedAt = new Date().toLocaleString('en-AU', {day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'});
+  document.getElementById('hero-sub').textContent = `2026 Season · Riversdale GC rounds only · Last round ${lastDate} · Sheet loaded ${loadedAt}`;
   document.getElementById('footer').textContent   = `Riversdale Golf Club · Monday Group 2026 · Generated ${new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}`;
 
   // ── Leaderboard ─────────────────────────────────────────────────────────────
