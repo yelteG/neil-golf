@@ -804,8 +804,14 @@ function showTab(id, btn) {
     ALL_ROWS = await loadData();
     const stats = buildStats(ALL_ROWS);
     const lastRoundDate = ALL_ROWS[ALL_ROWS.length-1]._dateStr;
-    const loadedAt = new Date().toLocaleString('en-AU', {day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'});
-    const lastUpdated = `${lastRoundDate} · Sheet loaded ${loadedAt}`;
+    let sheetUpdatedAt = '';
+    try {
+      const metaRes  = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Meta`);
+      const metaText = await metaRes.text();
+      const metaJson = JSON.parse(metaText.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+      sheetUpdatedAt = metaJson.table.rows[0]?.c[0]?.v || '';
+    } catch(e) {}
+    const lastUpdated = sheetUpdatedAt ? `${lastRoundDate} · Last updated: ${sheetUpdatedAt}` : lastRoundDate;
 
     renderHeader(stats, lastUpdated);
     renderInsights(stats);
