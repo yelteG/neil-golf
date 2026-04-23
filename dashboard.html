@@ -809,7 +809,8 @@ function showTab(id, btn) {
       const metaRes  = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Meta`);
       const metaText = await metaRes.text();
       const metaJson = JSON.parse(metaText.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
-      sheetUpdatedAt = metaJson.table.rows[0]?.c[0]?.v || '';
+      const cell = metaJson.table.rows[0]?.c[0];
+      sheetUpdatedAt = cell ? String(cell.f || cell.v || '') : '';
     } catch(e) {}
     const lastUpdated = sheetUpdatedAt ? `${lastRoundDate} · Last updated: ${sheetUpdatedAt}` : lastRoundDate;
 
