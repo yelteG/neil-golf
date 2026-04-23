@@ -298,8 +298,7 @@ function renderAll(rounds, players) {
     : `${HARDCODED_WORST.player} · ${HARDCODED_WORST.sub}`;
 
   const lastDate = dateOrder[dateOrder.length - 1] || '';
-  const loadedAt = new Date().toLocaleString('en-AU', {day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'});
-  document.getElementById('hero-sub').textContent = `2026 Season · Riversdale GC rounds only · Last round ${lastDate} · Sheet loaded ${loadedAt}`;
+  document.getElementById('hero-sub').textContent = `2026 Season · Riversdale GC rounds only · Last round ${lastDate}`;
   document.getElementById('footer').textContent   = `Riversdale Golf Club · Monday Group 2026 · Generated ${new Date().toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}`;
 
   // ── Leaderboard ─────────────────────────────────────────────────────────────
@@ -481,6 +480,19 @@ async function init() {
     if (riversdaleRounds.length === 0) throw new Error('No Riversdale rounds found');
 
     renderAll(riversdaleRounds, players);
+
+    // Fetch last-updated timestamp from Meta sheet
+    try {
+      const metaRes  = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Meta`);
+      const metaText = await metaRes.text();
+      const metaJson = JSON.parse(metaText.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+      const lastUpdated = metaJson.table.rows[0]?.c[0]?.v;
+      if (lastUpdated) {
+        const sub = document.getElementById('hero-sub');
+        sub.textContent += ` · Last updated: ${lastUpdated}`;
+      }
+    } catch(e) {}
+
     document.getElementById('loading').style.display = 'none';
     document.getElementById('main').style.display    = 'block';
   } catch(e) {
