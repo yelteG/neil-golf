@@ -377,35 +377,84 @@
   .summary-final.t2 .result { color: var(--t2); }
   .summary-final .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-  .summary-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-    margin-top: 8px;
+  /* Compact 9-hole grid in the summary */
+  .grid9 {
+    display: grid;
+    grid-template-columns: 44px repeat(9, minmax(0, 1fr)) 32px;
+    gap: 0;
+    font-size: 11px;
+    line-height: 1;
+    margin-top: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    font-variant-numeric: tabular-nums;
   }
-  .summary-table th {
+  .grid9 > div {
+    padding: 6px 2px;
+    text-align: center;
+    border-right: 1px solid #f1f2f6;
+    border-bottom: 1px solid #f1f2f6;
+    background: white;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .grid9 > div:nth-child(11n) { border-right: 0; }
+  .grid9 > .lbl {
     text-align: left;
+    padding-left: 6px;
+    color: var(--muted);
+    font-weight: 600;
+    background: #fafbfc;
     font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: .05em;
+  }
+  .grid9 > .lbl.player-t1 { color: var(--t1); font-weight: 700; }
+  .grid9 > .lbl.player-t2 { color: var(--t2); font-weight: 700; }
+  .grid9 > .head {
     color: var(--muted);
     font-weight: 700;
-    padding: 8px 6px 6px;
-    border-bottom: 1px solid var(--border);
+    font-size: 10px;
+    background: #fafbfc;
+    text-transform: uppercase;
+    letter-spacing: .02em;
   }
-  .summary-table th.num { text-align: center; }
-  .summary-table td {
-    padding: 7px 6px;
-    border-bottom: 1px solid #f3f4f6;
+  .grid9 > .total {
+    background: #fafbfc;
+    font-weight: 700;
+    color: var(--text);
   }
-  .summary-table td.num { text-align: center; font-variant-numeric: tabular-nums; }
-  .summary-table tr.t1-win td.result { color: var(--t1); font-weight: 700; }
-  .summary-table tr.t2-win td.result { color: var(--t2); font-weight: 700; }
-  .summary-table tr.halve td.result { color: var(--muted); }
-  .summary-table tr.pending td { color: #d1d5db; }
-  .summary-table td.status { font-weight: 700; font-variant-numeric: tabular-nums; }
-  .summary-table td.status.t1 { color: var(--t1); }
-  .summary-table td.status.t2 { color: var(--t2); }
+  .grid9 > .val { font-weight: 600; }
+  .grid9 > .val.t1 { color: var(--t1); }
+  .grid9 > .val.t2 { color: var(--t2); }
+  .grid9 > .val.under { color: var(--accent); }
+  .grid9 > .val.muted { color: #cbd5e1; }
+  .grid9 > .val .stroke-mark {
+    display: inline-block;
+    min-width: 18px;
+    padding: 2px 4px;
+    background: var(--t1);
+    color: white;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+  .grid9 > .val.t2 .stroke-mark { background: var(--t2); }
+  .grid9 > .status-row {
+    background: #fafbfc;
+    font-weight: 700;
+    font-size: 10px;
+  }
+  .grid9 > .status-row.t1 { color: var(--t1); }
+  .grid9 > .status-row.t2 { color: var(--t2); }
+  .grid-title {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 700;
+    margin-top: 14px;
+    padding-left: 4px;
+  }
 
   .totals-row {
     display: grid;
@@ -804,8 +853,7 @@ function renderSummary() {
   // Final result text
   let finalText, finalClass;
   if (status.holesPlayed === 0) {
-    finalText = 'Not started';
-    finalClass = '';
+    finalText = 'Not started'; finalClass = '';
   } else if (status.running === 0) {
     finalText = status.holesPlayed === 18 ? 'All Square — Playoff' : 'All Square';
     finalClass = '';
@@ -813,61 +861,116 @@ function renderSummary() {
     const upBy = Math.abs(status.running);
     const winName = status.running > 0 ? t[0].name : t[1].name;
     finalClass = status.running > 0 ? 't1' : 't2';
-    if (status.holesPlayed === 18) {
-      finalText = `${esc(winName)} wins ${upBy} UP`;
-    } else if (upBy > status.holesRemaining) {
-      finalText = `${esc(winName)} wins ${upBy}&${status.holesRemaining}`;
-    } else {
-      finalText = `${esc(winName)} ${upBy} UP · ${status.holesRemaining} to play`;
-    }
+    if (status.holesPlayed === 18) finalText = `${esc(winName)} wins ${upBy} UP`;
+    else if (upBy > status.holesRemaining) finalText = `${esc(winName)} wins ${upBy}&${status.holesRemaining}`;
+    else finalText = `${esc(winName)} ${upBy} UP · ${status.holesRemaining} to play`;
   }
 
-  // Hole rows
-  let rows = '';
+  // Tally
   let t1wins = 0, t2wins = 0, halved = 0;
-  for (let h = 0; h < 18; h++) {
-    const hole = c.holes[h];
-    const winner = status.holeWinners[h];
-    const cum = status.cumStatus[h];
+  status.holeWinners.forEach(w => {
+    if (w === 'T1') t1wins++;
+    else if (w === 'T2') t2wins++;
+    else if (w === 'AS') halved++;
+  });
 
-    let resultLabel, rowCls;
-    if (winner == null) { resultLabel = '—'; rowCls = 'pending'; }
-    else if (winner === 'T1') { resultLabel = `${t[0].name} ↑`; rowCls = 't1-win'; t1wins++; }
-    else if (winner === 'T2') { resultLabel = `${t[1].name} ↑`; rowCls = 't2-win'; t2wins++; }
-    else { resultLabel = 'Halved'; rowCls = 'halve'; halved++; }
-
-    let statusLabel, statusCls = '';
-    if (cum == null) statusLabel = '—';
-    else if (cum === 0) statusLabel = 'AS';
-    else if (cum > 0) { statusLabel = `${cum} UP`; statusCls = 't1'; }
-    else { statusLabel = `${-cum} UP`; statusCls = 't2'; }
-
-    // Best ball nets
-    const teamBest = [null, null];
-    for (let ti = 0; ti < 2; ti++) {
-      for (let pi = 0; pi < 2; pi++) {
-        const player = t[ti].players[pi];
-        const gross = state.scores[ti][pi][h];
-        if (gross == null) continue;
-        const strk = strokesOnHole(ti, pi, h, status.strokes[ti*2+pi], c.holes, player.tee);
-        const par = player.tee === 'W' ? hole.parW : hole.parM;
-        const netDiff = (gross - strk) - par;
-        if (teamBest[ti] == null || netDiff < teamBest[ti]) teamBest[ti] = netDiff;
-      }
+  // Player list ordered by tee (M first, then W), then by team
+  const allPlayers = [];
+  for (let ti = 0; ti < 2; ti++) {
+    for (let pi = 0; pi < 2; pi++) {
+      allPlayers.push({ ti, pi, player: t[ti].players[pi], idx: ti*2 + pi });
     }
-    const fmt = v => v == null ? '–' : v === 0 ? 'E' : (v > 0 ? '+' : '') + v;
+  }
+  allPlayers.sort((a, b) => {
+    if (a.player.tee !== b.player.tee) return a.player.tee === 'M' ? -1 : 1;
+    return a.ti - b.ti;
+  });
 
-    rows += `<tr class="${rowCls}">
-      <td class="num">${h+1}</td>
-      <td class="num">${hole.parM}${hole.parW !== hole.parM ? '/'+hole.parW : ''}</td>
-      <td class="num" style="color:var(--t1)">${fmt(teamBest[0])}</td>
-      <td class="num" style="color:var(--t2)">${fmt(teamBest[1])}</td>
-      <td class="result">${esc(resultLabel)}</td>
-      <td class="status ${statusCls}">${statusLabel}</td>
-    </tr>`;
+  // Build a 9-hole grid for a range
+  const fmtNet = v => v == null ? '–' : v === 0 ? 'E' : (v > 0 ? '+' : '') + v;
+
+  function grid9(startHole) {
+    // startHole is 0 (front) or 9 (back)
+    const end = startHole + 9;
+    const isFront = startHole === 0;
+    const cells = [];
+
+    // Header row
+    cells.push(`<div class="lbl head">Hole</div>`);
+    for (let h = startHole; h < end; h++) cells.push(`<div class="head">${h+1}</div>`);
+    cells.push(`<div class="head total">${isFront ? 'Out' : 'In'}</div>`);
+
+    // Helper to compute Out/In par for a given tee
+    const parTotal = tee => {
+      let s = 0;
+      for (let h = startHole; h < end; h++) s += tee === 'W' ? c.holes[h].parW : c.holes[h].parM;
+      return s;
+    };
+
+    // Group players by tee that actually appears among players
+    const tees = [...new Set(allPlayers.map(ap => ap.player.tee))]; // preserves M then W ordering thanks to sort
+
+    tees.forEach(tee => {
+      // Par row
+      cells.push(`<div class="lbl">Par${tees.length > 1 ? ' ' + tee : ''}</div>`);
+      for (let h = startHole; h < end; h++) cells.push(`<div>${tee === 'W' ? c.holes[h].parW : c.holes[h].parM}</div>`);
+      cells.push(`<div class="total">${parTotal(tee)}</div>`);
+      // SI row
+      cells.push(`<div class="lbl">SI${tees.length > 1 ? ' ' + tee : ''}</div>`);
+      for (let h = startHole; h < end; h++) cells.push(`<div>${tee === 'W' ? c.holes[h].siW : c.holes[h].siM}</div>`);
+      cells.push(`<div class="total">·</div>`);
+
+      // Player rows for this tee
+      allPlayers.filter(ap => ap.player.tee === tee).forEach(ap => {
+        const teamCls = ap.ti === 0 ? 't1' : 't2';
+        cells.push(`<div class="lbl player-${teamCls}">${esc(ap.player.name)}</div>`);
+        let total = 0, any = false;
+        for (let h = startHole; h < end; h++) {
+          const gross = state.scores[ap.ti][ap.pi][h];
+          const par = tee === 'W' ? c.holes[h].parW : c.holes[h].parM;
+          const strk = strokesOnHole(ap.ti, ap.pi, h, status.strokes[ap.idx], c.holes, tee);
+          if (gross == null) {
+            cells.push(`<div class="val muted">–</div>`);
+          } else {
+            const net = gross - strk;
+            const diff = net - par;
+            total += gross;
+            any = true;
+            const cls = ['val', teamCls];
+            if (diff < 0) cls.push('under');
+            const txt = diff === 0 ? 'E' : (diff > 0 ? '+' : '') + diff;
+            if (strk > 0) {
+              cells.push(`<div class="${cls.join(' ')}"><span class="stroke-mark">${txt}</span></div>`);
+            } else {
+              cells.push(`<div class="${cls.join(' ')}">${txt}</div>`);
+            }
+          }
+        }
+        cells.push(`<div class="total">${any ? total : '–'}</div>`);
+      });
+    });
+
+    // Running status row
+    cells.push(`<div class="lbl">Score</div>`);
+    for (let h = startHole; h < end; h++) {
+      const cum = status.cumStatus[h];
+      if (cum == null) cells.push(`<div class="status-row">–</div>`);
+      else if (cum === 0) cells.push(`<div class="status-row">AS</div>`);
+      else if (cum > 0) cells.push(`<div class="status-row t1">${cum}UP</div>`);
+      else cells.push(`<div class="status-row t2">${-cum}UP</div>`);
+    }
+    // End-of-9 cumulative (same as last hole's cum, or final running if it's after H18)
+    const endCum = status.cumStatus[end-1];
+    let endLabel;
+    if (endCum == null) endLabel = '–';
+    else if (endCum === 0) endLabel = 'AS';
+    else endLabel = `${Math.abs(endCum)}UP`;
+    const endCls = endCum == null ? '' : (endCum > 0 ? 't1' : endCum < 0 ? 't2' : '');
+    cells.push(`<div class="status-row ${endCls}">${endLabel}</div>`);
+
+    return `<div class="grid9">${cells.join('')}</div>`;
   }
 
-  // Build HTML
   const body = `
     <div class="summary-header">
       <div class="course">${esc(c.name)}</div>
@@ -893,17 +996,12 @@ function renderSummary() {
       <div class="totals-cell t2"><div class="num">${t2wins}</div><div class="lbl">${esc(t[1].name)}</div></div>
     </div>
 
-    <table class="summary-table">
-      <thead><tr>
-        <th class="num">#</th>
-        <th class="num">Par</th>
-        <th class="num">T1 net</th>
-        <th class="num">T2 net</th>
-        <th>Hole</th>
-        <th>Status</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
+    <div class="grid-title">Front 9</div>
+    ${grid9(0)}
+    <div class="grid-title">Back 9</div>
+    ${grid9(9)}
+
+    <p class="small-help" style="margin-top:10px">Numbers shown are net to par. A colored pill marks a hole where that player received a handicap stroke.</p>
   `;
   document.getElementById('modal-body').innerHTML = body;
 }
@@ -1094,86 +1192,6 @@ function closeSummary() {
   document.getElementById('modal-backdrop').classList.remove('show');
   document.getElementById('modal').classList.remove('show');
   document.body.style.overflow = '';
-}
-
-function refreshSetupCalc() {
-  const calc = document.querySelector('.calc');
-  if (!calc) return;
-  const status = calcMatchStatus(state);
-  const all = [...state.teams[0].players, ...state.teams[1].players];
-  calc.innerHTML = all.map((p, i) => {
-    const ch = courseHandicap(p);
-    const ph = playingHandicap(p);
-    return `${esc(p.name)}: ${p.hi}×${p.slope}/113 + (${p.cr}−${p.par}) = ${ch.toFixed(2)} → ×0.9 + (${p.par}−${BASE_PAR}) = ${ph.toFixed(2)} → ${Math.round(ph)} → <b>${status.strokes[i]}</b> strokes`;
-  }).join('<br>');
-}
-
-function updateScorecardSummary() {
-  const status = calcMatchStatus(state);
-  const c = state.course;
-  const t = state.teams;
-
-  // Top pill
-  const topPill = document.querySelector('.topbar .pill');
-  if (topPill) {
-    const overall = statusBadge(status.running, status.holesPlayed);
-    topPill.className = 'pill ' + overall.cls;
-    topPill.textContent = overall.txt;
-  }
-  // VS pill in summary
-  const vs = document.querySelector('.vs-pill');
-  if (vs) {
-    vs.className = 'vs-pill ' + status.labelClass;
-    vs.textContent = status.label;
-  }
-  // Footer
-  const footStatus = document.querySelector('.footer .status-pill');
-  if (footStatus) {
-    footStatus.className = 'status-pill ' + status.labelClass;
-    footStatus.innerHTML = `<span>${esc(status.label)}</span><span class="sub">${status.holesPlayed}/18 played</span>`;
-  }
-
-  // Update every hole's badge + net pills + winner highlight
-  document.querySelectorAll('.hole-card').forEach((card) => {
-    const h = +card.dataset.hole;
-    const cum = status.cumStatus[h];
-    const winner = status.holeWinners[h];
-    const badge = statusBadge(cum);
-    const tag = card.querySelector('.hole-result');
-    tag.className = 'hole-result ' + badge.cls;
-    tag.textContent = badge.txt;
-
-    card.querySelectorAll('.team-cell').forEach((cell, idx) => {
-      cell.classList.remove('winner');
-      if ((idx === 0 && winner === 'T1') || (idx === 1 && winner === 'T2')) cell.classList.add('winner');
-    });
-
-    card.querySelectorAll('.player-row').forEach((row, idx) => {
-      const ti = idx < 2 ? 0 : 1;
-      const pi = idx % 2;
-      const player = t[ti].players[pi];
-      const par = player.tee === 'W' ? c.holes[h].parW : c.holes[h].parM;
-      const gross = state.scores[ti][pi][h];
-      const strk = strokesOnHole(ti, pi, h, status.strokes[ti*2+pi], c.holes, player.tee);
-      const label = row.querySelector('.player-label');
-      // Refresh net pill
-      let pill = label.querySelector('.net-pill');
-      if (gross == null) {
-        if (pill) pill.remove();
-      } else {
-        const net = gross - strk;
-        const diff = net - par;
-        const cls = diff < 0 ? 'under' : diff > 0 ? 'over' : '';
-        const txt = diff === 0 ? 'E' : (diff > 0 ? '+' : '') + diff;
-        if (!pill) {
-          pill = document.createElement('span');
-          label.appendChild(pill);
-        }
-        pill.className = 'net-pill ' + cls;
-        pill.textContent = txt;
-      }
-    });
-  });
 }
 
 render();
