@@ -212,6 +212,48 @@
   }
   .net-pill.under { color: var(--accent); }
   .net-pill.over { color: #b91c1c; }
+
+  .toggles-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .toggle input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 34px; height: 20px;
+    background: #d1d5db;
+    border-radius: 999px;
+    position: relative;
+    transition: background .15s;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .toggle input:checked { background: var(--accent); }
+  .toggle input::before {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    background: white;
+    border-radius: 50%;
+    transition: transform .15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,.2);
+  }
+  .toggle input:checked::before { transform: translateX(14px); }
   .score-input {
     padding: 8px 4px;
     text-align: center;
@@ -536,8 +578,21 @@ function defaultState() {
       0: { 0: {}, 1: {} },
       1: { 0: {}, 1: {} },
     },
+    display: { hcp: true, par: true },
     view: 'setup',
   };
+}
+
+// Format a single score cell based on the current Hcp/Par adjust toggles.
+function formatScoreCell(gross, par, strk) {
+  if (gross == null) return '–';
+  const d = state.display || { hcp: true, par: true };
+  let value = d.hcp ? (gross - strk) : gross;
+  if (d.par) {
+    const diff = value - par;
+    return diff === 0 ? 'E' : (diff > 0 ? '+' : '') + diff;
+  }
+  return String(value);
 }
 
 let state = loadState() || defaultState();
@@ -635,6 +690,7 @@ function loadState() {
       const obj = JSON.parse(s);
       if (obj && obj.course && obj.teams && obj.scores) {
         if (!obj.overrides) obj.overrides = { 0: {0:{},1:{}}, 1: {0:{},1:{}} };
+        if (!obj.display) obj.display = { hcp: true, par: true };
         return obj;
       }
     }
@@ -644,6 +700,7 @@ function loadState() {
     if (s) {
       const obj = JSON.parse(s);
       if (!obj.overrides) obj.overrides = { 0: {0:{},1:{}}, 1: {0:{},1:{}} };
+      if (!obj.display) obj.display = { hcp: true, par: true };
       return obj;
     }
   } catch (e) {}
@@ -770,10 +827,10 @@ function renderScorecard() {
         const par = player.tee === 'W' ? hole.parW : hole.parM;
         let netHTML = '';
         if (gross != null) {
-          const net = gross - strk;
-          const diff = net - par;
+          const value = state.display.hcp ? gross - strk : gross;
+          const diff = value - par;
           const cls = diff < 0 ? 'under' : diff > 0 ? 'over' : '';
-          const txt = diff === 0 ? 'E' : (diff > 0 ? '+' : '') + diff;
+          const txt = formatScoreCell(gross, par, strk);
           netHTML = `<span class="net-pill ${cls}">${txt}</span>`;
         }
         const dots = '<span class="stroke-dot"></span>'.repeat(strk);
@@ -815,7 +872,11 @@ function renderScorecard() {
             <div class="team-players">${esc(t[1].players[0].name)} · ${esc(t[1].players[1].name)}</div>
           </div>
         </div>
-        <p class="small-help" style="margin-top:10px">Green dot = handicap stroke received on that hole. Lower net per team wins the hole.</p>
+        <div class="toggles-row">
+          <label class="toggle"><input type="checkbox" id="toggle-hcp" ${state.display.hcp ? 'checked' : ''}><span>Hcp adjust</span></label>
+          <label class="toggle"><input type="checkbox" id="toggle-par" ${state.display.par ? 'checked' : ''}><span>Par adjust</span></label>
+        </div>
+        <p class="small-help" style="margin-top:8px">Green dot = handicap stroke received on that hole. Lower net per team wins the hole.</p>
       </div>
       ${holesHTML}
     </div>
@@ -932,13 +993,13 @@ function renderSummary() {
           if (gross == null) {
             cells.push(`<div class="val muted">–</div>`);
           } else {
-            const net = gross - strk;
-            const diff = net - par;
+            const value = state.display.hcp ? gross - strk : gross;
+            const diff = value - par;
             total += gross;
             any = true;
             const cls = ['val', teamCls];
             if (diff < 0) cls.push('under');
-            const txt = diff === 0 ? 'E' : (diff > 0 ? '+' : '') + diff;
+            const txt = formatScoreCell(gross, par, strk);
             if (strk > 0) {
               cells.push(`<div class="${cls.join(' ')}"><span class="stroke-mark">${txt}</span></div>`);
             } else {
@@ -1149,6 +1210,11 @@ function bind() {
     }
   };
 
+  const tHcp = document.getElementById('toggle-hcp');
+  if (tHcp) tHcp.onchange = () => { state.display.hcp = tHcp.checked; saveState(); updateScorecardSummary(); };
+  const tPar = document.getElementById('toggle-par');
+  if (tPar) tPar.onchange = () => { state.display.par = tPar.checked; saveState(); updateScorecardSummary(); };
+
   const summaryBtn = document.getElementById('summary');
   if (summaryBtn) summaryBtn.onclick = openSummary;
 
@@ -1192,6 +1258,82 @@ function closeSummary() {
   document.getElementById('modal-backdrop').classList.remove('show');
   document.getElementById('modal').classList.remove('show');
   document.body.style.overflow = '';
+}
+
+function refreshSetupCalc() {
+  const calc = document.querySelector('.calc');
+  if (!calc) return;
+  const status = calcMatchStatus(state);
+  const all = [...state.teams[0].players, ...state.teams[1].players];
+  calc.innerHTML = all.map((p, i) => {
+    const ch = courseHandicap(p);
+    const ph = playingHandicap(p);
+    return `${esc(p.name)}: ${p.hi}×${p.slope}/113 + (${p.cr}−${p.par}) = ${ch.toFixed(2)} → ×0.9 + (${p.par}−${BASE_PAR}) = ${ph.toFixed(2)} → ${Math.round(ph)} → <b>${status.strokes[i]}</b> strokes`;
+  }).join('<br>');
+}
+
+function updateScorecardSummary() {
+  const status = calcMatchStatus(state);
+  const c = state.course;
+  const t = state.teams;
+
+  const topPill = document.querySelector('.topbar .pill');
+  if (topPill) {
+    const overall = statusBadge(status.running, status.holesPlayed);
+    topPill.className = 'pill ' + overall.cls;
+    topPill.textContent = overall.txt;
+  }
+  const vs = document.querySelector('.vs-pill');
+  if (vs) {
+    vs.className = 'vs-pill ' + status.labelClass;
+    vs.textContent = status.label;
+  }
+  const footStatus = document.querySelector('.footer .status-pill');
+  if (footStatus) {
+    footStatus.className = 'status-pill ' + status.labelClass;
+    footStatus.innerHTML = `<span>${esc(status.label)}</span><span class="sub">${status.holesPlayed}/18 played</span>`;
+  }
+
+  document.querySelectorAll('.hole-card').forEach((card) => {
+    const h = +card.dataset.hole;
+    const cum = status.cumStatus[h];
+    const winner = status.holeWinners[h];
+    const badge = statusBadge(cum);
+    const tag = card.querySelector('.hole-result');
+    if (tag) {
+      tag.className = 'hole-result ' + badge.cls;
+      tag.textContent = badge.txt;
+    }
+    card.querySelectorAll('.team-cell').forEach((cell, idx) => {
+      cell.classList.remove('winner');
+      if ((idx === 0 && winner === 'T1') || (idx === 1 && winner === 'T2')) cell.classList.add('winner');
+    });
+    card.querySelectorAll('.player-row').forEach((row, idx) => {
+      const ti = idx < 2 ? 0 : 1;
+      const pi = idx % 2;
+      const player = t[ti].players[pi];
+      const par = player.tee === 'W' ? c.holes[h].parW : c.holes[h].parM;
+      const gross = state.scores[ti][pi][h];
+      const strk = strokesOnHole(ti, pi, h, status.strokes[ti*2+pi], c.holes, player.tee);
+      const label = row.querySelector('.player-label');
+      if (!label) return;
+      let pill = label.querySelector('.net-pill');
+      if (gross == null) {
+        if (pill) pill.remove();
+      } else {
+        const value = state.display.hcp ? gross - strk : gross;
+        const diff = value - par;
+        const cls = diff < 0 ? 'under' : diff > 0 ? 'over' : '';
+        const txt = formatScoreCell(gross, par, strk);
+        if (!pill) {
+          pill = document.createElement('span');
+          label.appendChild(pill);
+        }
+        pill.className = 'net-pill ' + cls;
+        pill.textContent = txt;
+      }
+    });
+  });
 }
 
 render();
