@@ -212,6 +212,14 @@
   }
   .net-pill.under { color: var(--accent); }
   .net-pill.over { color: #b91c1c; }
+  .net-pill.best {
+    color: white;
+    padding: 2px 7px;
+    border-radius: 999px;
+    margin-left: 6px;
+  }
+  .net-pill.best.t1 { background: var(--t1); }
+  .net-pill.best.t2 { background: var(--t2); }
 
   .toggles-row {
     display: flex;
@@ -471,16 +479,24 @@
   .grid9 > .val.t2 { color: var(--t2); }
   .grid9 > .val.under { color: var(--accent); }
   .grid9 > .val.muted { color: #cbd5e1; }
-  .grid9 > .val .stroke-mark {
+  .grid9 > .val .best-pill {
     display: inline-block;
     min-width: 18px;
-    padding: 2px 4px;
+    padding: 2px 5px;
     background: var(--t1);
     color: white;
     border-radius: 999px;
     font-weight: 700;
   }
-  .grid9 > .val.t2 .stroke-mark { background: var(--t2); }
+  .grid9 > .val.t2 .best-pill { background: var(--t2); }
+  .grid9 > .val .stroke-dot-inline {
+    display: inline-block;
+    width: 5px; height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 2px;
+  }
   .grid9 > .status-row {
     background: #fafbfc;
     font-weight: 700;
@@ -581,6 +597,28 @@ function defaultState() {
     display: { hcp: true, par: true },
     view: 'setup',
   };
+}
+
+// Returns true if this player's net score is tied for their team's best on the hole.
+function isBestBall(ti, pi, h, status) {
+  const player = state.teams[ti].players[pi];
+  const gross = state.scores[ti][pi][h];
+  if (gross == null) return false;
+  const par = player.tee === 'W' ? state.course.holes[h].parW : state.course.holes[h].parM;
+  const strk = strokesOnHole(ti, pi, h, status.strokes[ti*2+pi], state.course.holes, player.tee);
+  const myNet = (gross - strk) - par;
+
+  let teamBest = null;
+  for (let p = 0; p < 2; p++) {
+    const pl = state.teams[ti].players[p];
+    const g = state.scores[ti][p][h];
+    if (g == null) continue;
+    const pr = pl.tee === 'W' ? state.course.holes[h].parW : state.course.holes[h].parM;
+    const sk = strokesOnHole(ti, p, h, status.strokes[ti*2+p], state.course.holes, pl.tee);
+    const n = (g - sk) - pr;
+    if (teamBest == null || n < teamBest) teamBest = n;
+  }
+  return teamBest != null && myNet === teamBest;
 }
 
 // Format a single score cell based on the current Hcp/Par adjust toggles.
@@ -829,9 +867,12 @@ function renderScorecard() {
         if (gross != null) {
           const value = state.display.hcp ? gross - strk : gross;
           const diff = value - par;
-          const cls = diff < 0 ? 'under' : diff > 0 ? 'over' : '';
+          const best = isBestBall(ti, pi, h, status);
+          const teamCls = ti === 0 ? 't1' : 't2';
+          const cls = [diff < 0 ? 'under' : diff > 0 ? 'over' : ''];
+          if (best) { cls.push('best', teamCls); }
           const txt = formatScoreCell(gross, par, strk);
-          netHTML = `<span class="net-pill ${cls}">${txt}</span>`;
+          netHTML = `<span class="net-pill ${cls.filter(Boolean).join(' ')}">${txt}</span>`;
         }
         const dots = '<span class="stroke-dot"></span>'.repeat(strk);
         rows += `<div class="player-row">
@@ -1000,11 +1041,10 @@ function renderSummary() {
             const cls = ['val', teamCls];
             if (diff < 0) cls.push('under');
             const txt = formatScoreCell(gross, par, strk);
-            if (strk > 0) {
-              cells.push(`<div class="${cls.join(' ')}"><span class="stroke-mark">${txt}</span></div>`);
-            } else {
-              cells.push(`<div class="${cls.join(' ')}">${txt}</div>`);
-            }
+            const dot = strk > 0 ? '<span class="stroke-dot-inline"></span>' : '';
+            const best = isBestBall(ap.ti, ap.pi, h, status);
+            const inner = best ? `<span class="best-pill">${txt}</span>` : txt;
+            cells.push(`<div class="${cls.join(' ')}">${dot}${inner}</div>`);
           }
         }
         cells.push(`<div class="total">${any ? total : '–'}</div>`);
@@ -1323,13 +1363,16 @@ function updateScorecardSummary() {
       } else {
         const value = state.display.hcp ? gross - strk : gross;
         const diff = value - par;
-        const cls = diff < 0 ? 'under' : diff > 0 ? 'over' : '';
+        const best = isBestBall(ti, pi, h, status);
+        const teamCls = ti === 0 ? 't1' : 't2';
+        const parts = ['net-pill', diff < 0 ? 'under' : diff > 0 ? 'over' : ''];
+        if (best) parts.push('best', teamCls);
         const txt = formatScoreCell(gross, par, strk);
         if (!pill) {
           pill = document.createElement('span');
           label.appendChild(pill);
         }
-        pill.className = 'net-pill ' + cls;
+        pill.className = parts.filter(Boolean).join(' ');
         pill.textContent = txt;
       }
     });
