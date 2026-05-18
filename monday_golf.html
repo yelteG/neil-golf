@@ -274,18 +274,11 @@ function renderAll(rounds, players) {
   const numMondays = dateOrder.length;
   const allScores = rounds.map(r => r.Score).filter(s => !isNaN(s));
   const seasonBest  = Math.max(...allScores);
-  const dataWorst   = Math.min(...allScores);
   const bestRound   = rounds.find(r => r.Score === seasonBest);
 
-  // Season Best: purely from live data — only updates when a new round beats the current best
-  // Season Worst: hardcoded as Aaron Wong 24 (RACV Cape Schanck).
-  // Only replaced if someone OTHER than Aaron Wong shoots 24 or lower at a Monday round.
-  const HARDCODED_WORST = { score: 24, player: 'Aaron Wong', sub: '(RACV Cape Schanck)' };
-  const othersScores  = rounds.filter(r => r.Player !== 'Aaron Wong').map(r => r.Score).filter(s => !isNaN(s));
-  const othersWorst   = othersScores.length ? Math.min(...othersScores) : Infinity;
-  const useDataWorst  = othersWorst < HARDCODED_WORST.score;
-  const seasonWorst   = useDataWorst ? othersWorst : HARDCODED_WORST.score;
-  const worstRound    = useDataWorst ? rounds.find(r => r.Player !== 'Aaron Wong' && r.Score === othersWorst) : null;
+  // Season worst: always the lowest score in live data
+  const seasonWorst = Math.min(...allScores);
+  const worstRound  = rounds.find(r => r.Score === seasonWorst);
 
   document.getElementById('stat-total-rounds').textContent = totalRounds;
   document.getElementById('stat-total-sub').textContent    = `across ${numMondays} Monday${numMondays!==1?'s':''}`;
@@ -293,9 +286,7 @@ function renderAll(rounds, players) {
   document.getElementById('stat-best-score').textContent   = seasonBest;
   document.getElementById('stat-best-sub').textContent     = bestRound ? `${bestRound.Player}, ${bestRound.Date}` : '—';
   document.getElementById('stat-worst-score').textContent  = seasonWorst;
-  document.getElementById('stat-worst-sub').textContent    = worstRound
-    ? `${worstRound.Player}, ${worstRound.Date}`
-    : `${HARDCODED_WORST.player} · ${HARDCODED_WORST.sub}`;
+  document.getElementById('stat-worst-sub').textContent    = worstRound ? `${worstRound.Player}, ${worstRound.Date}` : '—';
 
   const lastDate = dateOrder[dateOrder.length - 1] || '';
   document.getElementById('hero-sub').textContent = `2026 Season · Riversdale GC rounds only · Last round ${lastDate}`;
@@ -307,7 +298,8 @@ function renderAll(rounds, players) {
     const cfg  = PLAYERS[name] || { initials: name.split(' ').map(w=>w[0]).join(''), bg:'#eee', color:'#333', bar:'#666' };
     const pct  = ((s.avg / maxAvg) * 100).toFixed(1);
     const hcpVal = hcpMap[name];
-    const hcpStr = hcpVal != null ? ` · HCP ${parseFloat(hcpVal).toFixed(1)}` : '';
+    const hcpNum = parseFloat(hcpVal);
+    const hcpStr = !isNaN(hcpNum) ? ` · HCP ${hcpNum.toFixed(1)}` : '';
     return `<div class="player-row">
       <div class="player-pos ${posClass(i)}">${i+1}</div>
       <div class="player-avatar" style="background:${cfg.bg};color:${cfg.color};">${cfg.initials}</div>
@@ -366,7 +358,7 @@ function renderAll(rounds, players) {
 
   const recs = [
     { icon:'🏆', label:'Season best score',    value: seasonBest,  sub: bestRound ? `${bestRound.Player} · ${bestRound.Date}` : '—' },
-    { icon:'😬', label:'Season worst score',   value: seasonWorst, sub: worstRound ? `${worstRound.Player} · ${worstRound.Date}` : `${HARDCODED_WORST.player} · ${HARDCODED_WORST.sub}` },
+    { icon:'😬', label:'Season worst score',   value: seasonWorst, sub: worstRound ? `${worstRound.Player} · ${worstRound.Date}` : '—' },
     { icon:'📅', label:'Most rounds played',   value: mostRnds ? `${mostRnds[1].rounds} rounds` : '—', sub: mostRnds ? mostRnds[0] : '' },
     { icon:'📊', label:'Best average',         value: bestAvgP ? bestAvgP[1].avg.toFixed(1) : '—', sub: bestAvgP ? `${bestAvgP[0]} (min 3 rounds)` : '' },
     { icon:'🎯', label:'Most consistent',      value: consistentPlayer || '—', sub: consistentPlayer ? 'Lowest score variance' : '' },
@@ -456,7 +448,6 @@ async function init() {
     if (!rawRows || rawRows.length === 0) throw new Error('No data found in Rounds sheet');
 
     // Normalise: the scraper uses "Player Name" — map to "Player" for renderAll
-    // Also pick up GA Handicap per player from the data (no separate Players tab needed)
     const rounds = rawRows.map(r => ({
       Player:  (r['Player Name'] || r['Player'] || '').trim(),
       Date:    parseGvizDate(r['Date']),
@@ -466,10 +457,23 @@ async function init() {
       HCP:     r['GA Handicap'] || null,
     })).filter(r => r.Player && !isNaN(r.Score) && r.Score > 0);
 
-    // Build HCP map: use the most-recently-scraped value per player
-    // (rows are oldest-first so last occurrence = most recent)
+    // Build HCP map from round rows (stale — set when round was scraped)
     const hcpMap = {};
     rounds.forEach(r => { if (r.HCP) hcpMap[r.Player] = r.HCP; });
+
+    // Try to fetch current handicaps from Golfers tab (updated by the scraper button)
+    // If available, these override the stale round-row values
+    try {
+      const golferRows = await fetchSheet('Golfers');
+      golferRows.forEach(r => {
+        const name = (r['Player Name'] || r['Player'] || '').trim();
+        const hcp  = r['Handicap'];
+        if (name && hcp != null) hcpMap[name] = hcp;
+      });
+      console.log('Golfers tab HCPs loaded:', hcpMap);
+    } catch(e) {
+      console.log('Golfers tab not found — using round-row HCPs as fallback');
+    }
 
     // Create a synthetic "players" array for renderAll
     const players = Object.entries(hcpMap).map(([Player, HCP]) => ({ Player, HCP }));
