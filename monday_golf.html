@@ -278,7 +278,7 @@ function renderAll(rounds, players) {
 
   // Season worst: always the lowest score in live data
   const seasonWorst = Math.min(...allScores);
-  const worstRound  = rounds.find(r => r.Score === seasonWorst);
+  const worstRound  = [...rounds].reverse().find(r => r.Score === seasonWorst);
 
   document.getElementById('stat-total-rounds').textContent = totalRounds;
   document.getElementById('stat-total-sub').textContent    = `across ${numMondays} Monday${numMondays!==1?'s':''}`;
