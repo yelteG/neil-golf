@@ -431,11 +431,13 @@ function renderHeader(stats, lastUpdated) {
   document.getElementById('header-sub').textContent = `${stats.total} rounds · Last updated ${lastUpdated}`;
 
   const strip = document.getElementById('stats-strip');
+  const softCap = stats.lowHcp ? (parseFloat(stats.lowHcp) + 3.0).toFixed(1) : '—';
+  const hardCap = stats.lowHcp ? (parseFloat(stats.lowHcp) + 5.0).toFixed(1) : '—';
   const items = [
     ['Rounds', stats.total, ''],
     ['Avg score', stats.avg, ''],
-    ['Best', stats.best, 'g'],
-    ['Worst', stats.worst, 'r'],
+    ['Soft cap', softCap, 'gold'],
+    ['Hard cap', hardCap, 'r'],
     ['Last 5 avg', stats.last5avg, ''],
     ['Low HCP', stats.lowHcp, 'gold'],
     ['Great rounds', stats.great, 'g'],
