@@ -342,7 +342,7 @@ async function loadData() {
         obj._playedTo = parseFloat(obj['Gross Diff']) || null;
         return obj;
       })
-      .filter(r => r._score > 0 && r._date && !isNaN(r._date));
+      .filter(r => r._date && !isNaN(r._date)); // keep all rows with a valid date
 
     rows.sort((a,b) => a._date - b._date);
     return rows;
@@ -360,8 +360,9 @@ function scoreClass(s) {
 }
 
 function buildStats(rows) {
-  const scores  = rows.map(r => r._score);
-  const hcps    = rows.map(r => r._hcp).filter(Boolean);
+  const scoredRows = rows.filter(r => r._score > 0); // exclude tracking-only rows
+  const scores  = scoredRows.map(r => r._score);
+  const hcps    = scoredRows.map(r => r._hcp).filter(Boolean);
   // Low HCP = min Prior GA Hcp in last 12 months
   const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear()-1);
   const priorHcpLast12 = rows
@@ -373,7 +374,7 @@ function buildStats(rows) {
   const trend   = prev5.length ? (last5.reduce((a,b)=>a+b,0)/last5.length - prev5.reduce((a,b)=>a+b,0)/prev5.length).toFixed(1) : 0;
 
   const monthly = {};
-  rows.forEach(r => {
+  scoredRows.forEach(r => {
     const k = r._date.toLocaleDateString('en-AU', {month:'short',year:'numeric'});
     if (!monthly[k]) monthly[k] = [];
     monthly[k].push(r._score);
@@ -382,7 +383,7 @@ function buildStats(rows) {
   const worstMonth = Object.entries(monthly).sort((a,b) => (a[1].reduce((x,y)=>x+y,0)/a[1].length) - (b[1].reduce((x,y)=>x+y,0)/b[1].length))[0];
 
   const courses = {};
-  rows.forEach(r => {
+  scoredRows.forEach(r => {
     if (!courses[r.Course]) courses[r.Course] = {scores:[], dates:[]};
     courses[r.Course].scores.push(r._score);
     courses[r.Course].dates.push(r._date);
@@ -390,17 +391,17 @@ function buildStats(rows) {
   const bestCourse = Object.entries(courses).filter(([,v])=>v.scores.length>=3).sort((a,b)=>(b[1].scores.reduce((x,y)=>x+y,0)/b[1].scores.length)-(a[1].scores.reduce((x,y)=>x+y,0)/a[1].scores.length))[0];
 
   const yearly = {};
-  rows.forEach(r => {
+  scoredRows.forEach(r => {
     const yr = r._date.getFullYear();
     if (!yearly[yr]) yearly[yr] = [];
     yearly[yr].push(r._score);
   });
 
   // Best played to
-  const bestPT = rows.filter(r=>r._playedTo).sort((a,b)=>a._playedTo-b._playedTo)[0];
+  const bestPT = scoredRows.filter(r=>r._playedTo).sort((a,b)=>a._playedTo-b._playedTo)[0];
 
   return {
-    total:      rows.length,
+    total:      scoredRows.length,
     avg:        (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1),
     best:       Math.max(...scores),
     worst:      Math.min(...scores),
@@ -506,7 +507,7 @@ function renderLast5(rows) {
     <tr>
       <td>${r._dateStr}</td>
       <td class="tc">${r.Course}</td>
-      <td><span class="pill ${scoreClass(r._score)}">${r._score}</span></td>
+      <td>${r._score > 0 ? `<span class="pill ${scoreClass(r._score)}">${r._score}</span>` : '<span style="color:var(--text-faint)">—</span>'}</td>
       <td class="hc">${r._playedTo || '—'}</td>
     </tr>`).join('');
 }
@@ -530,7 +531,7 @@ function renderRounds(rows) {
       <td style="color:var(--text-faint);font-size:11px;text-align:center;padding:10px 6px;width:32px;">${rowNum}</td>
       <td style="white-space:nowrap;font-size:12px;">${r._dateStr}</td>
       <td class="tc">${r.Course}</td>
-      <td><span class="pill ${scoreClass(r._score)}">${r._score}</span></td>
+      <td>${r._score > 0 ? `<span class="pill ${scoreClass(r._score)}">${r._score}</span>` : '<span style="color:var(--text-faint)">—</span>'}</td>
       <td class="hc">${r['Daily Hcp'] || '—'}</td>
       <td class="hc">${r['Gross Diff'] || '—'}</td>
     </tr>`;
