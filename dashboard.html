@@ -384,9 +384,10 @@ function buildStats(rows) {
   const worstMonth = Object.entries(monthly).sort((a,b) => (a[1].reduce((x,y)=>x+y,0)/a[1].length) - (b[1].reduce((x,y)=>x+y,0)/b[1].length))[0];
 
   const courses = {};
-  scoredRows.forEach(r => {
+  rows.forEach(r => {
+    if (!r.Course) return;
     if (!courses[r.Course]) courses[r.Course] = {scores:[], dates:[]};
-    courses[r.Course].scores.push(r._score);
+    if (r._score > 0) courses[r.Course].scores.push(r._score);
     courses[r.Course].dates.push(r._date);
   });
   const bestCourse = Object.entries(courses).filter(([,v])=>v.scores.length>=3).sort((a,b)=>(b[1].scores.reduce((x,y)=>x+y,0)/b[1].scores.length)-(a[1].scores.reduce((x,y)=>x+y,0)/a[1].scores.length))[0];
@@ -582,11 +583,12 @@ function renderYears(stats) {
 function renderCourses(stats) {
   allCourseData = Object.entries(stats.courses).map(([name, data]) => ({
     name,
-    rounds: data.scores.length,
-    avg: (data.scores.reduce((a,b)=>a+b,0)/data.scores.length).toFixed(1),
-    best: Math.max(...data.scores),
-    last: new Date(Math.max(...data.dates)).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}),
-  })).sort((a,b) => b.rounds - a.rounds);
+    visits: data.dates.length,                          // all visits including no-score
+    rounds: data.scores.length,                         // scored rounds only
+    avg:    data.scores.length ? (data.scores.reduce((a,b)=>a+b,0)/data.scores.length).toFixed(1) : null,
+    best:   data.scores.length ? Math.max(...data.scores) : null,
+    last:   new Date(Math.max(...data.dates)).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}),
+  })).sort((a,b) => b.visits - a.visits);
   renderCoursesTable(allCourseData);
 }
 
@@ -594,9 +596,9 @@ function renderCoursesTable(data) {
   document.getElementById('courses-body').innerHTML = data.map(c => `
     <tr>
       <td style="font-weight:500;">${c.name}</td>
-      <td class="hc">${c.rounds}</td>
-      <td><span class="pill ${scoreClass(Math.round(c.avg))}">${c.avg}</span></td>
-      <td class="hc">${c.best}</td>
+      <td class="hc">${c.visits}${c.rounds < c.visits ? ` <span style="color:var(--text-faint);font-size:10px;">(${c.rounds} scored)</span>` : ''}</td>
+      <td>${c.avg != null ? `<span class="pill ${scoreClass(Math.round(c.avg))}">${c.avg}</span>` : '<span style="color:var(--text-faint)">—</span>'}</td>
+      <td class="hc">${c.best ?? '—'}</td>
       <td class="hc" style="white-space:nowrap;">${c.last}</td>
     </tr>`).join('');
 }
