@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hua Family — Vietnam & China 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #181c27;
+    --surface2: #1f2435;
+    --border: #2a2f42;
+    --text: #e8eaf0;
+    --muted: #7b82a0;
+    --viet: #e63946;
+    --china: #f4c430;
+    --flight: #4a9eff;
+    --train: #9b72cf;
+    --aus: #2ecc71;
+    --accent: #ff6b35;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 0 0 60px;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #1a0a2e 0%, #0f1117 50%, #0a1a2e 100%);
+    padding: 48px 20px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%; transform: translateX(-50%);
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(255,107,53,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-flag { font-size: 32px; letter-spacing: 6px; margin-bottom: 16px; }
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 7vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #fff 0%, #c8d0e8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-sub {
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    margin-bottom: 24px;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+  }
+  .stat-lbl {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* Bookings strip */
+  .bookings {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .bookings-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .booking-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-right: 8px;
+  }
+  .booking-pill .code {
+    color: var(--accent);
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 13px;
+  }
+  .booking-pill .check { color: var(--aus); }
+
+  /* Section label */
+  .section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    padding: 24px 20px 10px;
+    font-weight: 600;
+  }
+
+  /* Timeline */
+  .timeline { padding: 0 20px; }
+
+  .seg {
+    display: flex;
+    gap: 14px;
+    align-items: stretch;
+    position: relative;
+  }
+
+  .seg-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 24px;
+    flex-shrink: 0;
+    padding-top: 4px;
+  }
+
+  .dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  .dot-aus { background: var(--aus); box-shadow: 0 0 8px rgba(46,204,113,0.4); }
+  .dot-viet { background: var(--viet); box-shadow: 0 0 8px rgba(230,57,70,0.4); }
+  .dot-china { background: var(--china); box-shadow: 0 0 8px rgba(244,196,48,0.4); }
+  .dot-flight { background: var(--flight); box-shadow: 0 0 8px rgba(74,158,255,0.4); }
+  .dot-train { background: var(--train); box-shadow: 0 0 8px rgba(155,114,207,0.4); }
+
+  .vline {
+    width: 2px;
+    background: var(--border);
+    flex: 1;
+    margin: 3px 0;
+  }
+
+  .seg-content {
+    padding-bottom: 24px;
+    flex: 1;
+    min-width: 0;
+  }
+  .seg-content.last { padding-bottom: 0; }
+
+  .seg-date {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 3px;
+    letter-spacing: 0.03em;
+  }
+
+  .seg-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+
+  .seg-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+  .badge-flight { background: rgba(74,158,255,0.15); color: var(--flight); border: 1px solid rgba(74,158,255,0.3); }
+  .badge-confirmed { background: rgba(46,204,113,0.12); color: var(--aus); border: 1px solid rgba(46,204,113,0.25); }
+  .badge-train { background: rgba(155,114,207,0.15); color: var(--train); border: 1px solid rgba(155,114,207,0.3); }
+  .badge-est { background: rgba(244,196,48,0.12); color: var(--china); border: 1px solid rgba(244,196,48,0.25); }
+  .badge-nights { background: rgba(46,204,113,0.1); color: var(--aus); border: 1px solid rgba(46,204,113,0.2); font-weight: 600; }
+
+  .activities {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    margin-top: 8px;
+  }
+
+  .act {
+    font-size: 12.5px;
+    color: #a0a8c0;
+    line-height: 1.5;
+    display: flex;
+    gap: 8px;
+  }
+  .act-date {
+    color: var(--muted);
+    font-size: 11px;
+    white-space: nowrap;
+    padding-top: 1px;
+    min-width: 44px;
+  }
+
+  /* Budget */
+  .budget-section { padding: 0 20px; }
+
+  .budget-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+
+  .budget-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .budget-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 6px 0;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .budget-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .budget-row .lbl { color: #c0c8e0; flex: 1; }
+  .budget-row .sub { color: var(--muted); font-size: 11px; display: block; }
+  .budget-row .amt { font-weight: 600; white-space: nowrap; }
+  .budget-row.subtotal .lbl, .budget-row.subtotal .amt {
+    font-weight: 700;
+    color: var(--text);
+    padding-top: 6px;
+  }
+
+  /* Total box */
+  .total-box {
+    background: linear-gradient(135deg, #1a1f35 0%, #0f1420 100%);
+    border: 1px solid rgba(255,107,53,0.3);
+    border-radius: 16px;
+    padding: 20px;
+    margin: 0 20px 20px;
+  }
+  .total-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 4px 0;
+    color: #a0a8c0;
+  }
+  .total-line .amt { font-weight: 500; color: var(--text); }
+  .grand-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-top: 1px solid rgba(255,107,53,0.3);
+    margin-top: 10px;
+    padding-top: 14px;
+  }
+  .grand-lbl { font-size: 16px; font-weight: 700; }
+  .grand-amt { font-size: 30px; font-weight: 700; color: var(--accent); }
+  .grand-pp { font-size: 12px; color: var(--muted); text-align: right; margin-top: 2px; }
+
+  /* Checklist */
+  .checklist { padding: 0 20px; }
+  .check-group { margin-bottom: 16px; }
+  .check-group-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--surface);
+    border-radius: 8px;
+    margin-bottom: 4px;
+    font-size: 13px;
+    border: 1px solid var(--border);
+  }
+  .check-item.done { opacity: 0.6; }
+  .check-item .icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+  .check-item .text { flex: 1; color: #c0c8e0; }
+  .check-item .text .note { color: var(--muted); font-size: 11px; display: block; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 32px 20px 0;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .footer .family { font-size: 20px; margin-bottom: 6px; }
+
+  @media (max-width: 380px) {
+    .hero { padding: 36px 16px 32px; }
+    .timeline { padding: 0 16px; }
+    .budget-section { padding: 0 16px; }
+    .total-box { margin: 0 16px 20px; }
+    .checklist { padding: 0 16px; }
+    .grand-amt { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-flag">🇦🇺 ✈️ 🇻🇳 🇨🇳</div>
+  <div class="hero-title">Vietnam & China<br>Family Holiday</div>
+  <div class="hero-sub">HUA FAMILY · 9 DEC 2026 – 6 JAN 2027</div>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num">28</span><span class="stat-lbl">Nights</span></div>
+    <div class="stat"><span class="stat-num">5</span><span class="stat-lbl">Cities</span></div>
+    <div class="stat"><span class="stat-num">4</span><span class="stat-lbl">People</span></div>
+    <div class="stat"><span class="stat-num">5</span><span class="stat-lbl">Flights</span></div>
+  </div>
+</div>
+
+<!-- Bookings strip -->
+<div class="bookings">
+  <div class="bookings-label">Booking References</div>
+  <span class="booking-pill"><span class="check">✓</span> MEL↔SGN <span class="code">HHBVBR</span></span>
+  <span class="booking-pill"><span class="check">✓</span> SGN→CAN <span class="code">U2BWBX</span></span>
+  <span class="booking-pill"><span class="check">✓</span> CKG→SHA <span class="code">BKVUXVA</span></span>
+  <span class="booking-pill"><span class="check">✓</span> PVG→SGN <span class="code">UPMDYY</span></span>
+</div>
+
+<div class="section-label">Itinerary</div>
+
+<div class="timeline">
+
+  <!-- Melbourne Depart -->
+  <div class="seg">
+    <div class="seg-line"><div class="dot dot-aus"></div><div class="vline"></div></div>
+    <div class="seg-content">
+      <div class="seg-date">Wed 9 Dec 2026 · 01:30</div>
+      <div class="seg-title">🇦🇺 Depart Melbourne</div>
+      <div class="seg-sub">VJ082 · MEL T2 → SGN T2 · 8h 25m · Direct · Seats 14G/H/J/K</div>
+      <div class="badges">
+        <span class="badge badge-flight">✈ Vietjet Deluxe</span>
+        <span class="badge badge-confirmed">✓ HHBVBR · 40kg + meals</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HCMC -->
+  <div class="seg">
+    <div class="seg-line"><div class="dot dot-viet"></div><div class="vline"></div></div>
+    <div class="seg-content">
+      <div class="seg-date">9–13 Dec</div>
+      <div class="seg-title">🇻🇳 Ho Chi Minh City</div>
+      <div class="badges"><span class="badge badge-nights">4 nights</span></div>
+      <div class="activities">
+        <div class="act"><span class="act-date">9 Dec</span><span>Arrive 05:55 · rest · Nguyen Hue Walking Street</span></div>
+        <div class="act"><span class="act-date">10 Dec</span><span>Reunification Palace · War Remnants Museum</span></div>
+        <div class="act"><span class="act-date">11 Dec</span><span>Ben Thanh Market · Bitexco Tower · Bui Vien night</span></div>
+        <div class="act"><span class="act-date">12 Dec</span><span>Vung Tau beach day trip 🏖</span></div>
+        <div class="act"><span class="act-date">13 Dec</span><span>Free morning · depart 21:45</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SGN → CAN -->
+  <div class="seg">
+    <div class="seg-line"><div class="dot dot-flight"></div><div class="vline"></div></div>
+    <div class="seg-content">
+      <div class="seg-date">Sun 13 Dec · 21:45</div>
+      <div class="seg-title">✈️ SGN → Guangzhou (CAN)</div>
+      <div class="seg-sub">VJ5008 · 2h 45m · Direct · Seats 4A/B/C/D · arrives 01:30 +1</div>
+      <div class="badges">
+        <span class="badge badge-flight">Vietjet Deluxe</span>
+        <span class="badge badge-confirmed">✓ U2BWBX</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guangzhou -->
+  <div class="seg">
+    <div class="seg-line"><div class="dot dot-china"></div><div class="vline"></div></div>
+    <div class="seg-content">
+      <div class="seg-date">14–17 Dec</div>
+      <div class="seg-title">🇨🇳 Guangzhou</div>
+      <div class="badges"><span class="badge badge-nights">3 nights</span></div>
+      <div class="activities">
+        <div class="act"><span class="act-date">14 Dec</span><span>Arrive 01:30 · rest · Canton Tower evening</span></div>
+        <div class="act"><span class="act-date">15 Dec</span><span>Dim sum breakfast · Shamian Island · Chen Clan Ancestral Hall</span></div>
+        <div class="act"><span class="act-date">16 Dec</span><span>Day trip Foshan 🥋 · Ip Man museum · kung fu</span></div>
+        <div class="act"><span class="act-date">17 Dec</span><span>Beijing Road · depart HSR midday</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HSR -->
+  <div class="seg">
+    <div class="seg-line"><div class="dot dot-train"></div><div class="vline"></div></div>
+    <div class="seg-content">
+      <div class="seg-date">Wed 17 Dec</div>
+      <div class="seg-title">🚄 Guangzhou → Chongqing</div>
+      <div class="seg-sub">G-class HSR · Guangzhou South → Chongqing West · ~5h 45m</div>
+      <div class="badges">
+        <span class="badge badge-train">HSR</span>
+        <span class="badge badge-est">Book 2 Dec @ 8am AEDT · ~AUD 260</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chongqing -->
+  <div class="seg">
+    <div class="seg-line"><div class="dot dot-china"></div><div class="vline"></div></div>
+    <div class="seg-content">
+      <div class="seg-date">17–23 Dec</div>
+      <div class="seg-title">🇨🇳 Chongqing</div>
+      <div class="badges"><span class="badge badge-nights">6 nights</span></div>
+      <div class="activities">
+        <div class="act"><span class="act-date">17 Dec</span><span>Arrive · Hongya Cave illuminated at night 🏮</span></div>
+        <div class="act"><span class="act-date">18 Dec</span><span>Chongqing hotpot 🌶 · Yangtze cable car · Two Rivers cruise</span></div>
+        <div class="act"><span class="act-date">19 Dec</span><span>Light Rail Line 2 (through residential tower!) · Ciqikou Ancient Town</span></div>
+        <div class="act"><span class="act-date">20 Dec</span><span>Day trip Dazu Rock Carvings (UNESCO) 🗿</span></div>
+        <div class="act"><span class="act-date">21 Dec</span><span>Day trip Chengdu 🐼 · Giant Panda Base · Jinli Street</span></div>
+        <div class="act"><span class="act-date">22 Dec</span><span>Free day · Fengdu Ghost City or relax</span></div>
+        <div class="act"><span class="act-date">23 Dec</span><span>Free morning · depart 12:30</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CKG → SHA -->
+  <div class="seg">
+    <div class="seg-line"><div class="dot dot-flight"></div><div class="vline"></div></div>
+    <div class="seg-content">
+      <div class="seg-date">Wed 23 Dec · 12:30</div>
+      <div class="seg-title">✈️ Chongqing → Shanghai (SHA)</div>
+      <div class="seg-sub">9C8898 · Spring Airlines · 2h 30m · Direct · Hongqiao T1 · arrives 15:00</div>
+      <div class="badges">
+        <span class="badge badge-flight">Spring Airlines</span>
+        <span class="badge badge-confirmed">✓ BKVUXVA · 20kg incl.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shanghai -->
+  <div class="seg">
+    <div class="seg-line"><div class="dot dot-china"></div><div class="vline"></div></div>
+    <div class="seg-content">
+      <div class="seg-date">23 Dec – 4 Jan</div>
+      <div class="seg-title">🇨🇳 Shanghai</div>
+      <div class="badges"><span class="badge badge-nights">11 nights</span></div>
+      <div class="activities">
+        <div class="act"><span class="act-date">23 Dec</span><span>Arrive 15:00 · check in · Christmas Eve dinner on the Bund 🎄</span></div>
+        <div class="act"><span class="act-date">24 Dec</span><span>Christmas Eve · French Concession · Christmas markets</span></div>
+        <div class="act"><span class="act-date">25 Dec</span><span>Christmas Day 🎅 · Yu Garden · Nanjing Road</span></div>
+        <div class="act"><span class="act-date">26 Dec</span><span>Shanghai Tower · Lujiazui skyline</span></div>
+        <div class="act"><span class="act-date">27 Dec</span><span>Shanghai Disneyland 🎢 (full day)</span></div>
+        <div class="act"><span class="act-date">28 Dec</span><span>Day trip Suzhou 🏯 (~25 min HSR)</span></div>
+        <div class="act"><span class="act-date">29 Dec</span><span>Tianzifang laneways · shopping · teens' choice</span></div>
+        <div class="act"><span class="act-date">30 Dec</span><span>Rest day · explore neighbourhoods</span></div>
+        <div class="act"><span class="act-date">31 Dec</span><span>🎆 New Year's Eve on the Bund</span></div>
+        <div class="act"><span class="act-date">1 Jan</span><span>New Year's Day · relaxed explore</span></div>
+        <div class="act"><span class="act-date">2 Jan</span><span>Final full day · farewell dinner</span></div>
+        <div class="act"><span class="act-date">3 Jan</span><span>Free · leave hotel late evening for airport</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PVG → SGN -->
+  <div class="seg">
+    <div class="seg-line"><div class="dot dot-flight"></div><div class="vline"></div></div>
+    <div class="seg-content">
+      <div class="seg-date">Mon 4 Jan · 02:15</div>
+      <div class="seg-title">✈️ Shanghai → Ho Chi Minh City</div>
+      <div class="seg-sub">VJ5011 · PVG T2 → SGN T1 · 3h 25m · Direct · Seats 4C/D/E/F · arrives 05:40</div>
+      <div class="badges">
+        <span class="badge badge-flight">Vietjet Deluxe</span>
+        <span class="badge badge-confirmed">✓ UPMDYY</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HCMC Stopover -->
+  <div class="seg">
+    <div class="seg-line"><div class="dot dot-viet"></div><div class="vline"></div></div>
+    <div class="seg-content">
+      <div class="seg-date">4–6 Jan</div>
+      <div class="seg-title">🇻🇳 Ho Chi Minh City (stopover)</div>
+      <div class="badges"><span class="badge badge-nights">2 nights</span></div>
+      <div class="activities">
+        <div class="act"><span class="act-date">4 Jan</span><span>Arrive 05:40 · rest · last Vietnamese pho · Bui Vien evening 🍜</span></div>
+        <div class="act"><span class="act-date">5 Jan</span><span>Full day · explore · final shopping</span></div>
+        <div class="act"><span class="act-date">6 Jan</span><span>Depart 11:05</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SGN → MEL -->
+  <div class="seg">
+    <div class="seg-line"><div class="dot dot-flight"></div><div class="vline"></div></div>
+    <div class="seg-content">
+      <div class="seg-date">Wed 6 Jan · 11:05</div>
+      <div class="seg-title">✈️ Ho Chi Minh City → Melbourne</div>
+      <div class="seg-sub">VJ081 · SGN T2 → MEL T2 · 9h 30m · Direct · Seats 14A/B/C/D · arrives 23:35</div>
+      <div class="badges">
+        <span class="badge badge-flight">Vietjet Deluxe</span>
+        <span class="badge badge-confirmed">✓ HHBVBR · incl. in return</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Melbourne Arrive -->
+  <div class="seg">
+    <div class="seg-line"><div class="dot dot-aus"></div></div>
+    <div class="seg-content last">
+      <div class="seg-date">Wed 6 Jan 2027 · 23:35</div>
+      <div class="seg-title">🇦🇺 Arrive Melbourne — Home!</div>
+      <div class="seg-sub">28 nights · 🇻🇳 6 nights Vietnam · 🇨🇳 19 nights China</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Budget -->
+<div class="section-label">Budget</div>
+<div class="budget-section">
+
+  <div class="budget-card">
+    <div class="budget-title">✈️ Flights — All Confirmed</div>
+    <div class="budget-row">
+      <div class="lbl">MEL ↔ SGN · Vietjet Deluxe <span class="sub">HHBVBR · 40kg + meals · 4 pax</span></div>
+      <div class="amt">AUD 5,456</div>
+    </div>
+    <div class="budget-row">
+      <div class="lbl">SGN → CAN · Vietjet Deluxe <span class="sub">U2BWBX · 13 Dec · 4 pax</span></div>
+      <div class="amt">AUD 510</div>
+    </div>
+    <div class="budget-row">
+      <div class="lbl">CKG → SHA · Spring Airlines <span class="sub">BKVUXVA · 23 Dec · 20kg incl.</span></div>
+      <div class="amt">~AUD 803</div>
+    </div>
+    <div class="budget-row">
+      <div class="lbl">PVG → SGN · Vietjet Deluxe <span class="sub">UPMDYY · 4 Jan · 4 pax</span></div>
+      <div class="amt">AUD 959</div>
+    </div>
+    <div class="budget-row subtotal">
+      <div class="lbl">Total flights</div>
+      <div class="amt">AUD 7,728</div>
+    </div>
+  </div>
+
+  <div class="budget-card">
+    <div class="budget-title">🏨 Accommodation — 2 Rooms (est)</div>
+    <div class="budget-row"><div class="lbl">Ho Chi Minh City · 4 nights <span class="sub">2 rooms × AUD 90/night</span></div><div class="amt">~AUD 720</div></div>
+    <div class="budget-row"><div class="lbl">Guangzhou · 3 nights <span class="sub">2 rooms × AUD 100/night</span></div><div class="amt">~AUD 600</div></div>
+    <div class="budget-row"><div class="lbl">Chongqing · 6 nights <span class="sub">2 rooms × AUD 100/night</span></div><div class="amt">~AUD 1,200</div></div>
+    <div class="budget-row"><div class="lbl">Shanghai · 11 nights <span class="sub">2 rooms × AUD 130/night · peak Xmas/NYE</span></div><div class="amt">~AUD 2,860</div></div>
+    <div class="budget-row"><div class="lbl">HCMC stopover · 2 nights <span class="sub">2 rooms × AUD 90/night</span></div><div class="amt">~AUD 360</div></div>
+    <div class="budget-row subtotal"><div class="lbl">Total accommodation</div><div class="amt">~AUD 5,740</div></div>
+  </div>
+
+  <div class="budget-card">
+    <div class="budget-title">🚄 Trains (est)</div>
+    <div class="budget-row"><div class="lbl">Guangzhou → Chongqing HSR <span class="sub">~AUD 65pp · book 2 Dec</span></div><div class="amt">~AUD 260</div></div>
+    <div class="budget-row"><div class="lbl">Chongqing ↔ Chengdu return <span class="sub">~AUD 20pp each way</span></div><div class="amt">~AUD 160</div></div>
+    <div class="budget-row subtotal"><div class="lbl">Total trains</div><div class="amt">~AUD 420</div></div>
+  </div>
+
+  <div class="budget-card">
+    <div class="budget-title">🍜 Food (est)</div>
+    <div class="budget-row"><div class="lbl">Vietnam · 6 days <span class="sub">~AUD 80/day family of 4</span></div><div class="amt">~AUD 480</div></div>
+    <div class="budget-row"><div class="lbl">China · 20 days <span class="sub">~AUD 110/day family of 4</span></div><div class="amt">~AUD 2,200</div></div>
+    <div class="budget-row subtotal"><div class="lbl">Total food</div><div class="amt">~AUD 2,680</div></div>
+  </div>
+
+  <div class="budget-card">
+    <div class="budget-title">🎫 Activities & Transport (est)</div>
+    <div class="budget-row"><div class="lbl">HCMC — Vung Tau, museums, food tour</div><div class="amt">~AUD 300</div></div>
+    <div class="budget-row"><div class="lbl">Guangzhou — Foshan day trip</div><div class="amt">~AUD 150</div></div>
+    <div class="budget-row"><div class="lbl">Chongqing — Dazu, river cruise, entry</div><div class="amt">~AUD 400</div></div>
+    <div class="budget-row"><div class="lbl">Chengdu — Panda Base, DiDi, meals</div><div class="amt">~AUD 300</div></div>
+    <div class="budget-row"><div class="lbl">Shanghai — Disneyland, tower, Suzhou, NYE</div><div class="amt">~AUD 900</div></div>
+    <div class="budget-row"><div class="lbl">Local metro, taxis all cities</div><div class="amt">~AUD 400</div></div>
+    <div class="budget-row subtotal"><div class="lbl">Total activities</div><div class="amt">~AUD 2,450</div></div>
+  </div>
+
+  <div class="budget-card">
+    <div class="budget-title">🛡️ Essentials (est)</div>
+    <div class="budget-row"><div class="lbl">Travel insurance · family · 28 nights</div><div class="amt">~AUD 450</div></div>
+    <div class="budget-row"><div class="lbl">Vietnam e-visas × 4</div><div class="amt">~AUD 100</div></div>
+    <div class="budget-row"><div class="lbl">China visas × 4 <span class="sub">Not required — 30-day visa-free ✓</span></div><div class="amt">AUD 0</div></div>
+    <div class="budget-row"><div class="lbl">SIM cards / data plans</div><div class="amt">~AUD 80</div></div>
+    <div class="budget-row subtotal"><div class="lbl">Total essentials</div><div class="amt">~AUD 630</div></div>
+  </div>
+
+</div>
+
+<div class="total-box">
+  <div class="total-line"><span>Flights (confirmed)</span><span class="amt">AUD 7,728</span></div>
+  <div class="total-line"><span>HSR trains</span><span class="amt">~AUD 420</span></div>
+  <div class="total-line"><span>Accommodation</span><span class="amt">~AUD 5,740</span></div>
+  <div class="total-line"><span>Food</span><span class="amt">~AUD 2,680</span></div>
+  <div class="total-line"><span>Activities & transport</span><span class="amt">~AUD 2,450</span></div>
+  <div class="total-line"><span>Essentials</span><span class="amt">~AUD 630</span></div>
+  <div class="grand-line">
+    <div>
+      <div class="grand-lbl">Total Estimate</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">+10% buffer ~AUD 21,600</div>
+    </div>
+    <div style="text-align:right">
+      <div class="grand-amt">~AUD 19,648</div>
+      <div class="grand-pp">~AUD 4,912 per person · ~AUD 175/day</div>
+    </div>
+  </div>
+</div>
+
+<!-- Pre-trip Checklist -->
+<div class="section-label">Pre-Trip Checklist</div>
+<div class="checklist">
+
+  <div class="check-group">
+    <div class="check-group-title">✅ Done</div>
+    <div class="check-item done"><span class="icon">✅</span><div class="text">All 5 flights booked<span class="note">HHBVBR · U2BWBX · BKVUXVA · UPMDYY</span></div></div>
+  </div>
+
+  <div class="check-group">
+    <div class="check-group-title">Now — June 2026</div>
+    <div class="check-item"><span class="icon">📱</span><div class="text">Set up Alipay with Amex Velocity Platinum<span class="note">Test in Glen Waverley</span></div></div>
+    <div class="check-item"><span class="icon">💬</span><div class="text">Set up WeChat Pay with NAB Visa Platinum<span class="note">Test in Glen Waverley</span></div></div>
+    <div class="check-item"><span class="icon">✈️</span><div class="text">Register Vivian's SkyJoy account<span class="note">vietjetair.com</span></div></div>
+    <div class="check-item"><span class="icon">🛡️</span><div class="text">Buy travel insurance — family policy<span class="note">Cover-More, SCTI or 1Cover · ~AUD 450</span></div></div>
+  </div>
+
+  <div class="check-group">
+    <div class="check-group-title">July–August 2026</div>
+    <div class="check-item"><span class="icon">🇻🇳</span><div class="text">Apply Vietnam e-visas × 4<span class="note">Online · ~AUD 100 total</span></div></div>
+    <div class="check-item"><span class="icon">🏨</span><div class="text">Book Shanghai hotels — URGENT<span class="note">Christmas/NYE peak — don't wait · 11 nights · 2 rooms</span></div></div>
+    <div class="check-item"><span class="icon">🏨</span><div class="text">Book Guangzhou + Chongqing hotels<span class="note">3 nights + 6 nights · 2 rooms each</span></div></div>
+  </div>
+
+  <div class="check-group">
+    <div class="check-group-title">September 2026</div>
+    <div class="check-item"><span class="icon">🛂</span><div class="text">Renew Neil's passport<span class="note">Expires 14 Oct 2026 — apply by mid-September</span></div></div>
+    <div class="check-item"><span class="icon">🛂</span><div class="text">Check all family passports<span class="note">Must be valid until at least 6 Jul 2027</span></div></div>
+  </div>
+
+  <div class="check-group">
+    <div class="check-group-title">2 December 2026 — 8:00am AEDT Sharp</div>
+    <div class="check-item"><span class="icon">🚄</span><div class="text">Book Guangzhou → Chongqing HSR<span class="note">Trip.com · 17 Dec · 4 pax · tickets release 15 days prior</span></div></div>
+    <div class="check-item"><span class="icon">🚄</span><div class="text">Book Chongqing ↔ Chengdu HSR return<span class="note">Trip.com · 21 Dec day trip · 4 pax</span></div></div>
+  </div>
+
+  <div class="check-group">
+    <div class="check-group-title">Before Departure</div>
+    <div class="check-item"><span class="icon">🐼</span><div class="text">Book Chengdu Panda Base tickets online<span class="note">Sells out — book in advance</span></div></div>
+    <div class="check-item"><span class="icon">🎢</span><div class="text">Book Shanghai Disneyland tickets online<span class="note">Book in advance · Dec 27</span></div></div>
+    <div class="check-item"><span class="icon">💴</span><div class="text">Get ~AUD 200 worth of Chinese Yuan cash<span class="note">Emergency backup</span></div></div>
+    <div class="check-item"><span class="icon">📶</span><div class="text">Buy China + Vietnam SIM cards or eSIM<span class="note">~AUD 80 total</span></div></div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div class="family">👨‍👩‍👧‍👦</div>
+  Neil · Vivian · Maddison · Kellan<br>
+  <span style="color:#4a4f6a;margin-top:6px;display:block">Have an amazing trip! 🌏</span>
+</div>
+
+</body>
+</html>
