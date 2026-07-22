@@ -193,22 +193,18 @@
 const SHEET_ID = '1q4Euldf_JO1ik-cSw0qWl5ZOnWsBEfk0';
 const GID = '2002352984'; // Costs tab
 
-// Row/column map for the current ("Bellarine") trip block in the Costs tab.
-// Rows are 0-indexed to match the sheet 1:1 (fetched with headers=0).
-const ROW = {
-  label: 145,        // row 146: location / month / dates
-  firstPlayer: 147,   // row 148: first player row (per-person cost columns)
-  lastPlayer: 159,    // row 160: last player row
-  playerCount: 150,   // row 151: "Players" count cell
-  total: 163,         // row 164: TOTAL row
-};
+// Column map within the Bellarine trip block (fixed — these don't shift).
 const COL = {
-  location: 0, month: 1, dates: 2,          // A, B, C
+  location: 0, month: 1,                    // A, B
   accomLabelPP: 5, accomLabelTotal: 6,      // F, G (labeled "Accommodation" row)
   cartsD1PP: 12, cartsD2PP: 13, round1PP: 14, round2PP: 15, totalPP: 16, // M-Q
-  playerCount: 2,                            // C
-  name: 23, total: 24,                       // X, Y
+  playersLabel: 1, playerCount: 2,          // B ("Players"), C (count)
+  name: 23, total: 24,                      // X, Y
 };
+
+// Fallback for the trip dates — this specific cell doesn't come through the
+// Sheets API reliably (stored as forced-text), so it's set here manually.
+const DATES_FALLBACK = '23–25';
 
 // Manually tracked — GC25 balances still owed to Neil (not derivable from the sheet).
 const GC25_OUTSTANDING = {
@@ -228,6 +224,11 @@ function moneyRound(n) {
 }
 
 async function loadData() {
+  // NOTE: the Sheets gviz JSON endpoint compacts out fully-blank rows, so raw
+  // sheet row numbers don't line up with the fetched row array. Instead of
+  // trusting fixed row indices (fragile — breaks any time rows shift), we
+  // locate the current trip block dynamically by its "Bellarine" label and
+  // "TOTAL" marker, then read player rows in between.
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}&headers=0`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Sheet fetch failed (${res.status}). Make sure the sheet is shared as "Anyone with the link can view".`);
@@ -239,28 +240,44 @@ async function loadData() {
 
   const cell = (r, c) => rows[r]?.c?.[c]?.v ?? null;
 
-  const location = cell(ROW.label, COL.location) || 'Bellarine';
-  const month = cell(ROW.label, COL.month) || '';
-  const dates = cell(ROW.label, COL.dates) || '';
+  const labelIdx = rows.findIndex(r => r?.c?.[COL.location]?.v === 'Bellarine');
+  if (labelIdx === -1) throw new Error('Could not find the "Bellarine" trip block in the Costs tab — the sheet layout may have changed.');
 
-  const accomPP = cell(ROW.firstPlayer, COL.accomLabelPP);
-  const cartsD1PP = cell(ROW.firstPlayer, COL.cartsD1PP);
-  const cartsD2PP = cell(ROW.firstPlayer, COL.cartsD2PP);
-  const round1PP = cell(ROW.firstPlayer, COL.round1PP);
-  const round2PP = cell(ROW.firstPlayer, COL.round2PP);
-  const totalPP = cell(ROW.firstPlayer, COL.totalPP);
+  let totalIdx = -1;
+  for (let i = labelIdx; i < labelIdx + 60 && i < rows.length; i++) {
+    if (rows[i]?.c?.[COL.name]?.v === 'TOTAL') { totalIdx = i; break; }
+  }
+  if (totalIdx === -1) throw new Error('Could not find the TOTAL row for the Bellarine block.');
 
-  const accomTotal = cell(ROW.firstPlayer, COL.accomLabelTotal);
-  const cartsD1Total = cell(ROW.total, COL.cartsD1PP);
-  const cartsD2Total = cell(ROW.total, COL.cartsD2PP);
-  const round1Total = cell(ROW.total, COL.round1PP);
-  const round2Total = cell(ROW.total, COL.round2PP);
-  const grandTotal = cell(ROW.total, COL.total) ?? cell(ROW.total, COL.totalPP);
+  let playersIdx = -1;
+  for (let i = labelIdx; i < totalIdx; i++) {
+    if (rows[i]?.c?.[COL.playersLabel]?.v === 'Players') { playersIdx = i; break; }
+  }
 
-  const playerCount = cell(ROW.playerCount, COL.playerCount);
+  const firstPlayerIdx = labelIdx + 2; // Bellarine row, then Golf/year row, then first player row
+
+  const location = cell(labelIdx, COL.location) || 'Bellarine';
+  const month = cell(labelIdx, COL.month) || '';
+  const dates = DATES_FALLBACK;
+
+  const accomPP = cell(firstPlayerIdx, COL.accomLabelPP);
+  const accomTotal = cell(firstPlayerIdx, COL.accomLabelTotal);
+  const cartsD1PP = cell(firstPlayerIdx, COL.cartsD1PP);
+  const cartsD2PP = cell(firstPlayerIdx, COL.cartsD2PP);
+  const round1PP = cell(firstPlayerIdx, COL.round1PP);
+  const round2PP = cell(firstPlayerIdx, COL.round2PP);
+  const totalPP = cell(firstPlayerIdx, COL.totalPP);
+
+  const cartsD1Total = cell(totalIdx, COL.cartsD1PP);
+  const cartsD2Total = cell(totalIdx, COL.cartsD2PP);
+  const round1Total = cell(totalIdx, COL.round1PP);
+  const round2Total = cell(totalIdx, COL.round2PP);
+  const grandTotal = cell(totalIdx, COL.total) ?? cell(totalIdx, COL.totalPP);
+
+  const playerCount = playersIdx !== -1 ? cell(playersIdx, COL.playerCount) : null;
 
   const players = [];
-  for (let r = ROW.firstPlayer; r <= ROW.lastPlayer; r++) {
+  for (let r = labelIdx; r < totalIdx; r++) {
     const name = cell(r, COL.name);
     const total = cell(r, COL.total);
     if (name && typeof name === 'string' && total !== null) {
@@ -272,7 +289,7 @@ async function loadData() {
     location, month, dates,
     accomPP, cartsD1PP, cartsD2PP, round1PP, round2PP, totalPP,
     accomTotal, cartsD1Total, cartsD2Total, round1Total, round2Total, grandTotal,
-    playerCount, players,
+    playerCount: playerCount ?? players.length, players,
   };
 }
 
