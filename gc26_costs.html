@@ -164,6 +164,18 @@
   <div class="owing-banner" id="owing-banner"></div>
 
   <div class="card">
+    <h2>Accommodation Payment</h2>
+    <table>
+      <tbody>
+        <tr><td>Accom Total</td><td class="amount">AU$1,594.41</td></tr>
+        <tr><td>Payment 1 (Paid)</td><td class="amount">AU$631.26</td></tr>
+        <tr><td>Payment 2 (Due 9 Oct 2026)</td><td class="amount">AU$963.15</td></tr>
+      </tbody>
+    </table>
+    <div class="note">Golf rounds have already been paid in full.</div>
+  </div>
+
+  <div class="card">
     <h2>How to Pay</h2>
     <div class="trip-details">
       <div><div class="detail-label">PayID</div><div class="detail-value">402478628</div></div>
@@ -363,11 +375,11 @@ function render(data) {
     </div>`;
   }).join('');
 
-  const totalPaid = data.accomTotal || 0;
+  const totalPaid = (data.accomTotal || 0) + (data.round1Total || 0) + (data.round2Total || 0);
   const remaining = (data.grandTotal || 0) - totalPaid;
   document.getElementById('owing-banner').innerHTML =
-    `<strong>Payment status:</strong> ${money(totalPaid)} (accommodation) has been paid so far. ` +
-    `Remaining balance across the group is <strong>${moneyRound(remaining)}</strong> — covering carts and green fees, due closer to the trip.`;
+    `<strong>Payment status:</strong> ${money(totalPaid)} (accommodation + both golf rounds) has been paid so far. ` +
+    `Remaining balance across the group is <strong>${moneyRound(remaining)}</strong> — covering carts and any misc. costs, due closer to the trip.`;
 
   document.getElementById('gc25-body').innerHTML = Object.entries(GC25_OUTSTANDING).map(([name, amt]) =>
     `<tr><td>${name}</td><td class="amount">${money(amt)}</td></tr>`
