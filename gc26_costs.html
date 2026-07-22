@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grifidents Cup 2026 — Costs</title>
+<style>
+  :root {
+    --green-dark: #1b4332;
+    --green: #2d6a4f;
+    --cream: #f8f7f2;
+    --gold: #c9a227;
+    --text: #1f2a24;
+    --muted: #6b7d72;
+    --border: #e2e4dd;
+    --red: #c0392b;
+    --red-light: #fdecea;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 20px 60px; }
+
+  #loading {
+    position: fixed; inset: 0; background: var(--cream);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 12px; z-index: 999;
+  }
+  .spinner {
+    width: 36px; height: 36px; border: 3px solid rgba(27,67,50,0.15);
+    border-top-color: var(--green-dark); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading .msg { font-size: 13px; color: var(--muted); }
+  #error-box {
+    max-width: 480px; text-align: center; font-size: 13px; color: var(--red);
+    background: var(--red-light); border-radius: 10px; padding: 16px 20px; display: none;
+  }
+
+  header {
+    background: linear-gradient(135deg, var(--green-dark), var(--green));
+    color: #fff;
+    padding: 48px 20px 40px;
+    text-align: center;
+    margin-bottom: -28px;
+  }
+  header .eyebrow {
+    text-transform: uppercase; letter-spacing: 2px; font-size: 12px;
+    color: var(--gold); font-weight: 700; margin-bottom: 8px;
+  }
+  header h1 { margin: 0 0 8px; font-size: 30px; font-weight: 800; }
+  header p { margin: 0; color: #d8ede2; font-size: 15px; }
+  header .synced { margin-top: 10px; font-size: 11px; color: rgba(255,255,255,0.55); }
+
+  .card {
+    background: #fff; border-radius: 14px;
+    box-shadow: 0 4px 20px rgba(27, 67, 50, 0.08);
+    padding: 24px 24px 20px; margin-top: 28px; border: 1px solid var(--border);
+  }
+
+  .trip-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px 20px; }
+  .detail-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted); font-weight: 700; margin-bottom: 3px;
+  }
+  .detail-value { font-size: 15px; font-weight: 600; }
+
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 28px; }
+  .summary-box { background: var(--green-dark); color: #fff; border-radius: 14px; padding: 20px; text-align: center; }
+  .summary-box .num { font-size: 26px; font-weight: 800; color: var(--gold); }
+  .summary-box .label { font-size: 12px; color: #cfe4d8; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--green); margin: 0 0 14px; font-weight: 800; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: .5px; }
+  td.amount, th.amount { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.total-row td { font-weight: 800; border-top: 2px solid var(--green); border-bottom: none; padding-top: 12px; }
+  tr.total-row td.amount { color: var(--green-dark); }
+
+  .players { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .player-chip { background: var(--cream); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+  .player-chip .name { font-weight: 700; font-size: 14px; }
+  .player-chip .amt { font-size: 13px; color: var(--green); font-weight: 700; margin-top: 2px; }
+  .player-chip .amt.adj { color: var(--red); }
+
+  .owing-banner {
+    background: #fff8e6; border: 1px solid #f0d78c; border-radius: 12px;
+    padding: 16px 18px; margin-top: 28px; font-size: 14px;
+  }
+  .owing-banner strong { color: #8a6d1a; }
+
+  .links a { color: var(--green); text-decoration: none; font-weight: 600; word-break: break-word; }
+  .links a:hover { text-decoration: underline; }
+  .links li { margin-bottom: 6px; font-size: 14px; }
+
+  .note { font-size: 11px; color: var(--muted); margin-top: 10px; }
+
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 32px; padding-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="msg">Loading live costs from the GC26 sheet…</div>
+  <div id="error-box"></div>
+</div>
+
+<div id="app" style="display:none;">
+
+<header>
+  <div class="eyebrow">Grifidents Cup 2026</div>
+  <h1>Trip Costs &amp; Payment Summary</h1>
+  <p id="hdr-sub">Bellarine Peninsula</p>
+  <div class="synced" id="synced-at"></div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <h2>Trip Details</h2>
+    <div class="trip-details">
+      <div><div class="detail-label">Location</div><div class="detail-value">Ocean Grove, Bellarine Peninsula</div></div>
+      <div><div class="detail-label">Dates</div><div class="detail-value" id="dt-dates">—</div></div>
+      <div><div class="detail-label">Saturday Round</div><div class="detail-value">Barwon Heads Golf Club</div></div>
+      <div><div class="detail-label">Sunday Round</div><div class="detail-value">Lonsdale Links</div></div>
+      <div><div class="detail-label">Green Fees</div><div class="detail-value" id="dt-round1pp">—</div></div>
+      <div><div class="detail-label">Carts</div><div class="detail-value" id="dt-cartspp">—</div></div>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-box">
+      <div class="num" id="sum-total">—</div>
+      <div class="label">Total Trip Cost</div>
+    </div>
+    <div class="summary-box">
+      <div class="num" id="sum-pp">—</div>
+      <div class="label" id="sum-pp-label">Per Person</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Cost Breakdown</h2>
+    <table>
+      <thead><tr><th>Item</th><th class="amount">Per Person</th><th class="amount">Total</th></tr></thead>
+      <tbody id="breakdown-body"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2 id="players-heading">Confirmed Players</h2>
+    <div class="players" id="players-grid"></div>
+    <div class="note">Amounts marked in red include an outstanding GC25 balance carried over (see below).</div>
+  </div>
+
+  <div class="owing-banner" id="owing-banner"></div>
+
+  <div class="card">
+    <h2>Outstanding from GC25</h2>
+    <table>
+      <thead><tr><th>Player</th><th class="amount">Owed to Neil</th></tr></thead>
+      <tbody id="gc25-body"></tbody>
+    </table>
+    <div class="note">Tracked manually — not pulled from the sheet.</div>
+  </div>
+
+  <div class="card links">
+    <h2>Useful Links</h2>
+    <ul style="list-style:none; padding:0; margin:0;">
+      <li>🏡 Accommodation (Stayz, Ocean Grove): <a href="https://www.stayz.com.au/holiday-rental/p9197674?chkin=2026-10-23&chkout=2026-10-25" target="_blank">View listing</a></li>
+      <li>⛳ Lonsdale Links booking: <a href="http://bit.ly/42CxYR6" target="_blank">bit.ly/42CxYR6</a></li>
+      <li>📧 Barwon Heads pro shop: <a href="mailto:golfshop@barwonheads.golf">golfshop@barwonheads.golf</a></li>
+    </ul>
+  </div>
+
+  <footer id="footer">Grifidents Cup 2026 · Live from Google Sheets</footer>
+
+</div>
+</div>
+
+<script>
+// The GC26 spreadsheet — Costs tab. Sheet must be shared "Anyone with the link can view"
+// for this public gviz fetch to work (no login/API key required).
+const SHEET_ID = '1q4Euldf_JO1ik-cSw0qWl5ZOnWsBEfk0';
+const GID = '2002352984'; // Costs tab
+
+// Row/column map for the current ("Bellarine") trip block in the Costs tab.
+// Rows are 0-indexed to match the sheet 1:1 (fetched with headers=0).
+const ROW = {
+  label: 145,        // row 146: location / month / dates
+  firstPlayer: 147,   // row 148: first player row (per-person cost columns)
+  lastPlayer: 159,    // row 160: last player row
+  playerCount: 150,   // row 151: "Players" count cell
+  total: 163,         // row 164: TOTAL row
+};
+const COL = {
+  location: 0, month: 1, dates: 2,          // A, B, C
+  accomPP: 11, cartsD1PP: 12, cartsD2PP: 13, round1PP: 14, round2PP: 15, totalPP: 16, // L-Q
+  playerCount: 2,                            // C
+  name: 23, total: 24,                       // X, Y
+};
+
+// Manually tracked — GC25 balances still owed to Neil (not derivable from the sheet).
+const GC25_OUTSTANDING = {
+  'Gavin': 8.21,
+  'Daniel R': 24.41,
+  'Shahan': 8.21,
+};
+
+function money(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return '$' + Number(n).toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function moneyRound(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return '$' + Math.round(Number(n)).toLocaleString('en-AU');
+}
+
+async function loadData() {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${GID}&headers=0`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Sheet fetch failed (${res.status}). Make sure the sheet is shared as "Anyone with the link can view".`);
+  const text = await res.text();
+  const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+  if (!match) throw new Error('Could not read the sheet — it may not be publicly shared yet.');
+  const json = JSON.parse(match[1]);
+  const rows = json.table.rows;
+
+  const cell = (r, c) => rows[r]?.c?.[c]?.v ?? null;
+
+  const location = cell(ROW.label, COL.location) || 'Bellarine';
+  const month = cell(ROW.label, COL.month) || '';
+  const dates = cell(ROW.label, COL.dates) || '';
+
+  const accomPP = cell(ROW.firstPlayer, COL.accomPP);
+  const cartsD1PP = cell(ROW.firstPlayer, COL.cartsD1PP);
+  const cartsD2PP = cell(ROW.firstPlayer, COL.cartsD2PP);
+  const round1PP = cell(ROW.firstPlayer, COL.round1PP);
+  const round2PP = cell(ROW.firstPlayer, COL.round2PP);
+  const totalPP = cell(ROW.firstPlayer, COL.totalPP);
+
+  const accomTotal = cell(ROW.total, COL.accomPP);
+  const cartsD1Total = cell(ROW.total, COL.cartsD1PP);
+  const cartsD2Total = cell(ROW.total, COL.cartsD2PP);
+  const round1Total = cell(ROW.total, COL.round1PP);
+  const round2Total = cell(ROW.total, COL.round2PP);
+  const grandTotal = cell(ROW.total, COL.total) ?? cell(ROW.total, COL.totalPP);
+
+  const playerCount = cell(ROW.playerCount, COL.playerCount);
+
+  const players = [];
+  for (let r = ROW.firstPlayer; r <= ROW.lastPlayer; r++) {
+    const name = cell(r, COL.name);
+    const total = cell(r, COL.total);
+    if (name && typeof name === 'string' && total !== null) {
+      players.push({ name: name.trim(), total: Number(total) });
+    }
+  }
+
+  return {
+    location, month, dates,
+    accomPP, cartsD1PP, cartsD2PP, round1PP, round2PP, totalPP,
+    accomTotal, cartsD1Total, cartsD2Total, round1Total, round2Total, grandTotal,
+    playerCount, players,
+  };
+}
+
+function render(data) {
+  document.getElementById('hdr-sub').textContent = `${data.location} Peninsula · ${data.month || ''} ${data.dates || ''}`.trim();
+  document.getElementById('dt-dates').textContent = `${data.month || ''} ${data.dates || ''}`.trim() || '—';
+  document.getElementById('dt-round1pp').textContent = data.round1PP != null ? `${money(data.round1PP)} pp / round` : '—';
+  document.getElementById('dt-cartspp').textContent = data.cartsD1PP != null ? `~${money(data.cartsD1PP)} pp / round` : '—';
+
+  document.getElementById('sum-total').textContent = moneyRound(data.grandTotal);
+  document.getElementById('sum-pp').textContent = money(data.totalPP);
+  document.getElementById('sum-pp-label').textContent = `Per Person (${data.playerCount || data.players.length} players)`;
+
+  document.getElementById('breakdown-body').innerHTML = `
+    <tr><td>Accommodation</td><td class="amount">${money(data.accomPP)}</td><td class="amount">${money(data.accomTotal)}</td></tr>
+    <tr><td>Carts — Day 1</td><td class="amount">${money(data.cartsD1PP)}</td><td class="amount">${money(data.cartsD1Total)}</td></tr>
+    <tr><td>Carts — Day 2</td><td class="amount">${money(data.cartsD2PP)}</td><td class="amount">${money(data.cartsD2Total)}</td></tr>
+    <tr><td>Golf — Round 1</td><td class="amount">${money(data.round1PP)}</td><td class="amount">${money(data.round1Total)}</td></tr>
+    <tr><td>Golf — Round 2</td><td class="amount">${money(data.round2PP)}</td><td class="amount">${money(data.round2Total)}</td></tr>
+    <tr class="total-row"><td>Total</td><td class="amount">${money(data.totalPP)}</td><td class="amount">${money(data.grandTotal)}</td></tr>
+  `;
+
+  document.getElementById('players-heading').textContent = `Confirmed Players (${data.players.length})`;
+
+  document.getElementById('players-grid').innerHTML = data.players.map(p => {
+    const matchKey = Object.keys(GC25_OUTSTANDING).find(k =>
+      p.name === k || p.name.startsWith(k) || k.startsWith(p.name)
+    );
+    const owed = matchKey ? GC25_OUTSTANDING[matchKey] : 0;
+    const displayTotal = p.total + owed;
+    return `<div class="player-chip">
+      <div class="name">${p.name}</div>
+      <div class="amt${owed ? ' adj' : ''}">${money(displayTotal)}</div>
+    </div>`;
+  }).join('');
+
+  const totalPaid = data.accomTotal || 0;
+  const remaining = (data.grandTotal || 0) - totalPaid;
+  document.getElementById('owing-banner').innerHTML =
+    `<strong>Payment status:</strong> ${money(totalPaid)} (accommodation) has been paid so far. ` +
+    `Remaining balance across the group is <strong>${moneyRound(remaining)}</strong> — covering carts and green fees, due closer to the trip.`;
+
+  document.getElementById('gc25-body').innerHTML = Object.entries(GC25_OUTSTANDING).map(([name, amt]) =>
+    `<tr><td>${name}</td><td class="amount">${money(amt)}</td></tr>`
+  ).join('');
+
+  const now = new Date();
+  document.getElementById('synced-at').textContent = `Last synced: ${now.toLocaleString('en-AU', { dateStyle: 'medium', timeStyle: 'short' })}`;
+  document.getElementById('footer').textContent = `Grifidents Cup 2026 · ${data.players.length} players · Live from Google Sheets`;
+}
+
+(async () => {
+  try {
+    const data = await loadData();
+    render(data);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  } catch (e) {
+    document.getElementById('error-box').style.display = 'block';
+    document.getElementById('error-box').innerHTML =
+      `Failed to load live data.<br><small>${e.message}</small><br><br>` +
+      `<small>Make sure the GC26 sheet is shared as "Anyone with the link can view".</small>`;
+  }
+})();
+</script>
+</body>
+</html>
