@@ -130,9 +130,8 @@
     <div class="trip-details">
       <div><div class="detail-label">Location</div><div class="detail-value">Ocean Grove, Bellarine Peninsula</div></div>
       <div><div class="detail-label">Dates</div><div class="detail-value" id="dt-dates">—</div></div>
-      <div><div class="detail-label">Saturday Round</div><div class="detail-value">Barwon Heads Golf Club</div></div>
-      <div><div class="detail-label">Sunday Round</div><div class="detail-value">Lonsdale Links</div></div>
-      <div><div class="detail-label">Green Fees</div><div class="detail-value" id="dt-round1pp">—</div></div>
+      <div><div class="detail-label">Saturday Round</div><div class="detail-value">13th Beach<br><span style="font-weight:400;font-size:13px;color:var(--muted);" id="dt-sat-detail">—</span></div></div>
+      <div><div class="detail-label">Sunday Round</div><div class="detail-value">Lonsdale Links<br><span style="font-weight:400;font-size:13px;color:var(--muted);" id="dt-sun-detail">—</span></div></div>
       <div><div class="detail-label">Carts</div><div class="detail-value" id="dt-cartspp">—</div></div>
     </div>
   </div>
@@ -175,11 +174,7 @@
 
   <div class="card links">
     <h2>Useful Links</h2>
-    <ul style="list-style:none; padding:0; margin:0;">
-      <li>🏡 Accommodation (Stayz, Ocean Grove): <a href="https://www.stayz.com.au/holiday-rental/p9197674?chkin=2026-10-23&chkout=2026-10-25" target="_blank">View listing</a></li>
-      <li>⛳ Lonsdale Links booking: <a href="http://bit.ly/42CxYR6" target="_blank">bit.ly/42CxYR6</a></li>
-      <li>📧 Barwon Heads pro shop: <a href="mailto:golfshop@barwonheads.golf">golfshop@barwonheads.golf</a></li>
-    </ul>
+    <ul id="links-list" style="list-style:none; padding:0; margin:0;"></ul>
   </div>
 
   <footer id="footer">Grifidents Cup 2026 · Live from Google Sheets</footer>
@@ -212,6 +207,16 @@ const GC25_OUTSTANDING = {
   'Daniel R': 24.41,
   'Shahan': 8.21,
 };
+
+// Used only if the live "Useful links:" table can't be found in the sheet.
+const FALLBACK_LINKS = [
+  { label: 'Accommodation', href: 'https://www.stayz.com.au/holiday-rental/p9197674?chkin=2026-10-23&chkout=2026-10-25' },
+  { label: 'Lonsdale Links', href: 'https://www.lonsdalelinks.com.au/cms/' },
+  { label: '13th Beach', href: 'https://13thbeachgolf.com/' },
+];
+
+// Tee times — logistical detail, not stored cleanly enough in the sheet to fetch live.
+const TEE_TIMES = { saturday: '2:30pm', sunday: '12:12pm' };
 
 function money(n) {
   if (n === null || n === undefined || isNaN(n)) return '—';
@@ -285,18 +290,33 @@ async function loadData() {
     }
   }
 
+  // "Useful links:" table — column AB (label) / AC (url), a few rows below the
+  // player breakdown. Found dynamically since row positions shift (see note above).
+  const LINK_COL_LABEL = 27, LINK_COL_URL = 28;
+  const linksHeaderIdx = rows.findIndex((r, i) => i >= labelIdx && r?.c?.[LINK_COL_LABEL]?.v === 'Useful links:');
+  const links = [];
+  if (linksHeaderIdx !== -1) {
+    for (let r = linksHeaderIdx + 1; r < linksHeaderIdx + 10 && r < rows.length; r++) {
+      const label = cell(r, LINK_COL_LABEL);
+      const href = cell(r, LINK_COL_URL);
+      if (!label && !href) break;
+      if (label && href) links.push({ label: String(label).replace(/:\s*$/, '').trim(), href: String(href).trim() });
+    }
+  }
+
   return {
     location, month, dates,
     accomPP, cartsD1PP, cartsD2PP, round1PP, round2PP, totalPP,
     accomTotal, cartsD1Total, cartsD2Total, round1Total, round2Total, grandTotal,
-    playerCount: playerCount ?? players.length, players,
+    playerCount: playerCount ?? players.length, players, links,
   };
 }
 
 function render(data) {
   document.getElementById('hdr-sub').textContent = `${data.location} Peninsula · ${data.month || ''} ${data.dates || ''}`.trim();
   document.getElementById('dt-dates').textContent = `${data.month || ''} ${data.dates || ''}`.trim() || '—';
-  document.getElementById('dt-round1pp').textContent = data.round1PP != null ? `${money(data.round1PP)} pp / round` : '—';
+  document.getElementById('dt-sat-detail').textContent = `${money(data.round1PP)} pp · tee ${TEE_TIMES.saturday}`;
+  document.getElementById('dt-sun-detail').textContent = `${money(data.round2PP)} pp · tee ${TEE_TIMES.sunday}`;
   document.getElementById('dt-cartspp').textContent = data.cartsD1PP != null ? `~${money(data.cartsD1PP)} pp / round` : '—';
 
   document.getElementById('sum-total').textContent = moneyRound(data.grandTotal);
@@ -334,6 +354,17 @@ function render(data) {
 
   document.getElementById('gc25-body').innerHTML = Object.entries(GC25_OUTSTANDING).map(([name, amt]) =>
     `<tr><td>${name}</td><td class="amount">${money(amt)}</td></tr>`
+  ).join('');
+
+  const linkIcon = (label) => {
+    const l = label.toLowerCase();
+    if (l.includes('accom') || l.includes('stayz') || l.includes('airbnb')) return '🏡';
+    if (l.includes('@')) return '📧';
+    return '⛳';
+  };
+  const linksToShow = data.links && data.links.length ? data.links : FALLBACK_LINKS;
+  document.getElementById('links-list').innerHTML = linksToShow.map(l =>
+    `<li>${linkIcon(l.label)} ${l.label}: <a href="${l.href}" target="_blank">${l.href.startsWith('mailto:') ? l.href.replace('mailto:', '') : 'View'}</a></li>`
   ).join('');
 
   const now = new Date();
