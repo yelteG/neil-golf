@@ -347,7 +347,7 @@ function render(data) {
       ? `${money(data.cartsD1PP)} (Sat) · ${money(data.cartsD2PP)} (Sun) pp`
       : '—';
 
-  document.getElementById('sum-total').textContent = moneyRound(data.grandTotal);
+  document.getElementById('sum-total').textContent = money(data.grandTotal);
   document.getElementById('sum-pp').textContent = money(data.totalPP);
   document.getElementById('sum-pp-label').textContent = `Per Person (${data.playerCount || data.players.length} players)`;
 
