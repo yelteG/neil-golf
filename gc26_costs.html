@@ -317,7 +317,10 @@ function render(data) {
   document.getElementById('dt-dates').textContent = `${data.month || ''} ${data.dates || ''}`.trim() || '—';
   document.getElementById('dt-sat-detail').textContent = `${money(data.round1PP)} pp · tee ${TEE_TIMES.saturday}`;
   document.getElementById('dt-sun-detail').textContent = `${money(data.round2PP)} pp · tee ${TEE_TIMES.sunday}`;
-  document.getElementById('dt-cartspp').textContent = data.cartsD1PP != null ? `~${money(data.cartsD1PP)} pp / round` : '—';
+  document.getElementById('dt-cartspp').textContent =
+    (data.cartsD1PP != null && data.cartsD2PP != null)
+      ? `${money(data.cartsD1PP)} (Sat) · ${money(data.cartsD2PP)} (Sun) pp`
+      : '—';
 
   document.getElementById('sum-total').textContent = moneyRound(data.grandTotal);
   document.getElementById('sum-pp').textContent = money(data.totalPP);
