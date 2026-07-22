@@ -302,7 +302,11 @@ async function loadData() {
   const round1Total = cell(totalIdx, COL.round1PP);
   const round2Total = cell(totalIdx, COL.round2PP);
   const miscTotal = cell(totalIdx, COL.miscPP);
-  const grandTotal = cell(totalIdx, COL.total) ?? cell(totalIdx, COL.totalPP);
+  // NOTE: column Y ("Owing") now varies as players pay their share, so it's no
+  // longer equal to the true trip cost — use S (Total incl. Misc) instead,
+  // which stays fixed regardless of who's paid.
+  const grandTotal = cell(totalIdx, COL.totalPP);
+  const totalOwing = cell(totalIdx, COL.total); // sum of what's still unpaid, for reference
 
   const playerCount = playersIdx !== -1 ? cell(playersIdx, COL.playerCount) : null;
 
@@ -332,7 +336,7 @@ async function loadData() {
   return {
     location, month, dates,
     accomPP, cartsD1PP, cartsD2PP, round1PP, round2PP, miscPP, totalPP,
-    accomTotal, cartsD1Total, cartsD2Total, round1Total, round2Total, miscTotal, grandTotal,
+    accomTotal, cartsD1Total, cartsD2Total, round1Total, round2Total, miscTotal, grandTotal, totalOwing,
     playerCount: playerCount ?? players.length, players, links,
   };
 }
@@ -375,11 +379,13 @@ function render(data) {
     </div>`;
   }).join('');
 
-  const totalPaid = (data.accomTotal || 0) + (data.round1Total || 0) + (data.round2Total || 0);
-  const remaining = (data.grandTotal || 0) - totalPaid;
+  // Use the sheet's live Owing total (tracks each player's actual Amt Paid entry)
+  // rather than assuming which cost categories have been paid.
+  const remaining = data.totalOwing != null ? data.totalOwing : (data.grandTotal || 0);
+  const totalPaid = (data.grandTotal || 0) - remaining;
   document.getElementById('owing-banner').innerHTML =
-    `<strong>Payment status:</strong> ${money(totalPaid)} (accommodation + both golf rounds) has been paid so far. ` +
-    `Remaining balance across the group is <strong>${moneyRound(remaining)}</strong> — covering carts and any misc. costs, due closer to the trip.`;
+    `<strong>Payment status:</strong> ${money(totalPaid)} has been paid in so far across the group. ` +
+    `Remaining balance still owed is <strong>${moneyRound(remaining)}</strong>, based on each player's recorded payments.`;
 
   document.getElementById('gc25-body').innerHTML = Object.entries(GC25_OUTSTANDING).map(([name, amt]) =>
     `<tr><td>${name}</td><td class="amount">${money(amt)}</td></tr>`
