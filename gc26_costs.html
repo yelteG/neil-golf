@@ -193,6 +193,7 @@ const COL = {
   location: 0, month: 1,                    // A, B
   accomLabelPP: 5, accomLabelTotal: 6,      // F, G (labeled "Accommodation" row)
   cartsD1PP: 12, cartsD2PP: 13, round1PP: 14, round2PP: 15, totalPP: 16, // M-Q
+  miscPP: 17,                                // R ("Misc.")
   playersLabel: 1, playerCount: 2,          // B ("Players"), C (count)
   name: 23, total: 24,                      // X, Y
 };
@@ -271,12 +272,14 @@ async function loadData() {
   const cartsD2PP = cell(firstPlayerIdx, COL.cartsD2PP);
   const round1PP = cell(firstPlayerIdx, COL.round1PP);
   const round2PP = cell(firstPlayerIdx, COL.round2PP);
+  const miscPP = cell(firstPlayerIdx, COL.miscPP);
   const totalPP = cell(firstPlayerIdx, COL.totalPP);
 
   const cartsD1Total = cell(totalIdx, COL.cartsD1PP);
   const cartsD2Total = cell(totalIdx, COL.cartsD2PP);
   const round1Total = cell(totalIdx, COL.round1PP);
   const round2Total = cell(totalIdx, COL.round2PP);
+  const miscTotal = cell(totalIdx, COL.miscPP);
   const grandTotal = cell(totalIdx, COL.total) ?? cell(totalIdx, COL.totalPP);
 
   const playerCount = playersIdx !== -1 ? cell(playersIdx, COL.playerCount) : null;
@@ -306,8 +309,8 @@ async function loadData() {
 
   return {
     location, month, dates,
-    accomPP, cartsD1PP, cartsD2PP, round1PP, round2PP, totalPP,
-    accomTotal, cartsD1Total, cartsD2Total, round1Total, round2Total, grandTotal,
+    accomPP, cartsD1PP, cartsD2PP, round1PP, round2PP, miscPP, totalPP,
+    accomTotal, cartsD1Total, cartsD2Total, round1Total, round2Total, miscTotal, grandTotal,
     playerCount: playerCount ?? players.length, players, links,
   };
 }
@@ -332,6 +335,7 @@ function render(data) {
     <tr><td>Carts — Day 2</td><td class="amount">${money(data.cartsD2PP)}</td><td class="amount">${money(data.cartsD2Total)}</td></tr>
     <tr><td>Golf — Round 1</td><td class="amount">${money(data.round1PP)}</td><td class="amount">${money(data.round1Total)}</td></tr>
     <tr><td>Golf — Round 2</td><td class="amount">${money(data.round2PP)}</td><td class="amount">${money(data.round2Total)}</td></tr>
+    <tr><td>Miscellaneous</td><td class="amount">${money(data.miscPP)}</td><td class="amount">${money(data.miscTotal)}</td></tr>
     <tr class="total-row"><td>Total</td><td class="amount">${money(data.totalPP)}</td><td class="amount">${money(data.grandTotal)}</td></tr>
   `;
 
