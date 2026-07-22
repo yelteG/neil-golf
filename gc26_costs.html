@@ -204,7 +204,8 @@ const ROW = {
 };
 const COL = {
   location: 0, month: 1, dates: 2,          // A, B, C
-  accomPP: 11, cartsD1PP: 12, cartsD2PP: 13, round1PP: 14, round2PP: 15, totalPP: 16, // L-Q
+  accomLabelPP: 5, accomLabelTotal: 6,      // F, G (labeled "Accommodation" row)
+  cartsD1PP: 12, cartsD2PP: 13, round1PP: 14, round2PP: 15, totalPP: 16, // M-Q
   playerCount: 2,                            // C
   name: 23, total: 24,                       // X, Y
 };
@@ -242,14 +243,14 @@ async function loadData() {
   const month = cell(ROW.label, COL.month) || '';
   const dates = cell(ROW.label, COL.dates) || '';
 
-  const accomPP = cell(ROW.firstPlayer, COL.accomPP);
+  const accomPP = cell(ROW.firstPlayer, COL.accomLabelPP);
   const cartsD1PP = cell(ROW.firstPlayer, COL.cartsD1PP);
   const cartsD2PP = cell(ROW.firstPlayer, COL.cartsD2PP);
   const round1PP = cell(ROW.firstPlayer, COL.round1PP);
   const round2PP = cell(ROW.firstPlayer, COL.round2PP);
   const totalPP = cell(ROW.firstPlayer, COL.totalPP);
 
-  const accomTotal = cell(ROW.total, COL.accomPP);
+  const accomTotal = cell(ROW.firstPlayer, COL.accomLabelTotal);
   const cartsD1Total = cell(ROW.total, COL.cartsD1PP);
   const cartsD2Total = cell(ROW.total, COL.cartsD2PP);
   const round1Total = cell(ROW.total, COL.round1PP);
