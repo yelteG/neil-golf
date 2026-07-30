@@ -532,24 +532,24 @@ const DEFAULTS = {
   courseName: 'Riversdale Golf Club',
   holeLabels: ['2','3','4','5','6','7','8','9','10','11','12','12A','13','14','15','16','17','18'],
   holes: [
-    { par: 4, si: 3  },
-    { par: 3, si: 16 },
-    { par: 4, si: 10 },
-    { par: 4, si: 4  },
-    { par: 5, si: 8  },
-    { par: 5, si: 7  },
-    { par: 4, si: 12 },
-    { par: 4, si: 15 },
-    { par: 4, si: 18 },
-    { par: 4, si: 6  },
-    { par: 4, si: 13 },
-    { par: 3, si: 1  },
-    { par: 5, si: 14 },
-    { par: 3, si: 11 },
-    { par: 5, si: 9  },
-    { par: 4, si: 5  },
-    { par: 3, si: 2  },
-    { par: 4, si: 17 },
+    { par: 4, si: [3,19,37]  },  // Hole 2
+    { par: 3, si: [16,36,54] },  // Hole 3
+    { par: 4, si: [10,31,49] },  // Hole 4
+    { par: 4, si: [4,22,40]  },  // Hole 5
+    { par: 5, si: [8,24,42]  },  // Hole 6
+    { par: 5, si: [7,21,39]  },  // Hole 7
+    { par: 4, si: [12,34,52] },  // Hole 8
+    { par: 4, si: [15,25,43] },  // Hole 9
+    { par: 4, si: [18,35,53] },  // Hole 10
+    { par: 4, si: [6,23,41]  },  // Hole 11
+    { par: 4, si: [13,33,51] },  // Hole 12
+    { par: 3, si: [1,30,48]  },  // Hole 12A
+    { par: 5, si: [14,27,45] },  // Hole 13
+    { par: 3, si: [11,32,50] },  // Hole 14
+    { par: 5, si: [9,20,38]  },  // Hole 15
+    { par: 4, si: [5,26,44]  },  // Hole 16
+    { par: 3, si: [2,29,47]  },  // Hole 17
+    { par: 4, si: [17,28,46] },  // Hole 18
   ]
 };
 
@@ -644,11 +644,67 @@ function loadSavedSettings() {
 function getHcp(p) { return parseInt(document.getElementById('h' + p).value) || 0; }
 function getName(p) { return document.getElementById('n' + p).value || ('Player ' + (p + 1)); }
 
-function strokesOnHole(hcp, si) {
-  if (hcp <= 0) return 0;
-  let strokes = Math.floor(hcp / 18);
-  if (si <= (hcp % 18)) strokes++;
+// ── STROKE CALCULATION ────────────────────────────────────────────────────────
+// Computes strokes received on each hole for a given handicap.
+// SI is stored as [si_≤18, si_≤36, si_≤54] per hole.
+// Par 3s cannot receive more than 1 stroke — extra cascades to next SI hole.
+function computeAllStrokes(hcp, holes) {
+  if (hcp <= 0) return holes.map(() => 0);
+
+  const col = hcp <= 18 ? 0 : hcp <= 36 ? 1 : 2;
+  const base   = Math.floor(hcp / 18);
+  const extras = hcp % 18; // number of holes that get base+1
+
+  // Start everyone on base strokes
+  const strokes = holes.map(() => base);
+
+  // Sort holes by their SI in the relevant column (ascending)
+  const order = holes
+    .map((h, i) => ({ i, si: Array.isArray(h.si) ? h.si[col] : h.si, par: h.par }))
+    .sort((a, b) => a.si - b.si);
+
+  let extrasLeft = extras;
+  let cascadeQueue = 0; // bumped extras waiting to be assigned
+
+  for (const hole of order) {
+    const wouldGetExtra = hole.si <= extras;
+    if (wouldGetExtra) {
+      // This hole is in the "extra" zone
+      if (hole.par === 3 && base >= 1) {
+        // Par 3 already has base strokes — can't take another, cascade it
+        cascadeQueue++;
+      } else {
+        strokes[hole.i] = base + 1;
+      }
+    } else if (cascadeQueue > 0) {
+      // This hole is outside the normal extra zone but receives a cascaded stroke
+      if (hole.par === 3 && base >= 1) {
+        // Still a par 3 — cascade again
+        // (stays in queue, next hole will pick it up)
+      } else {
+        strokes[hole.i] = base + 1;
+        cascadeQueue--;
+      }
+    }
+  }
+
   return strokes;
+}
+
+function strokesOnHole(hcp, siArr, par) {
+  // For single-hole lookup — compute all and return this hole's value
+  // Called with (hcp, hole.si, hole.par) — needs allHoles context
+  // Use computeAllStrokes instead where possible
+  if (hcp <= 0) return 0;
+  const col = hcp <= 18 ? 0 : hcp <= 36 ? 1 : 2;
+  const si = Array.isArray(siArr) ? siArr[col] : siArr;
+  const base = Math.floor(hcp / 18);
+  const extras = hcp % 18;
+  if (si <= extras) {
+    if (par === 3 && base >= 1) return base; // cascade handled elsewhere
+    return base + 1;
+  }
+  return base;
 }
 
 function stablefordPts(gross, par, strokes) {
@@ -755,10 +811,11 @@ function onScore(h, p, val) {
 }
 
 function updateRow(h) {
-  const { par, si } = HOLES[h];
+  const { par } = HOLES[h];
   const hcps = [0,1,2].map(getHcp);
+  const allStrokes = [0,1,2].map(p => computeAllStrokes(hcps[p], HOLES));
   const stabs = [0,1,2].map(p => {
-    const strokes = strokesOnHole(hcps[p], si);
+    const strokes = allStrokes[p][h];
     const net = grossScores[h][p] !== null ? grossScores[h][p] - strokes : null;
     document.getElementById(`net${h}_${p}`).textContent = net !== null ? net : '—';
     const stab = stablefordPts(grossScores[h][p], par, strokes);
@@ -790,7 +847,8 @@ function buildShotSummary() {
   body.innerHTML = [0,1,2].map(p => {
     const hcp = getHcp(p);
     const name = getName(p);
-    const shotHoles = HOLES.map((h, i) => ({ label: HOLE_LABELS[i], strokes: strokesOnHole(hcp, h.si) }))
+    const allStrokes = computeAllStrokes(hcp, HOLES);
+    const shotHoles = HOLES.map((h, i) => ({ label: HOLE_LABELS[i], strokes: allStrokes[i] }))
       .filter(x => x.strokes > 0)
       .map(x => x.strokes > 1 ? `<b>${x.label}(${x.strokes})</b>` : x.label);
     return `<div>
@@ -801,11 +859,11 @@ function buildShotSummary() {
 }
 
 function updateShotDots() {
-  for (let h = 0; h < 18; h++) {
-    const { si } = HOLES[h];
-    for (let p = 0; p < 3; p++) {
-      const hcp = getHcp(p);
-      const strokes = strokesOnHole(hcp, si);
+  for (let p = 0; p < 3; p++) {
+    const hcp = getHcp(p);
+    const allStrokes = computeAllStrokes(hcp, HOLES);
+    for (let h = 0; h < 18; h++) {
+      const strokes = allStrokes[h];
       const dot = document.getElementById(`dot${h}_${p}`);
       if (!dot) continue;
       dot.className = 'shot-dot' + (strokes > 0 ? ` has-shot-${p+1}` : '');
@@ -816,17 +874,18 @@ function updateShotDots() {
 
 function updateTotals() {
   const hcps = [0,1,2].map(getHcp);
+  const allStrokes = [0,1,2].map(p => computeAllStrokes(hcps[p], HOLES));
   let totGross=[0,0,0], totNet=[0,0,0], totStab=[0,0,0], totPts=[0,0,0];
   let hasGross=[false,false,false];
   const subGross={OUT:[0,0,0],IN:[0,0,0]}, subNet={OUT:[0,0,0],IN:[0,0,0]};
   const subStab={OUT:[0,0,0],IN:[0,0,0]}, subPts={OUT:[0,0,0],IN:[0,0,0]};
 
   for (let h = 0; h < 18; h++) {
-    const { par, si } = HOLES[h];
+    const { par } = HOLES[h];
     const label = h < 9 ? 'OUT' : 'IN';
     const stabs = [];
     for (let p = 0; p < 3; p++) {
-      const strokes = strokesOnHole(hcps[p], si);
+      const strokes = allStrokes[p][h];
       const gross = grossScores[h][p];
       const net = gross !== null ? gross - strokes : null;
       const stab = stablefordPts(gross, par, strokes);

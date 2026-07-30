@@ -528,9 +528,12 @@
 let COURSE_NAME = 'Riversdale Golf Club';
 let HOLE_LABELS = ['2','3','4','5','6','7','8','9','10','11','12','12A','13','14','15','16','17','18'];
 let HOLES = [
-  {par:4,si:3},{par:3,si:16},{par:4,si:10},{par:4,si:4},{par:5,si:8},{par:5,si:7},
-  {par:4,si:12},{par:4,si:15},{par:4,si:18},{par:4,si:6},{par:4,si:13},{par:3,si:1},
-  {par:5,si:14},{par:3,si:11},{par:5,si:9},{par:4,si:5},{par:3,si:2},{par:4,si:17}
+  {par:4,si:[3,19,37]},  {par:3,si:[16,36,54]}, {par:4,si:[10,31,49]},
+  {par:4,si:[4,22,40]},  {par:5,si:[8,24,42]},  {par:5,si:[7,21,39]},
+  {par:4,si:[12,34,52]}, {par:4,si:[15,25,43]}, {par:4,si:[18,35,53]},
+  {par:4,si:[6,23,41]},  {par:4,si:[13,33,51]}, {par:3,si:[1,30,48]},
+  {par:5,si:[14,27,45]}, {par:3,si:[11,32,50]}, {par:5,si:[9,20,38]},
+  {par:4,si:[5,26,44]},  {par:3,si:[2,29,47]},  {par:4,si:[17,28,46]}
 ];
 
 // ── STATE ────────────────────────────────────────────────────────────────────
@@ -647,11 +650,46 @@ function loadSetup() {
 }
 
 // ── STABLEFORD ───────────────────────────────────────────────────────────────
-function strokesOnHole(hcp, si) {
+// ── STROKE CALCULATION ────────────────────────────────────────────────────────
+function computeAllStrokes(hcp, holes) {
+  if (hcp <= 0) return holes.map(() => 0);
+  const col = hcp <= 18 ? 0 : hcp <= 36 ? 1 : 2;
+  const base   = Math.floor(hcp / 18);
+  const extras = hcp % 18;
+  const strokes = holes.map(() => base);
+  const order = holes
+    .map((h, i) => ({ i, si: Array.isArray(h.si) ? h.si[col] : h.si, par: h.par }))
+    .sort((a, b) => a.si - b.si);
+  let cascadeQueue = 0;
+  for (const hole of order) {
+    const wouldGetExtra = hole.si <= extras;
+    if (wouldGetExtra) {
+      if (hole.par === 3 && base >= 1) {
+        cascadeQueue++;
+      } else {
+        strokes[hole.i] = base + 1;
+      }
+    } else if (cascadeQueue > 0) {
+      if (!(hole.par === 3 && base >= 1)) {
+        strokes[hole.i] = base + 1;
+        cascadeQueue--;
+      }
+    }
+  }
+  return strokes;
+}
+
+function strokesOnHole(hcp, siArr, par) {
   if (hcp <= 0) return 0;
-  let s = Math.floor(hcp / 18);
-  if (si <= (hcp % 18)) s++;
-  return s;
+  const col = hcp <= 18 ? 0 : hcp <= 36 ? 1 : 2;
+  const si = Array.isArray(siArr) ? siArr[col] : siArr;
+  const base = Math.floor(hcp / 18);
+  const extras = hcp % 18;
+  if (si <= extras) {
+    if (par === 3 && base >= 1) return base;
+    return base + 1;
+  }
+  return base;
 }
 
 function stabPts(gross, par, strokes) {
@@ -750,7 +788,8 @@ function teamAvg(team, hole) {
   const pts = TEAMS[team].players.map((p,i) => {
     const gross = getScore(team, i, hole);
     if (!gross) return null;
-    return stabPts(gross, HOLES[hole].par, strokesOnHole(p.hcp, HOLES[hole].si));
+    const allStrokes = computeAllStrokes(p.hcp, HOLES);
+    return stabPts(gross, HOLES[hole].par, allStrokes[hole]);
   }).filter(x => x !== null);
   if (!pts.length) return null;
   return pts.reduce((a,b) => a+b, 0) / pts.length;
@@ -767,15 +806,16 @@ function teamTotal(team) {
 
 function teamRawTotal(team) {
   let total = 0;
-  for (let h = 0; h < 18; h++) {
-    TEAMS[team].players.forEach((p, i) => {
+  TEAMS[team].players.forEach((p, i) => {
+    const allStrokes = computeAllStrokes(p.hcp, HOLES);
+    for (let h = 0; h < 18; h++) {
       const gross = getScore(team, i, h);
       if (gross) {
-        const pts = stabPts(gross, HOLES[h].par, strokesOnHole(p.hcp, HOLES[h].si));
+        const pts = stabPts(gross, HOLES[h].par, allStrokes[h]);
         if (pts !== null) total += pts;
       }
-    });
-  }
+    }
+  });
   return total;
 }
 
@@ -831,7 +871,8 @@ function renderTeams() {
 
     team.players.forEach((player, i) => {
       const gross = getScore(t, i, h);
-      const strokes = strokesOnHole(player.hcp, si);
+      const allStrokes = computeAllStrokes(player.hcp, HOLES);
+      const strokes = allStrokes[h];
       const pts = gross ? stabPts(gross, par, strokes) : null;
 
       const card = document.createElement('div');
