@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Monday Golf</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Average Comp</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -11,248 +11,190 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: #0f1f35;
     color: #fff;
-    font-size: 15px;
     min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
   }
 
   /* ── HEADER ── */
   .header {
-    background: #0f1f35;
-    padding: 14px 16px 10px;
-    border-bottom: 1px solid #1e3a5f;
+    background: #0a1628;
+    padding: 12px 16px;
     position: sticky;
     top: 0;
     z-index: 100;
+    border-bottom: 2px solid #1e3a5f;
   }
 
-  .header-top {
+  .header-row1 {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 10px;
   }
 
-  .header h1 {
-    font-size: 18px;
-    font-weight: 700;
-    color: #c8a84b;
-  }
+  .app-title { font-size: 17px; font-weight: 800; color: #c8a84b; }
 
-  .sync-status {
-    font-size: 11px;
-    color: #888;
+  .sync-pill {
     display: flex;
     align-items: center;
     gap: 5px;
+    background: #1e3a5f;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: #aaa;
   }
 
-  .sync-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: #888;
-    transition: background 0.3s;
-  }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #888; }
+  .sync-dot.synced { background: #4ade80; }
+  .sync-dot.syncing { background: #fbbf24; animation: blink 0.8s infinite; }
+  .sync-dot.error { background: #f87171; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-  .sync-dot.synced { background: #16a34a; }
-  .sync-dot.syncing { background: #f59e0b; animation: pulse 1s infinite; }
-  .sync-dot.error { background: #dc2626; }
-
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-
-  /* ── TEAM SCOREBOARD ── */
+  /* ── SCOREBOARD ── */
   .scoreboard {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
-    padding: 10px 12px;
   }
 
-  .team-card {
-    border-radius: 12px;
-    padding: 12px;
+  .team-score-card {
+    background: #1a2740;
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 2px solid transparent;
     text-align: center;
   }
 
-  .team-card.team-1 { background: #1e3a5f; border: 2px solid #2563eb; }
-  .team-card.team-2 { background: #1a2f1a; border: 2px solid #16a34a; }
-  .team-card.leading { border-width: 3px; }
+  .team-score-card.t1 { border-color: #2563eb; }
+  .team-score-card.t2 { border-color: #16a34a; }
+  .team-score-card.leading { border-width: 3px; }
 
-  .team-name { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 4px; }
-  .team-score { font-size: 32px; font-weight: 800; line-height: 1; }
-  .team-card.team-1 .team-score { color: #60a5fa; }
-  .team-card.team-2 .team-score { color: #4ade80; }
-  .team-label { font-size: 11px; opacity: 0.6; margin-top: 3px; }
-  .team-lead { font-size: 11px; font-weight: 600; color: #c8a84b; margin-top: 4px; }
+  .tscard-name { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 2px; }
+  .t1 .tscard-name { color: #60a5fa; }
+  .t2 .tscard-name { color: #4ade80; }
+  .tscard-score { font-size: 28px; font-weight: 900; line-height: 1.1; }
+  .t1 .tscard-score { color: #93c5fd; }
+  .t2 .tscard-score { color: #86efac; }
+  .tscard-sub { font-size: 10px; color: #666; margin-top: 2px; }
+  .tscard-lead { font-size: 11px; color: #c8a84b; font-weight: 600; min-height: 15px; }
 
-  /* ── HOLE TABS ── */
-  .hole-tabs-wrap {
-    overflow-x: auto;
-    padding: 8px 12px;
-    border-bottom: 1px solid #1e3a5f;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .hole-tabs-wrap::-webkit-scrollbar { display: none; }
-
-  .hole-tabs {
+  /* ── HOLE NAV ── */
+  .hole-nav {
     display: flex;
-    gap: 6px;
-    width: max-content;
+    align-items: center;
+    justify-content: space-between;
+    background: #1a2740;
+    padding: 10px 16px;
+    border-bottom: 1px solid #1e3a5f;
   }
 
-  .hole-tab {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+  .hole-nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     border: none;
     background: #1e3a5f;
-    color: #aaa;
-    font-size: 12px;
-    font-weight: 600;
+    color: #fff;
+    font-size: 22px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-direction: column;
-    gap: 1px;
-    position: relative;
   }
 
-  .hole-tab.active { background: #c8a84b; color: #0f1f35; }
-  .hole-tab.has-scores { background: #1e4a2f; color: #4ade80; }
-  .hole-tab.has-scores.active { background: #c8a84b; color: #0f1f35; }
+  .hole-nav-btn:active { background: #2a4a7f; }
+  .hole-nav-btn:disabled { opacity: 0.3; }
 
-  .hole-tab-dot {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: #4ade80;
-    position: absolute;
-    bottom: 4px;
-  }
+  .hole-nav-center { text-align: center; }
+  .hole-nav-label { font-size: 22px; font-weight: 800; color: #c8a84b; line-height: 1; }
+  .hole-nav-meta { font-size: 12px; color: #888; margin-top: 2px; }
+  .hole-nav-meta span { color: #ccc; font-weight: 600; }
 
-  .hole-tab.active .hole-tab-dot { background: #0f1f35; }
-
-  /* ── HOLE ENTRY ── */
-  .hole-entry {
-    padding: 12px;
-  }
-
-  .hole-info {
+  .hole-progress {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: 3px;
+    justify-content: center;
+    margin-top: 6px;
   }
 
-  .hole-badge {
-    background: #c8a84b;
-    color: #0f1f35;
-    font-size: 13px;
-    font-weight: 800;
-    padding: 4px 10px;
-    border-radius: 8px;
+  .hole-pip {
+    width: 16px;
+    height: 5px;
+    border-radius: 3px;
+    background: #1e3a5f;
   }
 
-  .hole-meta { font-size: 13px; color: #aaa; }
-  .hole-meta span { color: #fff; font-weight: 600; }
+  .hole-pip.done { background: #4ade80; }
+  .hole-pip.current { background: #c8a84b; }
 
-  /* ── TEAMS ── */
-  .teams-wrap {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
+  /* ── TEAM SECTIONS ── */
+  .teams-container { padding: 12px 12px 0; }
 
-  .team-section {
+  .team-block {
     background: #1a2740;
-    border-radius: 12px;
+    border-radius: 14px;
     overflow: hidden;
+    margin-bottom: 12px;
   }
 
-  .team-header {
-    padding: 8px 12px;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .team-header.t1 { background: #1e3a5f; color: #60a5fa; }
-  .team-header.t2 { background: #1a3320; color: #4ade80; }
-
-  .team-avg-badge {
-    font-size: 15px;
-    font-weight: 800;
-    color: #fff;
-  }
-
-  /* ── PLAYER ROWS ── */
-  .player-row {
-    padding: 8px 12px;
-    border-bottom: 1px solid #0f1f35;
+  .team-block-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    padding: 10px 16px;
   }
 
-  .player-row:last-child { border-bottom: none; }
+  .team-block-header.t1 { background: #1e3a5f; }
+  .team-block-header.t2 { background: #1a3320; }
 
-  .player-info { flex: 1; min-width: 0; }
-  .player-name { font-size: 13px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .player-hcp { font-size: 11px; color: #888; }
-  .player-stab { font-size: 11px; color: #aaa; margin-top: 1px; }
+  .team-block-name { font-size: 14px; font-weight: 800; }
+  .team-block-header.t1 .team-block-name { color: #60a5fa; }
+  .team-block-header.t2 .team-block-name { color: #4ade80; }
 
-  .score-entry {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .score-minus, .score-plus {
-    width: 32px;
-    height: 32px;
+  .team-block-avg {
+    background: rgba(0,0,0,0.3);
     border-radius: 8px;
-    border: none;
-    font-size: 20px;
-    font-weight: 300;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-  }
-
-  .score-minus { background: #2a1a1a; color: #f87171; }
-  .score-minus:active { background: #3f2020; }
-  .score-plus { background: #1a2a1a; color: #4ade80; }
-  .score-plus:active { background: #203020; }
-
-  .score-display {
-    width: 38px;
-    text-align: center;
-    font-size: 20px;
-    font-weight: 700;
-    color: #fff;
-    background: #0f1f35;
-    border: 1px solid #2a4a7f;
-    border-radius: 8px;
-    padding: 4px 2px;
-    cursor: pointer;
-  }
-
-  .score-display.has-score { border-color: #c8a84b; }
-
-  .stab-badge {
-    width: 28px;
-    text-align: center;
+    padding: 4px 10px;
     font-size: 13px;
     font-weight: 700;
+    color: #fff;
+  }
+
+  /* ── PLAYER CARD ── */
+  .player-card {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .player-card:last-child { border-bottom: none; }
+
+  .player-left { flex: 1; min-width: 0; }
+
+  .player-card-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 3px;
+  }
+
+  .player-card-meta {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 3px;
+  }
+
+  .player-card-stab {
+    font-size: 13px;
+    font-weight: 600;
+    min-height: 18px;
   }
 
   .stab-4 { color: #a78bfa; }
@@ -261,57 +203,90 @@
   .stab-1 { color: #fbbf24; }
   .stab-0 { color: #6b7280; }
 
-  /* ── RUNNING TOTALS ── */
-  .running-totals {
-    padding: 12px;
-    margin-top: 4px;
+  /* ── SCORE STEPPER ── */
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: #0f1f35;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #2a4a7f;
+    flex-shrink: 0;
   }
 
-  .running-totals h3 {
-    font-size: 12px;
+  .stepper-btn {
+    width: 44px;
+    height: 52px;
+    border: none;
+    background: transparent;
+    color: #fff;
+    font-size: 26px;
+    font-weight: 300;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stepper-btn.minus { color: #f87171; }
+  .stepper-btn.plus { color: #4ade80; }
+  .stepper-btn:active { background: rgba(255,255,255,0.08); }
+
+  .stepper-val {
+    width: 48px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    border-left: 1px solid #1e3a5f;
+    border-right: 1px solid #1e3a5f;
+    padding: 0 4px;
+    cursor: pointer;
+    line-height: 52px;
+    height: 52px;
+  }
+
+  .stepper-val.entered { color: #c8a84b; }
+
+  /* ── HOLE SUMMARY ── */
+  .hole-summary {
+    margin: 0 12px 12px;
+    background: #1a2740;
+    border-radius: 14px;
+    padding: 12px 16px;
+  }
+
+  .hole-summary-title {
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #888;
+    color: #666;
     margin-bottom: 10px;
   }
 
-  .totals-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 12px;
+  .hole-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 13px;
   }
 
-  .totals-table th {
-    background: #1e3a5f;
-    color: #aaa;
-    padding: 6px 4px;
-    text-align: center;
-    font-weight: 600;
-    font-size: 11px;
-  }
-
-  .totals-table th:first-child { text-align: left; padding-left: 8px; border-radius: 6px 0 0 0; }
-  .totals-table th:last-child { border-radius: 0 6px 0 0; }
-
-  .totals-table td {
-    padding: 5px 4px;
-    text-align: center;
-    border-bottom: 1px solid #1e3a5f;
-    color: #ccc;
-  }
-
-  .totals-table td:first-child { text-align: left; padding-left: 8px; color: #aaa; font-size: 11px; }
-  .totals-table .t1-col { color: #60a5fa; font-weight: 600; }
-  .totals-table .t2-col { color: #4ade80; font-weight: 600; }
-  .totals-table .total-row td { color: #fff; font-weight: 700; background: #1a2740; font-size: 13px; }
-  .totals-table .total-row td:first-child { color: #c8a84b; }
+  .hole-summary-row:last-child { border-bottom: none; }
+  .hs-hole { color: #888; width: 48px; }
+  .hs-t1 { color: #60a5fa; font-weight: 700; text-align: center; flex: 1; }
+  .hs-t2 { color: #4ade80; font-weight: 700; text-align: center; flex: 1; }
+  .hs-header { color: #666; font-size: 11px; }
+  .total-summary-row { margin-top: 6px; padding-top: 6px; border-top: 1px solid #2a4a7f; font-weight: 800; font-size: 15px; }
 
   /* ── SETUP MODAL ── */
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.85);
+    background: rgba(0,0,0,0.9);
     z-index: 200;
     display: flex;
     align-items: flex-end;
@@ -320,211 +295,227 @@
 
   .modal {
     background: #1a2740;
-    border-radius: 20px 20px 0 0;
-    padding: 20px 16px 32px;
+    border-radius: 24px 24px 0 0;
+    padding: 20px 16px 40px;
     width: 100%;
     max-width: 480px;
-    max-height: 90vh;
+    max-height: 92vh;
     overflow-y: auto;
   }
 
-  .modal h2 { font-size: 16px; font-weight: 700; color: #c8a84b; margin-bottom: 16px; }
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: #2a4a7f;
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
 
-  .modal label {
+  .modal h2 { font-size: 18px; font-weight: 800; color: #c8a84b; margin-bottom: 16px; }
+
+  .modal-label {
     display: block;
     font-size: 11px;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #888;
-    margin-bottom: 5px;
-    margin-top: 12px;
+    margin: 14px 0 5px;
   }
 
-  .modal input[type="text"],
-  .modal input[type="number"],
-  .modal input[type="url"] {
+  .modal-input {
     width: 100%;
     background: #0f1f35;
     border: 1px solid #2a4a7f;
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 15px;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 16px;
     color: #fff;
   }
 
-  .modal input:focus { outline: none; border-color: #c8a84b; }
+  .modal-input:focus { outline: none; border-color: #c8a84b; }
 
-  .team-setup { margin-bottom: 12px; }
+  .url-hint { font-size: 11px; color: #555; margin-top: 4px; line-height: 1.5; }
 
-  .team-label-blue { color: #60a5fa; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
-  .team-label-green { color: #4ade80; font-size: 13px; font-weight: 700; margin: 12px 0 8px; }
+  .team-section-label {
+    font-size: 13px;
+    font-weight: 800;
+    margin: 16px 0 8px;
+    padding: 6px 10px;
+    border-radius: 8px;
+  }
+
+  .team-section-label.t1 { background: #1e3a5f; color: #60a5fa; }
+  .team-section-label.t2 { background: #1a3320; color: #4ade80; }
 
   .player-setup-row {
     display: grid;
-    grid-template-columns: 1fr 60px;
+    grid-template-columns: 1fr 72px;
     gap: 8px;
     margin-bottom: 8px;
   }
 
-  .modal-btn-row { display: flex; gap: 8px; margin-top: 20px; }
+  .modal-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+  .modal-btn.primary { background: #c8a84b; color: #0f1f35; }
+  .modal-btn.secondary { background: transparent; border: 1px solid #2a4a7f; color: #aaa; }
+  .modal-btn.danger { background: transparent; border: 1px solid #7f1d1d; color: #f87171; }
 
-  .btn-primary {
+  .add-player-btn {
+    background: transparent;
+    border: 1px dashed #2a4a7f;
+    color: #60a5fa;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 13px;
+    width: 100%;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: #0a1628;
+    border-top: 1px solid #1e3a5f;
+    display: flex;
+    padding: 8px 16px 20px;
+    gap: 8px;
+    z-index: 99;
+  }
+
+  .bottom-nav-btn {
     flex: 1;
-    padding: 13px;
+    padding: 12px;
     border-radius: 10px;
     border: none;
-    background: #c8a84b;
-    color: #0f1f35;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  .btn-secondary {
-    padding: 13px 16px;
-    border-radius: 10px;
-    border: 1px solid #2a4a7f;
-    background: transparent;
-    color: #aaa;
-    font-size: 15px;
-    cursor: pointer;
-  }
-
-  .setup-btn {
-    background: transparent;
-    border: 1px solid #2a4a7f;
-    color: #aaa;
-    border-radius: 8px;
-    padding: 5px 10px;
-    font-size: 12px;
-    cursor: pointer;
-  }
-
-  .url-hint {
-    font-size: 11px;
-    color: #666;
-    margin-top: 5px;
-    line-height: 1.5;
-  }
-
-  .new-round-btn {
-    width: 100%;
-    padding: 13px;
-    border-radius: 10px;
-    border: 1px solid #dc2626;
-    background: transparent;
-    color: #f87171;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    margin-top: 16px;
   }
+
+  .bottom-nav-btn.setup { background: #1e3a5f; color: #aaa; }
+  .bottom-nav-btn.scores { background: #1e3a5f; color: #aaa; }
+  .bottom-nav-btn.scores.active { background: #c8a84b; color: #0f1f35; }
+
+  .page-pad { padding-bottom: 90px; }
 </style>
 </head>
 <body>
 
-<!-- SETUP MODAL -->
-<div class="modal-overlay" id="setup-modal">
+<!-- PIN PROMPT MODAL -->
+<div class="modal-overlay" id="pin-modal" style="display:none;">
+  <div class="modal" style="max-height:auto;">
+    <div class="modal-handle"></div>
+    <h2>🔒 Admin access</h2>
+    <span class="modal-label">Enter PIN</span>
+    <input type="number" class="modal-input" id="pin-input" placeholder="••••" style="font-size:28px;letter-spacing:8px;text-align:center;" oninput="checkPinLength()">
+    <div id="pin-error" style="color:#f87171;font-size:13px;margin-top:8px;min-height:18px;"></div>
+    <button class="modal-btn primary" onclick="submitPin()" style="margin-top:12px;">Unlock</button>
+    <button class="modal-btn secondary" onclick="closePin()" style="margin-top:8px;">Cancel</button>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div class="modal-overlay" id="admin-modal" style="display:none;">
   <div class="modal">
-    <h2>⛳ Monday Golf Setup</h2>
+    <div class="modal-handle"></div>
+    <h2>⚙ Admin</h2>
 
-    <label>Apps Script URL</label>
-    <input type="url" id="setup-url" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbxYm5G1oLRMMQdqgSZZrM7ltrV5mXj8Y-DlLh-unskGVeFfuUMOF0zVKnGu9mTtE8879A/exec">
-    <div class="url-hint">Paste your Google Apps Script web app URL here. See instructions below.</div>
-
-    <label>Admin PIN (for clearing scores)</label>
-    <input type="number" id="setup-pin" placeholder="e.g. 1234" value="1966">
-    <div class="url-hint">Only people with this PIN can start a new round and clear scores.</div>
-
-    <div class="team-label-blue">🔵 Team 1 name</div>
-    <input type="text" id="t1-name" placeholder="Team Blue" value="Team Blue">
-
+    <div class="team-section-label t1">🔵 Team 1</div>
+    <input type="text" class="modal-input" id="t1-name" placeholder="Team name" value="Team Blue">
+    <div style="height:8px;"></div>
     <div id="t1-players"></div>
-    <button class="btn-secondary" style="margin-top:8px;font-size:12px;padding:6px 12px;" onclick="addPlayer(1)">+ Add player</button>
+    <button class="add-player-btn" onclick="addPlayer(1)">+ Add player</button>
 
-    <div class="team-label-green">🟢 Team 2 name</div>
-    <input type="text" id="t2-name" placeholder="Team Green" value="Team Green">
-
+    <div class="team-section-label t2">🟢 Team 2</div>
+    <input type="text" class="modal-input" id="t2-name" placeholder="Team name" value="Team Green">
+    <div style="height:8px;"></div>
     <div id="t2-players"></div>
-    <button class="btn-secondary" style="margin-top:8px;font-size:12px;padding:6px 12px;" onclick="addPlayer(2)">+ Add player</button>
+    <button class="add-player-btn" onclick="addPlayer(2)">+ Add player</button>
 
-    <div class="modal-btn-row">
-      <button class="btn-primary" onclick="saveSetup()">Start round</button>
-    </div>
+    <span class="modal-label">Admin PIN</span>
+    <input type="number" class="modal-input" id="setup-pin" placeholder="e.g. 1234" value="1966">
 
-    <button class="new-round-btn" onclick="newRound()">🔄 New round (clear all scores)</button>
+    <button class="modal-btn primary" onclick="saveSetup()" style="margin-top:20px;">Save changes</button>
+    <button class="modal-btn danger" onclick="newRound()" style="margin-top:8px;">🔄 New round — clear all scores</button>
+    <button class="modal-btn secondary" onclick="closeAdmin()" style="margin-top:8px;">Close</button>
   </div>
 </div>
 
 <!-- MAIN APP -->
-<div id="app" style="display:none;">
+<div id="app">
 
   <!-- Header -->
   <div class="header">
-    <div class="header-top">
-      <h1>⛳ Monday Golf</h1>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div class="sync-status">
-          <div class="sync-dot" id="sync-dot"></div>
-          <span id="sync-text">Connecting…</span>
-        </div>
-        <button class="setup-btn" onclick="openSetup()">Setup</button>
+    <div class="header-row1">
+      <div class="app-title">⛳ Average Comp</div>
+      <div class="sync-pill">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-text">Connecting…</span>
       </div>
     </div>
-
-    <!-- Team scoreboard -->
     <div class="scoreboard">
-      <div class="team-card team-1" id="t1-card">
-        <div class="team-name" id="t1-card-name">Team Blue</div>
-        <div class="team-score" id="t1-total">0</div>
-        <div class="team-label">avg stableford</div>
-        <div class="team-lead" id="t1-lead"></div>
+      <div class="team-score-card t1" id="t1-card">
+        <div class="tscard-name" id="t1-card-name">Team Blue</div>
+        <div class="tscard-score" id="t1-total">0.0</div>
+        <div class="tscard-sub">avg stableford total</div>
+        <div class="tscard-lead" id="t1-lead"></div>
       </div>
-      <div class="team-card team-2" id="t2-card">
-        <div class="team-name" id="t2-card-name">Team Green</div>
-        <div class="team-score" id="t2-total">0</div>
-        <div class="team-label">avg stableford</div>
-        <div class="team-lead" id="t2-lead"></div>
+      <div class="team-score-card t2" id="t2-card">
+        <div class="tscard-name" id="t2-card-name">Team Green</div>
+        <div class="tscard-score" id="t2-total">0.0</div>
+        <div class="tscard-sub">avg stableford total</div>
+        <div class="tscard-lead" id="t2-lead"></div>
       </div>
     </div>
   </div>
 
-  <!-- Hole tabs -->
-  <div class="hole-tabs-wrap">
-    <div class="hole-tabs" id="hole-tabs"></div>
+  <div class="page-pad">
+    <!-- Hole nav -->
+    <div class="hole-nav">
+      <button class="hole-nav-btn" id="prev-btn" onclick="goHole(currentHole-1)">‹</button>
+      <div class="hole-nav-center">
+        <div class="hole-nav-label" id="hole-label-display">Hole 2</div>
+        <div class="hole-nav-meta">Par <span id="hole-par">4</span> · SI <span id="hole-si">3</span></div>
+        <div class="hole-progress" id="hole-progress"></div>
+      </div>
+      <button class="hole-nav-btn" id="next-btn" onclick="goHole(currentHole+1)">›</button>
+    </div>
+
+    <!-- Team player cards -->
+    <div class="teams-container" id="teams-container"></div>
+
+    <!-- Hole by hole summary -->
+    <div class="hole-summary">
+      <div class="hole-summary-title">Running totals</div>
+      <div class="hole-summary-row">
+        <div class="hs-hole hs-header">Hole</div>
+        <div class="hs-t1 hs-header" id="sum-t1-hdr">Team 1</div>
+        <div class="hs-t2 hs-header" id="sum-t2-hdr">Team 2</div>
+      </div>
+      <div id="summary-rows"></div>
+      <div class="hole-summary-row total-summary-row">
+        <div class="hs-hole" style="color:#c8a84b;">Total</div>
+        <div class="hs-t1" id="sum-t1-total">0.0</div>
+        <div class="hs-t2" id="sum-t2-total">0.0</div>
+      </div>
+    </div>
   </div>
 
-  <!-- Current hole entry -->
-  <div class="hole-entry">
-    <div class="hole-info">
-      <div class="hole-badge" id="hole-badge">Hole 2</div>
-      <div class="hole-meta">Par <span id="hole-par">4</span> · SI <span id="hole-si">3</span></div>
-    </div>
-    <div class="teams-wrap" id="teams-wrap"></div>
-  </div>
-
-  <!-- Running totals -->
-  <div class="running-totals">
-    <h3>Running totals by hole</h3>
-    <div style="overflow-x:auto;">
-      <table class="totals-table" id="totals-table">
-        <thead>
-          <tr>
-            <th>Hole</th>
-            <th id="th-t1">Team 1</th>
-            <th id="th-t2">Team 2</th>
-          </tr>
-        </thead>
-        <tbody id="totals-body"></tbody>
-      </table>
-    </div>
+  <!-- Bottom nav -->
+  <div class="bottom-nav">
+    <button class="bottom-nav-btn setup" onclick="openPinPrompt()">🔒 Admin</button>
   </div>
 
 </div>
 
 <script>
-// ── COURSE DATA (Riversdale) ──────────────────────────────────────────────
+// ── COURSE ───────────────────────────────────────────────────────────────────
 const HOLE_LABELS = ['2','3','4','5','6','7','8','9','10','11','12','12A','13','14','15','16','17','18'];
 const HOLES = [
   {par:4,si:3},{par:3,si:16},{par:4,si:10},{par:4,si:4},{par:5,si:8},{par:5,si:7},
@@ -533,19 +524,18 @@ const HOLES = [
 ];
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let ADMIN_PIN = '1966'; // Change this to your preferred PIN
-let SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYm5G1oLRMMQdqgSZZrM7ltrV5mXj8Y-DlLh-unskGVeFfuUMOF0zVKnGu9mTtE8879A/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYm5G1oLRMMQdqgSZZrM7ltrV5mXj8Y-DlLh-unskGVeFfuUMOF0zVKnGu9mTtE8879A/exec';
+let ADMIN_PIN = '1966';
 let TEAMS = [
   { name: 'Team Blue',  players: [{name:'Neil',hcp:14},{name:'Anthony',hcp:18}] },
   { name: 'Team Green', players: [{name:'William',hcp:11},{name:'Player 4',hcp:15}] }
 ];
-// scores[playerKey][hole] = gross score
 let scores = {};
 let currentHole = 0;
 let pollTimer = null;
 
-// ── SETUP ────────────────────────────────────────────────────────────────────
-function playerKey(team, idx) { return `t${team+1}_p${idx}`; }
+// ── SETUP / ADMIN ─────────────────────────────────────────────────────────────
+function playerKey(t, i) { return `t${t+1}_p${i}`; }
 
 function addPlayer(team) {
   const container = document.getElementById(`t${team}-players`);
@@ -553,84 +543,96 @@ function addPlayer(team) {
   const div = document.createElement('div');
   div.className = 'player-setup-row';
   div.innerHTML = `
-    <input type="text" placeholder="Player name" id="t${team}-p${idx}-name">
-    <input type="number" placeholder="HC" id="t${team}-p${idx}-hcp" min="0" max="54">
+    <input type="text" class="modal-input" placeholder="Player name" id="t${team}-p${idx}-name">
+    <input type="number" class="modal-input" placeholder="HC" id="t${team}-p${idx}-hcp" min="0" max="54" style="padding:12px 8px;">
   `;
   container.appendChild(div);
 }
 
-function populateSetupPlayers() {
+function populateAdmin() {
+  document.getElementById('setup-pin').value = ADMIN_PIN;
   [1,2].forEach(t => {
-    const container = document.getElementById(`t${t}-players`);
-    container.innerHTML = '';
+    document.getElementById(`t${t}-name`).value = TEAMS[t-1].name;
+    const c = document.getElementById(`t${t}-players`);
+    c.innerHTML = '';
     TEAMS[t-1].players.forEach((p,i) => {
       const div = document.createElement('div');
       div.className = 'player-setup-row';
       div.innerHTML = `
-        <input type="text" placeholder="Player name" id="t${t}-p${i}-name" value="${p.name}">
-        <input type="number" placeholder="HC" id="t${t}-p${i}-hcp" min="0" max="54" value="${p.hcp}">
+        <input type="text" class="modal-input" placeholder="Player name" id="t${t}-p${i}-name" value="${p.name}">
+        <input type="number" class="modal-input" placeholder="HC" id="t${t}-p${i}-hcp" min="0" max="54" value="${p.hcp}" style="padding:12px 8px;">
       `;
-      container.appendChild(div);
+      c.appendChild(div);
     });
   });
-  document.getElementById('setup-url').value = SCRIPT_URL;
-  document.getElementById('setup-pin').value = ADMIN_PIN;
-  document.getElementById('t1-name').value = TEAMS[0].name;
-  document.getElementById('t2-name').value = TEAMS[1].name;
+}
+
+function openPinPrompt() {
+  document.getElementById('pin-input').value = '';
+  document.getElementById('pin-error').textContent = '';
+  document.getElementById('pin-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('pin-input').focus(), 100);
+}
+
+function closePin() {
+  document.getElementById('pin-modal').style.display = 'none';
+}
+
+function checkPinLength() {
+  const val = document.getElementById('pin-input').value;
+  if (val.length >= 4) submitPin();
+}
+
+function submitPin() {
+  const entered = document.getElementById('pin-input').value;
+  if (entered === ADMIN_PIN) {
+    document.getElementById('pin-modal').style.display = 'none';
+    populateAdmin();
+    document.getElementById('admin-modal').style.display = 'flex';
+  } else {
+    document.getElementById('pin-error').textContent = 'Incorrect PIN. Try again.';
+    document.getElementById('pin-input').value = '';
+  }
+}
+
+function closeAdmin() {
+  document.getElementById('admin-modal').style.display = 'none';
 }
 
 function saveSetup() {
-  SCRIPT_URL = document.getElementById('setup-url').value.trim();
   ADMIN_PIN = document.getElementById('setup-pin').value || '1966';
   [0,1].forEach(t => {
     TEAMS[t].name = document.getElementById(`t${t+1}-name`).value || `Team ${t+1}`;
     const rows = document.getElementById(`t${t+1}-players`).querySelectorAll('.player-setup-row');
     TEAMS[t].players = [];
-    rows.forEach((_, i) => {
-      const name = document.getElementById(`t${t+1}-p${i}-name`)?.value;
+    rows.forEach((_,i) => {
+      const name = document.getElementById(`t${t+1}-p${i}-name`)?.value?.trim();
       const hcp  = parseInt(document.getElementById(`t${t+1}-p${i}-hcp`)?.value) || 0;
       if (name) TEAMS[t].players.push({ name, hcp });
     });
   });
-  try { localStorage.setItem('mg_setup', JSON.stringify({ url: SCRIPT_URL, teams: TEAMS, pin: ADMIN_PIN })); } catch(e) {}
-  document.getElementById('setup-modal').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  initApp();
-}
-
-function openSetup() {
-  populateSetupPlayers();
-  document.getElementById('setup-modal').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  clearInterval(pollTimer);
+  try { localStorage.setItem('ac_setup', JSON.stringify({ teams: TEAMS, pin: ADMIN_PIN })); } catch(e) {}
+  closeAdmin();
+  renderAll();
 }
 
 function newRound() {
-  const pin = prompt('Enter admin PIN to clear scores:');
-  if (pin === null) return;
-  if (pin !== ADMIN_PIN) {
-    alert('Incorrect PIN. Only the admin can clear scores.');
-    return;
-  }
-  if (!confirm('Clear all scores and start a new round?')) return;
+  if (!confirm('Clear ALL scores and start a new round?')) return;
   scores = {};
-  pushScores().then(() => {
-    saveSetup();
-  });
+  pushScores();
+  closeAdmin();
+  renderAll();
 }
 
 function loadSetup() {
   try {
-    const s = localStorage.getItem('mg_setup');
+    const s = localStorage.getItem('ac_setup');
     if (s) {
       const d = JSON.parse(s);
-      if (d.url) SCRIPT_URL = d.url;
       if (d.teams) TEAMS = d.teams;
-      if (d.pin) ADMIN_PIN = d.pin;
-      return true;
+      if (d.pin)   ADMIN_PIN = d.pin;
     }
   } catch(e) {}
-  return false;
 }
 
 // ── STABLEFORD ───────────────────────────────────────────────────────────────
@@ -641,7 +643,7 @@ function strokesOnHole(hcp, si) {
   return s;
 }
 
-function stablefordPts(gross, par, strokes) {
+function stabPts(gross, par, strokes) {
   if (!gross) return null;
   const diff = par - (gross - strokes);
   if (diff >= 2) return 4;
@@ -651,262 +653,224 @@ function stablefordPts(gross, par, strokes) {
   return 0;
 }
 
-function stabClass(pts) {
-  if (pts === null || pts === undefined) return '';
-  return `stab-${Math.min(pts,4)}`;
+function stabLabel(pts) {
+  if (pts === null) return '';
+  const labels = ['','Bogey','Par','Birdie','Eagle'];
+  return (labels[pts] || pts + ' pts') + ` (${pts} pts)`;
 }
 
-function stabText(pts) {
-  if (pts === null || pts === undefined) return '—';
-  return pts;
+function stabClass(pts) {
+  if (pts === null) return '';
+  return 'stab-' + Math.min(pts, 4);
 }
 
 // ── SYNC ────────────────────────────────────────────────────────────────────
-function setSyncStatus(state, text) {
+function setSync(state, text) {
   const dot = document.getElementById('sync-dot');
   const txt = document.getElementById('sync-text');
-  if (!dot) return;
-  dot.className = 'sync-dot ' + state;
-  txt.textContent = text;
+  if (dot) { dot.className = 'sync-dot ' + state; }
+  if (txt) txt.textContent = text;
 }
 
 async function pushScores() {
-  if (!SCRIPT_URL) return;
-  setSyncStatus('syncing', 'Saving…');
+  setSync('syncing', 'Saving…');
   try {
     await fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'write', scores })
+      method: 'POST', mode: 'no-cors',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'write', scores })
     });
-    setSyncStatus('synced', 'Saved ✓');
-  } catch(e) {
-    setSyncStatus('error', 'Offline');
-  }
+    setSync('synced', 'Saved ✓');
+  } catch(e) { setSync('error', 'Offline'); }
 }
 
 async function pullScores() {
-  if (!SCRIPT_URL) { setSyncStatus('error', 'No URL set'); return; }
-  setSyncStatus('syncing', 'Syncing…');
+  setSync('syncing', 'Syncing…');
   try {
     const res = await fetch(SCRIPT_URL + '?action=read&t=' + Date.now());
     const data = await res.json();
     if (data && data.scores) {
       scores = data.scores;
-      renderCurrentHole();
-      renderTotals();
-      renderHoleTabs();
-      updateScoreboard();
+      renderAll();
     }
-    setSyncStatus('synced', 'Live ✓');
-  } catch(e) {
-    setSyncStatus('error', 'Offline — tap to retry');
-  }
+    setSync('synced', 'Live ✓');
+  } catch(e) { setSync('error', 'Offline'); }
 }
 
-// ── SCORING ──────────────────────────────────────────────────────────────────
-function getScore(team, pidx, hole) {
-  const key = playerKey(team, pidx);
-  return scores[key] ? (scores[key][hole] || null) : null;
+// ── SCORES ───────────────────────────────────────────────────────────────────
+function getScore(t, i, h) {
+  const k = playerKey(t, i);
+  return scores[k] ? (scores[k][h] ?? null) : null;
 }
 
-function setScore(team, pidx, hole, val) {
-  const key = playerKey(team, pidx);
-  if (!scores[key]) scores[key] = {};
-  if (val === null || val < 1) {
-    delete scores[key][hole];
-  } else {
-    scores[key][hole] = val;
-  }
-  renderCurrentHole();
-  renderTotals();
-  renderHoleTabs();
-  updateScoreboard();
+function changeScore(t, i, delta) {
+  const cur = getScore(t, i, currentHole) || 0;
+  const nv = Math.max(1, Math.min(20, cur + delta));
+  const k = playerKey(t, i);
+  if (!scores[k]) scores[k] = {};
+  scores[k][currentHole] = nv;
+  renderAll();
   pushScores();
 }
 
-function changeScore(team, pidx, delta) {
-  const cur = getScore(team, pidx, currentHole) || 0;
-  const newVal = Math.max(1, Math.min(20, cur + delta));
-  setScore(team, pidx, currentHole, newVal === 0 ? null : newVal);
+function tapScore(t, i) {
+  const cur = getScore(t, i, currentHole);
+  const val = prompt(`${TEAMS[t].players[i].name} — Hole ${HOLE_LABELS[currentHole]} gross score:`, cur || '');
+  if (val === null) return;
+  const n = parseInt(val);
+  if (isNaN(n) || n < 1) return;
+  const k = playerKey(t, i);
+  if (!scores[k]) scores[k] = {};
+  scores[k][currentHole] = n;
+  renderAll();
+  pushScores();
 }
 
 // ── TEAM AVG ─────────────────────────────────────────────────────────────────
-function teamAvgForHole(team, hole) {
-  const players = TEAMS[team].players;
-  const pts = players.map((p, i) => {
+function teamAvg(team, hole) {
+  const pts = TEAMS[team].players.map((p,i) => {
     const gross = getScore(team, i, hole);
     if (!gross) return null;
-    const strokes = strokesOnHole(p.hcp, HOLES[hole].si);
-    return stablefordPts(gross, HOLES[hole].par, strokes);
+    return stabPts(gross, HOLES[hole].par, strokesOnHole(p.hcp, HOLES[hole].si));
   }).filter(x => x !== null);
   if (!pts.length) return null;
   return pts.reduce((a,b) => a+b, 0) / pts.length;
 }
 
-function teamRunningTotal(team, upToHole) {
-  let total = 0;
-  for (let h = 0; h <= upToHole; h++) {
-    const avg = teamAvgForHole(team, h);
-    if (avg !== null) total += avg;
+function teamTotal(team) {
+  let t = 0;
+  for (let h = 0; h < 18; h++) {
+    const a = teamAvg(team, h);
+    if (a !== null) t += a;
   }
-  return total;
+  return t;
 }
 
 // ── RENDER ───────────────────────────────────────────────────────────────────
-function renderHoleTabs() {
-  const wrap = document.getElementById('hole-tabs');
-  wrap.innerHTML = '';
-  HOLE_LABELS.forEach((label, h) => {
-    const hasScores = TEAMS.some((team, t) =>
-      team.players.some((_, i) => getScore(t, i, h) !== null)
-    );
-    const btn = document.createElement('button');
-    btn.className = 'hole-tab' + (h === currentHole ? ' active' : '') + (hasScores ? ' has-scores' : '');
-    btn.innerHTML = label + (hasScores && h !== currentHole ? '<span class="hole-tab-dot"></span>' : '');
-    btn.onclick = () => { currentHole = h; renderCurrentHole(); renderHoleTabs(); scrollToActiveTab(); };
-    wrap.appendChild(btn);
-  });
+function goHole(h) {
+  if (h < 0 || h > 17) return;
+  currentHole = h;
+  renderAll();
 }
 
-function scrollToActiveTab() {
-  const wrap = document.querySelector('.hole-tabs-wrap');
-  const active = document.querySelector('.hole-tab.active');
-  if (active && wrap) {
-    wrap.scrollLeft = active.offsetLeft - wrap.offsetWidth / 2 + active.offsetWidth / 2;
-  }
+function renderAll() {
+  renderHoleNav();
+  renderTeams();
+  renderSummary();
+  renderScoreboard();
 }
 
-function renderCurrentHole() {
+function renderHoleNav() {
+  const h = currentHole;
+  document.getElementById('hole-label-display').textContent = 'Hole ' + HOLE_LABELS[h];
+  document.getElementById('hole-par').textContent = HOLES[h].par;
+  document.getElementById('hole-si').textContent = HOLES[h].si;
+  document.getElementById('prev-btn').disabled = h === 0;
+  document.getElementById('next-btn').disabled = h === 17;
+
+  const prog = document.getElementById('hole-progress');
+  prog.innerHTML = HOLE_LABELS.map((_,i) => {
+    const hasAny = TEAMS.some((tm,t) => tm.players.some((_,pi) => getScore(t,pi,i) !== null));
+    const cls = i === h ? 'current' : hasAny ? 'done' : '';
+    return `<div class="hole-pip ${cls}"></div>`;
+  }).join('');
+}
+
+function renderTeams() {
+  const container = document.getElementById('teams-container');
+  container.innerHTML = '';
   const h = currentHole;
   const { par, si } = HOLES[h];
-  document.getElementById('hole-badge').textContent = 'Hole ' + HOLE_LABELS[h];
-  document.getElementById('hole-par').textContent = par;
-  document.getElementById('hole-si').textContent = si;
-
-  const wrap = document.getElementById('teams-wrap');
-  wrap.innerHTML = '';
 
   TEAMS.forEach((team, t) => {
-    const sec = document.createElement('div');
-    sec.className = 'team-section';
-
-    const avg = teamAvgForHole(t, h);
+    const avg = teamAvg(t, h);
     const avgStr = avg !== null ? avg.toFixed(1) : '—';
 
-    sec.innerHTML = `
-      <div class="team-header ${t===0?'t1':'t2'}">
-        <span>${team.name}</span>
-        <span class="team-avg-badge">${avgStr}</span>
+    const block = document.createElement('div');
+    block.className = 'team-block';
+
+    block.innerHTML = `
+      <div class="team-block-header ${t===0?'t1':'t2'}">
+        <span class="team-block-name">${team.name}</span>
+        <span class="team-block-avg">Hole avg: ${avgStr}</span>
       </div>
     `;
 
     team.players.forEach((player, i) => {
       const gross = getScore(t, i, h);
       const strokes = strokesOnHole(player.hcp, si);
-      const stab = gross ? stablefordPts(gross, par, strokes) : null;
+      const pts = gross ? stabPts(gross, par, strokes) : null;
 
-      const row = document.createElement('div');
-      row.className = 'player-row';
-      row.innerHTML = `
-        <div class="player-info">
-          <div class="player-name">${player.name}</div>
-          <div class="player-hcp">HC ${player.hcp} · ${strokes > 0 ? strokes + ' shot' + (strokes>1?'s':'') : 'no shots'}</div>
-          ${gross ? `<div class="player-stab">Net ${gross - strokes} · <span class="${stabClass(stab)}">${stab} stab pts</span></div>` : ''}
+      const card = document.createElement('div');
+      card.className = 'player-card';
+      card.innerHTML = `
+        <div class="player-left">
+          <div class="player-card-name">${player.name}</div>
+          <div class="player-card-meta">HC ${player.hcp} · ${strokes > 0 ? strokes + ' shot' + (strokes>1?'s':'') + ' on this hole' : 'no shots this hole'}</div>
+          <div class="player-card-stab ${stabClass(pts)}">${pts !== null ? stabLabel(pts) : ''}</div>
         </div>
-        <div class="score-entry">
-          <button class="score-minus" onclick="changeScore(${t},${i},-1)">−</button>
-          <div class="score-display ${gross?'has-score':''}" onclick="promptScore(${t},${i})">${gross || '—'}</div>
-          <button class="score-plus" onclick="changeScore(${t},${i},1)">+</button>
+        <div class="stepper">
+          <button class="stepper-btn minus" onclick="changeScore(${t},${i},-1)">−</button>
+          <div class="stepper-val ${gross?'entered':''}" onclick="tapScore(${t},${i})">${gross || '—'}</div>
+          <button class="stepper-btn plus" onclick="changeScore(${t},${i},1)">+</button>
         </div>
-        <div class="stab-badge ${stabClass(stab)}">${stabText(stab)}</div>
       `;
-      sec.appendChild(row);
+      block.appendChild(card);
     });
 
-    wrap.appendChild(sec);
+    container.appendChild(block);
   });
 }
 
-function promptScore(team, pidx) {
-  const cur = getScore(team, pidx, currentHole);
-  const val = prompt(`${TEAMS[team].players[pidx].name} — hole ${HOLE_LABELS[currentHole]} score:`, cur || '');
-  if (val === null) return;
-  const n = parseInt(val);
-  setScore(team, pidx, currentHole, isNaN(n) ? null : n);
-}
-
-function renderTotals() {
-  const tbody = document.getElementById('totals-body');
-  document.getElementById('th-t1').textContent = TEAMS[0].name;
-  document.getElementById('th-t2').textContent = TEAMS[1].name;
+function renderSummary() {
+  document.getElementById('sum-t1-hdr').textContent = TEAMS[0].name;
+  document.getElementById('sum-t2-hdr').textContent = TEAMS[1].name;
 
   let t1run = 0, t2run = 0;
   let rows = '';
 
   HOLE_LABELS.forEach((label, h) => {
-    const a1 = teamAvgForHole(0, h);
-    const a2 = teamAvgForHole(1, h);
+    const a1 = teamAvg(0, h);
+    const a2 = teamAvg(1, h);
     if (a1 !== null) t1run += a1;
     if (a2 !== null) t2run += a2;
-    const hasAny = a1 !== null || a2 !== null;
-    if (!hasAny) return;
-    rows += `<tr>
-      <td>${label}</td>
-      <td class="t1-col">${a1 !== null ? a1.toFixed(1) : '—'}</td>
-      <td class="t2-col">${a2 !== null ? a2.toFixed(1) : '—'}</td>
-    </tr>`;
+    if (a1 === null && a2 === null) return;
+    const cur = h === currentHole ? 'style="background:rgba(200,168,75,0.08)"' : '';
+    rows += `<div class="hole-summary-row" ${cur}>
+      <div class="hs-hole">${label}</div>
+      <div class="hs-t1">${a1 !== null ? a1.toFixed(1) : '—'}</div>
+      <div class="hs-t2">${a2 !== null ? a2.toFixed(1) : '—'}</div>
+    </div>`;
   });
 
-  rows += `<tr class="total-row">
-    <td>TOTAL</td>
-    <td class="t1-col">${t1run.toFixed(1)}</td>
-    <td class="t2-col">${t2run.toFixed(1)}</td>
-  </tr>`;
-
-  tbody.innerHTML = rows;
+  document.getElementById('summary-rows').innerHTML = rows;
+  document.getElementById('sum-t1-total').textContent = t1run.toFixed(1);
+  document.getElementById('sum-t2-total').textContent = t2run.toFixed(1);
 }
 
-function updateScoreboard() {
-  const lastHole = HOLE_LABELS.length - 1;
-  const t1 = teamRunningTotal(0, lastHole);
-  const t2 = teamRunningTotal(1, lastHole);
-
+function renderScoreboard() {
+  const t1 = teamTotal(0), t2 = teamTotal(1);
   document.getElementById('t1-card-name').textContent = TEAMS[0].name;
   document.getElementById('t2-card-name').textContent = TEAMS[1].name;
   document.getElementById('t1-total').textContent = t1.toFixed(1);
   document.getElementById('t2-total').textContent = t2.toFixed(1);
-
-  const diff = Math.abs(t1 - t2).toFixed(1);
-  document.getElementById('t1-lead').textContent = t1 > t2 ? `+${diff} ahead` : t1 < t2 ? `${diff} behind` : '';
-  document.getElementById('t2-lead').textContent = t2 > t1 ? `+${diff} ahead` : t2 < t1 ? `${diff} behind` : '';
-
-  document.getElementById('t1-card').className = 'team-card team-1' + (t1 >= t2 && (t1+t2)>0 ? ' leading' : '');
-  document.getElementById('t2-card').className = 'team-card team-2' + (t2 > t1 ? ' leading' : '');
+  const diff = Math.abs(t1-t2).toFixed(1);
+  document.getElementById('t1-lead').textContent = t1 > t2 ? `▲ ${diff} ahead` : t1 < t2 ? `▼ ${diff} behind` : '';
+  document.getElementById('t2-lead').textContent = t2 > t1 ? `▲ ${diff} ahead` : t2 < t1 ? `▼ ${diff} behind` : '';
+  document.getElementById('t1-card').className = 'team-score-card t1' + (t1>=t2&&(t1+t2)>0?' leading':'');
+  document.getElementById('t2-card').className = 'team-score-card t2' + (t2>t1?' leading':'');
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 function initApp() {
-  document.getElementById('t1-card-name').textContent = TEAMS[0].name;
-  document.getElementById('t2-card-name').textContent = TEAMS[1].name;
-  renderHoleTabs();
-  renderCurrentHole();
-  renderTotals();
-  updateScoreboard();
+  renderAll();
   pullScores();
   clearInterval(pollTimer);
   pollTimer = setInterval(pullScores, 8000);
 }
 
-if (loadSetup() && SCRIPT_URL) {
-  document.getElementById('setup-modal').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  populateSetupPlayers();
-  initApp();
-} else {
-  populateSetupPlayers();
-}
+loadSetup();
+initApp();
 </script>
 </body>
 </html>
