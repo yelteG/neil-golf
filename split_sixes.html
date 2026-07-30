@@ -227,7 +227,7 @@
 
   .hole-num { font-weight: 600; font-size: 13px; color: #333; width: 36px; }
   .par-cell { color: #555; font-size: 13px; width: 30px; }
-  .si-cell { color: #888; font-size: 12px; width: 28px; }
+  .si-cell { color: #888; font-size: 11px; width: 56px; }
 
   .score-input {
     width: 38px;
@@ -411,11 +411,11 @@
           <th>#</th>
           <th>Hole label</th>
           <th>Par</th>
-          <th>SI</th>
+          <th>SI (≤18/≤36/≤54)</th>
           <th>#</th>
           <th>Hole label</th>
           <th>Par</th>
-          <th>SI</th>
+          <th>SI (≤18/≤36/≤54)</th>
         </tr>
       </thead>
       <tbody id="settings-holes-tbody"></tbody>
@@ -477,7 +477,7 @@
       <tr>
         <th>Hole</th>
         <th>Par</th>
-        <th>SI</th>
+        <th>SI (≤18/≤36/≤54)</th>
         <th class="th-player-1" id="th-gross-0">Neil gross</th>
         <th class="th-player-1" id="th-net-0">Net</th>
         <th class="th-player-1" id="th-stab-0">Stab</th>
@@ -758,7 +758,7 @@ function buildTable() {
     tr.innerHTML = `
       <td class="hole-num">${HOLE_LABELS[h]}</td>
       <td class="par-cell">${par}</td>
-      <td class="si-cell">${si}</td>
+      <td class="si-cell">${Array.isArray(si) ? si.join('/') : si}</td>
       ${[0,1,2].map(p => `
         <td>
           <div style="display:flex;align-items:center;justify-content:center;gap:3px;">

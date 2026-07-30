@@ -491,7 +491,7 @@
           <div class="hole-nav-label" id="hole-label-display">Hole 2</div>
           <button class="hole-nav-btn" id="next-btn" onclick="goHole(currentHole+1)">❯</button>
         </div>
-        <div class="hole-nav-meta">Par <span id="hole-par">4</span> · SI <span id="hole-si">3</span></div>
+        <div class="hole-nav-meta">Par <span id="hole-par">4</span> · SI <span id="hole-si">3/19/37</span></div>
         <div class="hole-progress" id="hole-progress"></div>
       </div>
     </div>
@@ -837,7 +837,7 @@ function renderHoleNav() {
   const h = currentHole;
   document.getElementById('hole-label-display').textContent = 'Hole ' + HOLE_LABELS[h];
   document.getElementById('hole-par').textContent = HOLES[h].par;
-  document.getElementById('hole-si').textContent = HOLES[h].si;
+  document.getElementById('hole-si').textContent = Array.isArray(HOLES[h].si) ? HOLES[h].si.join('/') : HOLES[h].si;
   document.getElementById('prev-btn').className = 'hole-nav-btn' + (h === 0 ? ' dim' : '');
   document.getElementById('next-btn').className = 'hole-nav-btn' + (h === 17 ? ' dim' : '');
 
