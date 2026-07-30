@@ -522,9 +522,10 @@
 </div>
 
 <script>
-// ── COURSE ───────────────────────────────────────────────────────────────────
-const HOLE_LABELS = ['2','3','4','5','6','7','8','9','10','11','12','12A','13','14','15','16','17','18'];
-const HOLES = [
+// ── COURSE (defaults — overridden by sheet if set) ────────────────────────────
+let COURSE_NAME = 'Riversdale Golf Club';
+let HOLE_LABELS = ['2','3','4','5','6','7','8','9','10','11','12','12A','13','14','15','16','17','18'];
+let HOLES = [
   {par:4,si:3},{par:3,si:16},{par:4,si:10},{par:4,si:4},{par:5,si:8},{par:5,si:7},
   {par:4,si:12},{par:4,si:15},{par:4,si:18},{par:4,si:6},{par:4,si:13},{par:3,si:1},
   {par:5,si:14},{par:3,si:11},{par:5,si:9},{par:4,si:5},{par:3,si:2},{par:4,si:17}
@@ -701,6 +702,12 @@ async function pullScores() {
     if (data && data.teams) {
       TEAMS = data.teams;
       try { localStorage.setItem('ac_setup', JSON.stringify({ teams: TEAMS, pin: ADMIN_PIN })); } catch(e) {}
+    }
+    if (data && data.course) {
+      if (data.course.name)   COURSE_NAME  = data.course.name;
+      if (data.course.labels) HOLE_LABELS  = data.course.labels;
+      if (data.course.holes)  HOLES        = data.course.holes;
+      document.querySelector('.app-title').textContent = '⛳ ' + COURSE_NAME;
     }
     renderAll();
     setSync('synced', 'Live ✓');
