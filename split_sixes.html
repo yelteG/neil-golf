@@ -521,8 +521,9 @@
 
 <!-- Buttons -->
 <div class="btn-row">
-  <button class="danger" onclick="resetScores()">Reset scores</button>
+  <button class="danger" onclick="resetScores()">🏌 New round</button>
   <button onclick="window.print()">Print scorecard</button>
+  <span id="save-indicator" style="font-size:12px;color:#16a34a;opacity:0;transition:opacity 0.4s;align-self:center;">✓ Saved</span>
 </div>
 
 <script>
@@ -868,21 +869,69 @@ function updateTotals() {
   }
 }
 
+function saveScores() {
+  try {
+    localStorage.setItem('ss_scores', JSON.stringify(grossScores));
+    localStorage.setItem('ss_players', JSON.stringify([0,1,2].map(p => ({
+      name: document.getElementById('n'+p).value,
+      hcp: document.getElementById('h'+p).value
+    }))));
+    showSaveIndicator();
+  } catch(e) {}
+}
+
+function loadScores() {
+  try {
+    const saved = localStorage.getItem('ss_scores');
+    if (saved) {
+      const s = JSON.parse(saved);
+      for (let h = 0; h < 18; h++)
+        for (let p = 0; p < 3; p++)
+          grossScores[h][p] = s[h] ? s[h][p] : null;
+    }
+    const players = localStorage.getItem('ss_players');
+    if (players) {
+      const pl = JSON.parse(players);
+      pl.forEach((p, i) => {
+        if (p.name) document.getElementById('n'+i).value = p.name;
+        if (p.hcp)  document.getElementById('h'+i).value = p.hcp;
+      });
+    }
+  } catch(e) {}
+}
+
+function showSaveIndicator() {
+  const el = document.getElementById('save-indicator');
+  if (!el) return;
+  el.style.opacity = '1';
+  clearTimeout(window._saveTimer);
+  window._saveTimer = setTimeout(() => { el.style.opacity = '0'; }, 1500);
+}
+
 function setText(id, val) {
   const el = document.getElementById(id);
   if (el) el.textContent = val;
 }
 
-function refresh() { updateAllRows(); }
+function refresh() { updateAllRows(); saveScores(); }
+
+function onScore(h, p, val) {
+  grossScores[h][p] = val === '' ? null : parseInt(val);
+  updateRow(h);
+  updateTotals();
+  saveScores();
+}
 
 function resetScores() {
-  if (!confirm('Reset all scores?')) return;
+  if (!confirm('Start a new round? This will clear all scores.')) return;
   for (let h = 0; h < 18; h++) grossScores[h] = [null, null, null];
+  try { localStorage.removeItem('ss_scores'); } catch(e) {}
   buildTable();
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 loadSavedSettings();
+loadScores();
 buildTable();
 </script>
 </body>
