@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Split Sixes</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnR3JhZCIgY3g9IjUwJSIgY3k9IjQwJSIgcj0iNjAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzFlM2E1ZiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwZjFmMzUiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJhbGxHcmFkIiBjeD0iMzUlIiBjeT0iMzAlIiByPSI2NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmZmZmZmIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjZThlOGU4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2M4YzhjOCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iYmFsbEdyYWQyIiBjeD0iMzUlIiBjeT0iMzAlIiByPSI2NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmZmZmZmIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjZThlOGU4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2M4YzhjOCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICA8L2RlZnM+CgogIDwhLS0gQmFja2dyb3VuZCBjaXJjbGUgLS0+CiAgPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIyNTYiIGZpbGw9InVybCgjYmdHcmFkKSIvPgoKICA8IS0tIEdyZWVuIHN0cmlwIGF0IGJvdHRvbSAtLT4KICA8ZWxsaXBzZSBjeD0iMjU2IiBjeT0iNDIwIiByeD0iMjIwIiByeT0iNTUiIGZpbGw9IiMxYTZiMmYiIG9wYWNpdHk9IjAuODUiLz4KICA8ZWxsaXBzZSBjeD0iMjU2IiBjeT0iNDE1IiByeD0iMjIwIiByeT0iNDgiIGZpbGw9IiMyZDhhNDUiIG9wYWNpdHk9IjAuNyIvPgoKICA8IS0tIEZsYWcgcGluIC0tPgogIDxyZWN0IHg9IjI0OCIgeT0iMTgwIiB3aWR0aD0iNSIgaGVpZ2h0PSIxNjAiIGZpbGw9IiNjOGE4NGIiIHJ4PSIyIi8+CiAgPCEtLSBGbGFnIC0tPgogIDxwb2x5Z29uIHBvaW50cz0iMjUzLDE4MiAzMTAsMjAyIDI1MywyMjIiIGZpbGw9IiNlNjM5NDYiLz4KICA8IS0tIEZsYWcgc3RyaXBlIC0tPgogIDxwb2x5Z29uIHBvaW50cz0iMjUzLDE5MCAzMTAsMjAyIDI1MywyMDciIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuNCIvPgoKICA8IS0tIEJpZyAiNiIgbGVmdCAtLT4KICA8dGV4dCB4PSI3MiIgeT0iMzEwIgogICAgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdUaW1lcyBOZXcgUm9tYW4nLCBzZXJpZiIKICAgIGZvbnQtc2l6ZT0iMjEwIgogICAgZm9udC13ZWlnaHQ9IjcwMCIKICAgIGZpbGw9IiMyNTYzZWIiCiAgICBvcGFjaXR5PSIwLjk1IgogICAgbGV0dGVyLXNwYWNpbmc9Ii04Ij42PC90ZXh0PgoKICA8IS0tIEJpZyAiNiIgcmlnaHQgKG9mZnNldCwgbGlnaHRlcikgLS0+CiAgPHRleHQgeD0iMjQ4IiB5PSIzMTAiCiAgICBmb250LWZhbWlseT0iR2VvcmdpYSwgJ1RpbWVzIE5ldyBSb21hbicsIHNlcmlmIgogICAgZm9udC1zaXplPSIyMTAiCiAgICBmb250LXdlaWdodD0iNzAwIgogICAgZmlsbD0iIzNiODJmNiIKICAgIG9wYWNpdHk9IjAuNSIKICAgIGxldHRlci1zcGFjaW5nPSItOCI+NjwvdGV4dD4KCiAgPCEtLSBHb2xmIGJhbGwgdG9wIHJpZ2h0IC0tPgogIDxjaXJjbGUgY3g9IjM4OCIgY3k9IjEyOCIgcj0iNjIiIGZpbGw9InVybCgjYmFsbEdyYWQpIiBzdHJva2U9IiNkZGQiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPCEtLSBEaW1wbGUgcGF0dGVybiBvbiBiYWxsIC0tPgogIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2JiYiIgc3Ryb2tlLXdpZHRoPSIxLjUiIG9wYWNpdHk9IjAuNiI+CiAgICA8Y2lyY2xlIGN4PSIzODgiIGN5PSIxMjgiIHI9IjQ0Ii8+CiAgICA8ZWxsaXBzZSBjeD0iMzg4IiBjeT0iMTI4IiByeD0iNDQiIHJ5PSIyMCIgdHJhbnNmb3JtPSJyb3RhdGUoMzAsMzg4LDEyOCkiLz4KICAgIDxlbGxpcHNlIGN4PSIzODgiIGN5PSIxMjgiIHJ4PSI0NCIgcnk9IjIwIiB0cmFuc2Zvcm09InJvdGF0ZSgtMzAsMzg4LDEyOCkiLz4KICAgIDxlbGxpcHNlIGN4PSIzODgiIGN5PSIxMjgiIHJ4PSIyMCIgcnk9IjQ0Ii8+CiAgPC9nPgoKICA8IS0tICJTUyIgdGV4dCBib3R0b20gLS0+CiAgPHRleHQgeD0iMjU2IiB5PSI0ODgiCiAgICBmb250LWZhbWlseT0iR2VvcmdpYSwgJ1RpbWVzIE5ldyBSb21hbicsIHNlcmlmIgogICAgZm9udC1zaXplPSI0MiIKICAgIGZvbnQtd2VpZ2h0PSI3MDAiCiAgICBmaWxsPSIjYzhhODRiIgogICAgdGV4dC1hbmNob3I9Im1pZGRsZSIKICAgIGxldHRlci1zcGFjaW5nPSI2Ij5TUExJVCBTSVhFUzwvdGV4dD4KPC9zdmc+Cg==">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f5f0;
+    color: #1a1a1a;
+    font-size: 14px;
+    padding: 16px;
+  }
+
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { color: #666; font-size: 13px; margin-bottom: 20px; }
+
+  /* Top bar */
+  .top-bar { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+  .top-bar-left h1 { margin-bottom: 4px; }
+
+  /* Settings toggle button */
+  .settings-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #333;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .settings-btn:hover { background: #f0f0ea; }
+  .settings-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+
+  /* Settings panel */
+  .settings-panel {
+    display: none;
+    background: #fff;
+    border: 1px solid #e0e0d8;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .settings-panel.open { display: block; }
+
+  .settings-panel h2 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0d8;
+  }
+
+  .settings-course-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: flex-end;
+  }
+
+  .settings-course-row > div { flex: 1; }
+  .settings-course-row label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+    margin-bottom: 5px;
+  }
+  .settings-course-row input {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 14px;
+    color: #1a1a1a;
+    background: #fafafa;
+  }
+  .settings-course-row input:focus { outline: none; border-color: #4a90d9; background: #fff; }
+
+  .settings-holes-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+    margin-bottom: 10px;
+  }
+
+  .settings-holes-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .settings-holes-table th {
+    background: #f0f0ea;
+    padding: 7px 8px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #666;
+    border: 1px solid #e0e0d8;
+  }
+
+  .settings-holes-table td {
+    padding: 4px 4px;
+    border: 1px solid #f0f0ea;
+    text-align: center;
+  }
+
+  .settings-holes-table td:first-child {
+    color: #888;
+    font-size: 12px;
+    background: #fafafa;
+    width: 32px;
+  }
+
+  .settings-holes-table input {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px 4px;
+    font-size: 13px;
+    text-align: center;
+    background: #fafafa;
+    color: #1a1a1a;
+  }
+  .settings-holes-table input:focus { outline: none; border-color: #4a90d9; background: #fff; }
+
+  .settings-btn-row { display: flex; gap: 10px; }
+
+  /* Player setup */
+  .setup {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .setup-card {
+    background: #fff;
+    border: 1px solid #e0e0d8;
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .setup-card label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+    margin-bottom: 6px;
+  }
+
+  .setup-card input[type="text"],
+  .setup-card input[type="number"] {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 14px;
+    color: #1a1a1a;
+    background: #fafafa;
+    margin-bottom: 8px;
+  }
+
+  .setup-card input:focus { outline: none; border-color: #4a90d9; background: #fff; }
+
+  .player-color-1 { border-top: 3px solid #2563eb; }
+  .player-color-2 { border-top: 3px solid #16a34a; }
+  .player-color-3 { border-top: 3px solid #dc2626; }
+
+  /* Scorecard table */
+  .table-wrap {
+    overflow-x: auto;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e0e0d8;
+    margin-bottom: 20px;
+  }
+
+  table { width: 100%; border-collapse: collapse; min-width: 700px; }
+
+  thead tr th {
+    background: #f0f0ea;
+    padding: 8px 6px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #555;
+    border-bottom: 1px solid #e0e0d8;
+    border-right: 1px solid #e0e0d8;
+  }
+
+  thead tr th:first-child { text-align: left; padding-left: 12px; }
+  .th-player-1 { background: #eff6ff; color: #1d4ed8; }
+  .th-player-2 { background: #f0fdf4; color: #15803d; }
+  .th-player-3 { background: #fff1f2; color: #b91c1c; }
+
+  tbody tr { border-bottom: 1px solid #f0f0ea; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #fafaf8; }
+
+  tbody td {
+    padding: 5px 4px;
+    text-align: center;
+    border-right: 1px solid #f0f0ea;
+    vertical-align: middle;
+  }
+
+  tbody td:first-child { text-align: left; padding-left: 12px; }
+
+  .hole-num { font-weight: 600; font-size: 13px; color: #333; width: 36px; }
+  .par-cell { color: #555; font-size: 13px; width: 30px; }
+  .si-cell { color: #888; font-size: 12px; width: 28px; }
+
+  .score-input {
+    width: 38px;
+    padding: 4px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 13px;
+    color: #1a1a1a;
+    background: #fafafa;
+  }
+
+  .score-input:focus { outline: none; border-color: #4a90d9; background: #fff; }
+
+  .net-cell { font-size: 12px; color: #666; width: 28px; }
+  .stab-cell { font-size: 13px; font-weight: 500; width: 28px; }
+  .pts-cell { font-size: 14px; font-weight: 700; width: 32px; }
+
+  .stab-eagle  { color: #7c3aed; }
+  .stab-birdie { color: #2563eb; }
+  .stab-par    { color: #16a34a; }
+  .stab-bogey  { color: #d97706; }
+  .stab-double { color: #dc2626; }
+  .stab-dash   { color: #ccc; }
+
+  .pts-6 { color: #7c3aed; }
+  .pts-4 { color: #2563eb; }
+  .pts-3 { color: #16a34a; }
+  .pts-2 { color: #d97706; }
+  .pts-1 { color: #f97316; }
+  .pts-0 { color: #ccc; }
+  .pts-dash { color: #ccc; }
+
+  .divider-row td {
+    background: #f0f0ea;
+    font-weight: 600;
+    font-size: 12px;
+    color: #555;
+    padding: 5px 4px;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+  }
+
+  tfoot td {
+    background: #f0f0ea;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 8px 4px;
+    text-align: center;
+    border-top: 2px solid #ddd;
+    border-right: 1px solid #e0e0d8;
+  }
+
+  tfoot td:first-child { text-align: left; padding-left: 12px; }
+
+  /* Shot dots */
+  .shot-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: transparent;
+    flex-shrink: 0;
+  }
+  .shot-dot.has-shot-1 { background: #2563eb; }
+  .shot-dot.has-shot-2 { background: #16a34a; }
+  .shot-dot.has-shot-3 { background: #dc2626; }
+
+  /* Summary cards */
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .summary-card {
+    background: #fff;
+    border: 1px solid #e0e0d8;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .summary-card.leader { border: 2px solid #2563eb; background: #eff6ff; }
+  .summary-name { font-size: 13px; color: #666; margin-bottom: 4px; }
+  .summary-pts { font-size: 36px; font-weight: 700; color: #1a1a1a; line-height: 1; margin-bottom: 4px; }
+  .summary-stab { font-size: 12px; color: #888; margin-bottom: 4px; }
+  .summary-rank { font-size: 12px; font-weight: 600; color: #2563eb; }
+
+  /* Legend */
+  .legend {
+    background: #fff;
+    border: 1px solid #e0e0d8;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+  }
+
+  .legend h3 {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #888;
+    margin-bottom: 10px;
+  }
+
+  .legend-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 20px;
+    font-size: 12px;
+    color: #555;
+  }
+
+  .legend-grid span { font-weight: 600; }
+
+  /* Buttons */
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  button {
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #333;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  button:hover { background: #f5f5f0; }
+  button.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+  button.primary:hover { background: #1d4ed8; }
+  button.danger { color: #dc2626; border-color: #fca5a5; }
+  button.danger:hover { background: #fff1f2; }
+
+  @media (max-width: 600px) {
+    .setup, .summary { grid-template-columns: 1fr; }
+    .legend-grid { grid-template-columns: 1fr; }
+    .settings-course-row { flex-direction: column; }
+    .top-bar { flex-direction: column; gap: 10px; }
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .btn-row, .settings-panel, .settings-btn { display: none; }
+    .table-wrap { border: none; }
+    .score-input { border: none; background: transparent; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-bar-left">
+    <h1><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPGRlZnM+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJnR3JhZCIgY3g9IjUwJSIgY3k9IjQwJSIgcj0iNjAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzFlM2E1ZiIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwZjFmMzUiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9ImJhbGxHcmFkIiBjeD0iMzUlIiBjeT0iMzAlIiByPSI2NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmZmZmZmIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjZThlOGU4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2M4YzhjOCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iYmFsbEdyYWQyIiBjeD0iMzUlIiBjeT0iMzAlIiByPSI2NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmZmZmZmIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjZThlOGU4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2M4YzhjOCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICA8L2RlZnM+CgogIDwhLS0gQmFja2dyb3VuZCBjaXJjbGUgLS0+CiAgPGNpcmNsZSBjeD0iMjU2IiBjeT0iMjU2IiByPSIyNTYiIGZpbGw9InVybCgjYmdHcmFkKSIvPgoKICA8IS0tIEdyZWVuIHN0cmlwIGF0IGJvdHRvbSAtLT4KICA8ZWxsaXBzZSBjeD0iMjU2IiBjeT0iNDIwIiByeD0iMjIwIiByeT0iNTUiIGZpbGw9IiMxYTZiMmYiIG9wYWNpdHk9IjAuODUiLz4KICA8ZWxsaXBzZSBjeD0iMjU2IiBjeT0iNDE1IiByeD0iMjIwIiByeT0iNDgiIGZpbGw9IiMyZDhhNDUiIG9wYWNpdHk9IjAuNyIvPgoKICA8IS0tIEZsYWcgcGluIC0tPgogIDxyZWN0IHg9IjI0OCIgeT0iMTgwIiB3aWR0aD0iNSIgaGVpZ2h0PSIxNjAiIGZpbGw9IiNjOGE4NGIiIHJ4PSIyIi8+CiAgPCEtLSBGbGFnIC0tPgogIDxwb2x5Z29uIHBvaW50cz0iMjUzLDE4MiAzMTAsMjAyIDI1MywyMjIiIGZpbGw9IiNlNjM5NDYiLz4KICA8IS0tIEZsYWcgc3RyaXBlIC0tPgogIDxwb2x5Z29uIHBvaW50cz0iMjUzLDE5MCAzMTAsMjAyIDI1MywyMDciIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuNCIvPgoKICA8IS0tIEJpZyAiNiIgbGVmdCAtLT4KICA8dGV4dCB4PSI3MiIgeT0iMzEwIgogICAgZm9udC1mYW1pbHk9Ikdlb3JnaWEsICdUaW1lcyBOZXcgUm9tYW4nLCBzZXJpZiIKICAgIGZvbnQtc2l6ZT0iMjEwIgogICAgZm9udC13ZWlnaHQ9IjcwMCIKICAgIGZpbGw9IiMyNTYzZWIiCiAgICBvcGFjaXR5PSIwLjk1IgogICAgbGV0dGVyLXNwYWNpbmc9Ii04Ij42PC90ZXh0PgoKICA8IS0tIEJpZyAiNiIgcmlnaHQgKG9mZnNldCwgbGlnaHRlcikgLS0+CiAgPHRleHQgeD0iMjQ4IiB5PSIzMTAiCiAgICBmb250LWZhbWlseT0iR2VvcmdpYSwgJ1RpbWVzIE5ldyBSb21hbicsIHNlcmlmIgogICAgZm9udC1zaXplPSIyMTAiCiAgICBmb250LXdlaWdodD0iNzAwIgogICAgZmlsbD0iIzNiODJmNiIKICAgIG9wYWNpdHk9IjAuNSIKICAgIGxldHRlci1zcGFjaW5nPSItOCI+NjwvdGV4dD4KCiAgPCEtLSBHb2xmIGJhbGwgdG9wIHJpZ2h0IC0tPgogIDxjaXJjbGUgY3g9IjM4OCIgY3k9IjEyOCIgcj0iNjIiIGZpbGw9InVybCgjYmFsbEdyYWQpIiBzdHJva2U9IiNkZGQiIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPCEtLSBEaW1wbGUgcGF0dGVybiBvbiBiYWxsIC0tPgogIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2JiYiIgc3Ryb2tlLXdpZHRoPSIxLjUiIG9wYWNpdHk9IjAuNiI+CiAgICA8Y2lyY2xlIGN4PSIzODgiIGN5PSIxMjgiIHI9IjQ0Ii8+CiAgICA8ZWxsaXBzZSBjeD0iMzg4IiBjeT0iMTI4IiByeD0iNDQiIHJ5PSIyMCIgdHJhbnNmb3JtPSJyb3RhdGUoMzAsMzg4LDEyOCkiLz4KICAgIDxlbGxpcHNlIGN4PSIzODgiIGN5PSIxMjgiIHJ4PSI0NCIgcnk9IjIwIiB0cmFuc2Zvcm09InJvdGF0ZSgtMzAsMzg4LDEyOCkiLz4KICAgIDxlbGxpcHNlIGN4PSIzODgiIGN5PSIxMjgiIHJ4PSIyMCIgcnk9IjQ0Ii8+CiAgPC9nPgoKICA8IS0tICJTUyIgdGV4dCBib3R0b20gLS0+CiAgPHRleHQgeD0iMjU2IiB5PSI0ODgiCiAgICBmb250LWZhbWlseT0iR2VvcmdpYSwgJ1RpbWVzIE5ldyBSb21hbicsIHNlcmlmIgogICAgZm9udC1zaXplPSI0MiIKICAgIGZvbnQtd2VpZ2h0PSI3MDAiCiAgICBmaWxsPSIjYzhhODRiIgogICAgdGV4dC1hbmNob3I9Im1pZGRsZSIKICAgIGxldHRlci1zcGFjaW5nPSI2Ij5TUExJVCBTSVhFUzwvdGV4dD4KPC9zdmc+Cg==" alt="Split Sixes icon" style="width:48px;height:48px;border-radius:10px;vertical-align:middle;margin-right:10px;">Split Sixes</h1>
+    <p class="subtitle" id="course-subtitle">Riversdale Golf Club · 3-player stableford · 6 points per hole · 4-2-0 scoring</p>
+  </div>
+  <button class="settings-btn" id="settings-toggle" onclick="toggleSettings()">⚙ Course settings</button>
+</div>
+
+<!-- Settings Panel -->
+<div class="settings-panel" id="settings-panel">
+  <h2>Course settings</h2>
+
+  <div class="settings-course-row">
+    <div>
+      <label>Course name</label>
+      <input type="text" id="s-course-name" value="Riversdale Golf Club">
+    </div>
+  </div>
+
+  <div class="settings-holes-label">Holes — label, par and stroke index</div>
+  <div style="overflow-x:auto;">
+    <table class="settings-holes-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Hole label</th>
+          <th>Par</th>
+          <th>SI</th>
+          <th>#</th>
+          <th>Hole label</th>
+          <th>Par</th>
+          <th>SI</th>
+        </tr>
+      </thead>
+      <tbody id="settings-holes-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="settings-btn-row">
+    <button class="primary" onclick="saveSettings()">Save settings</button>
+    <button onclick="resetSettings()">Reset to Riversdale defaults</button>
+    <button onclick="toggleSettings()">Cancel</button>
+  </div>
+</div>
+
+<!-- Player Setup -->
+<div class="setup">
+  <div class="setup-card player-color-1">
+    <label>Player 1</label>
+    <input type="text" id="n0" value="Neil" placeholder="Name" oninput="refresh()">
+    <label>Handicap</label>
+    <input type="number" id="h0" value="14" min="0" max="54" placeholder="0" oninput="refresh()">
+  </div>
+  <div class="setup-card player-color-2">
+    <label>Player 2</label>
+    <input type="text" id="n1" value="Anthony" placeholder="Name" oninput="refresh()">
+    <label>Handicap</label>
+    <input type="number" id="h1" value="18" min="0" max="54" placeholder="0" oninput="refresh()">
+  </div>
+  <div class="setup-card player-color-3">
+    <label>Player 3</label>
+    <input type="text" id="n2" value="William" placeholder="Name" oninput="refresh()">
+    <label>Handicap</label>
+    <input type="number" id="h2" value="11" min="0" max="54" placeholder="0" oninput="refresh()">
+  </div>
+</div>
+
+<!-- Shot Summary -->
+<div class="legend" id="shot-summary">
+  <h3>Shots received</h3>
+  <div id="shot-summary-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:12px;"></div>
+</div>
+
+<!-- Points Legend -->
+<div class="legend">
+  <h3>Points guide</h3>
+  <div class="legend-grid">
+    <div><span style="color:#7c3aed;font-weight:600">6 pts</span> — win by 2+ stableford points</div>
+    <div><span class="pts-4">4 pts</span> — win by 1 point outright</div>
+    <div><span class="pts-2">2 pts</span> — outright 2nd place</div>
+    <div><span class="pts-3">3 pts each</span> — tie for 1st</div>
+    <div><span class="pts-1">1 pt each</span> — tie for 2nd / 3rd</div>
+    <div><span style="color:#666;font-weight:600">2 pts each</span> — all three tie</div>
+  </div>
+</div>
+
+<!-- Scorecard -->
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Hole</th>
+        <th>Par</th>
+        <th>SI</th>
+        <th class="th-player-1" id="th-gross-0">Neil gross</th>
+        <th class="th-player-1" id="th-net-0">Net</th>
+        <th class="th-player-1" id="th-stab-0">Stab</th>
+        <th class="th-player-1" id="th-pts-0">Pts</th>
+        <th class="th-player-2" id="th-gross-1">Anthony gross</th>
+        <th class="th-player-2" id="th-net-1">Net</th>
+        <th class="th-player-2" id="th-stab-1">Stab</th>
+        <th class="th-player-2" id="th-pts-1">Pts</th>
+        <th class="th-player-3" id="th-gross-2">William gross</th>
+        <th class="th-player-3" id="th-net-2">Net</th>
+        <th class="th-player-3" id="th-stab-2">Stab</th>
+        <th class="th-player-3" id="th-pts-2">Pts</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+    <tfoot id="tfoot"></tfoot>
+  </table>
+</div>
+
+<!-- Summary -->
+<div class="summary">
+  <div class="summary-card" id="card0">
+    <div class="summary-name" id="sn0">Neil</div>
+    <div class="summary-pts" id="sp0">0</div>
+    <div class="summary-stab" id="ss0">Stableford: 0</div>
+    <div class="summary-rank" id="sr0"></div>
+  </div>
+  <div class="summary-card" id="card1">
+    <div class="summary-name" id="sn1">Anthony</div>
+    <div class="summary-pts" id="sp1">0</div>
+    <div class="summary-stab" id="ss1">Stableford: 0</div>
+    <div class="summary-rank" id="sr1"></div>
+  </div>
+  <div class="summary-card" id="card2">
+    <div class="summary-name" id="sn2">William</div>
+    <div class="summary-pts" id="sp2">0</div>
+    <div class="summary-stab" id="ss2">Stableford: 0</div>
+    <div class="summary-rank" id="sr2"></div>
+  </div>
+</div>
+
+<!-- Buttons -->
+<div class="btn-row">
+  <button class="danger" onclick="resetScores()">Reset scores</button>
+  <button onclick="window.print()">Print scorecard</button>
+</div>
+
+<script>
+// ── DEFAULT COURSE DATA (Riversdale Golf Club) ──────────────────────────────
+const DEFAULTS = {
+  courseName: 'Riversdale Golf Club',
+  holeLabels: ['2','3','4','5','6','7','8','9','10','11','12','12A','13','14','15','16','17','18'],
+  holes: [
+    { par: 4, si: 3  },
+    { par: 3, si: 16 },
+    { par: 4, si: 10 },
+    { par: 4, si: 4  },
+    { par: 5, si: 8  },
+    { par: 5, si: 7  },
+    { par: 4, si: 12 },
+    { par: 4, si: 15 },
+    { par: 4, si: 18 },
+    { par: 4, si: 6  },
+    { par: 4, si: 13 },
+    { par: 3, si: 1  },
+    { par: 5, si: 14 },
+    { par: 3, si: 11 },
+    { par: 5, si: 9  },
+    { par: 4, si: 5  },
+    { par: 3, si: 2  },
+    { par: 4, si: 17 },
+  ]
+};
+
+// ── LIVE COURSE DATA ────────────────────────────────────────────────────────
+let COURSE_NAME = DEFAULTS.courseName;
+let HOLE_LABELS = [...DEFAULTS.holeLabels];
+let HOLES = DEFAULTS.holes.map(h => ({ ...h }));
+
+// ── SCORES ──────────────────────────────────────────────────────────────────
+const grossScores = Array.from({ length: 18 }, () => [null, null, null]);
+
+// ── SETTINGS PANEL ──────────────────────────────────────────────────────────
+function toggleSettings() {
+  const panel = document.getElementById('settings-panel');
+  const btn = document.getElementById('settings-toggle');
+  const isOpen = panel.classList.contains('open');
+  if (isOpen) {
+    panel.classList.remove('open');
+    btn.classList.remove('active');
+    btn.textContent = '⚙ Course settings';
+  } else {
+    populateSettingsPanel();
+    panel.classList.add('open');
+    btn.classList.add('active');
+    btn.textContent = '✕ Close settings';
+  }
+}
+
+function populateSettingsPanel() {
+  document.getElementById('s-course-name').value = COURSE_NAME;
+  const tbody = document.getElementById('settings-holes-tbody');
+  tbody.innerHTML = '';
+  // Render in pairs: holes 1-9 left, 10-18 right
+  for (let i = 0; i < 9; i++) {
+    const j = i + 9;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td><input type="text" id="sl-${i}" value="${HOLE_LABELS[i]}" style="width:52px;"></td>
+      <td><input type="number" id="sp-${i}" value="${HOLES[i].par}" min="3" max="6" style="width:44px;"></td>
+      <td><input type="number" id="ss-${i}" value="${HOLES[i].si}" min="1" max="18" style="width:44px;"></td>
+      <td>${j + 1}</td>
+      <td><input type="text" id="sl-${j}" value="${HOLE_LABELS[j]}" style="width:52px;"></td>
+      <td><input type="number" id="sp-${j}" value="${HOLES[j].par}" min="3" max="6" style="width:44px;"></td>
+      <td><input type="number" id="ss-${j}" value="${HOLES[j].si}" min="1" max="18" style="width:44px;"></td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+function saveSettings() {
+  COURSE_NAME = document.getElementById('s-course-name').value || 'Course';
+  for (let i = 0; i < 18; i++) {
+    HOLE_LABELS[i] = document.getElementById(`sl-${i}`).value || String(i + 1);
+    HOLES[i].par = parseInt(document.getElementById(`sp-${i}`).value) || 4;
+    HOLES[i].si  = parseInt(document.getElementById(`ss-${i}`).value) || (i + 1);
+  }
+  // Persist to localStorage
+  try {
+    localStorage.setItem('ss_course', JSON.stringify({ name: COURSE_NAME, labels: HOLE_LABELS, holes: HOLES }));
+  } catch(e) {}
+  document.getElementById('course-subtitle').textContent = `${COURSE_NAME} · 3-player stableford · 6 points per hole · 4-2-0 scoring`;
+  document.title = `Split Sixes — ${COURSE_NAME}`;
+  toggleSettings();
+  buildTable();
+}
+
+function resetSettings() {
+  if (!confirm('Reset to Riversdale defaults?')) return;
+  COURSE_NAME = DEFAULTS.courseName;
+  HOLE_LABELS = [...DEFAULTS.holeLabels];
+  HOLES = DEFAULTS.holes.map(h => ({ ...h }));
+  try { localStorage.removeItem('ss_course'); } catch(e) {}
+  populateSettingsPanel();
+}
+
+function loadSavedSettings() {
+  try {
+    const saved = localStorage.getItem('ss_course');
+    if (saved) {
+      const d = JSON.parse(saved);
+      if (d.name) COURSE_NAME = d.name;
+      if (d.labels && d.labels.length === 18) HOLE_LABELS = d.labels;
+      if (d.holes && d.holes.length === 18) HOLES = d.holes;
+      document.getElementById('course-subtitle').textContent = `${COURSE_NAME} · 3-player stableford · 6 points per hole · 4-2-0 scoring`;
+      document.title = `Split Sixes — ${COURSE_NAME}`;
+    }
+  } catch(e) {}
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function getHcp(p) { return parseInt(document.getElementById('h' + p).value) || 0; }
+function getName(p) { return document.getElementById('n' + p).value || ('Player ' + (p + 1)); }
+
+function strokesOnHole(hcp, si) {
+  if (hcp <= 0) return 0;
+  let strokes = Math.floor(hcp / 18);
+  if (si <= (hcp % 18)) strokes++;
+  return strokes;
+}
+
+function stablefordPts(gross, par, strokes) {
+  if (gross === null) return null;
+  const diff = par - (gross - strokes);
+  if (diff >= 2) return 4;
+  if (diff === 1) return 3;
+  if (diff === 0) return 2;
+  if (diff === -1) return 1;
+  return 0;
+}
+
+function stabLabel(pts) {
+  if (pts === null) return { text: '—', cls: 'stab-dash' };
+  if (pts >= 4) return { text: pts, cls: 'stab-eagle' };
+  if (pts === 3) return { text: pts, cls: 'stab-birdie' };
+  if (pts === 2) return { text: pts, cls: 'stab-par' };
+  if (pts === 1) return { text: pts, cls: 'stab-bogey' };
+  return { text: pts, cls: 'stab-double' };
+}
+
+function splitSixesPts(stabs) {
+  if (stabs.some(s => s === null)) return [null, null, null];
+  const sorted = [...stabs].sort((x, y) => y - x);
+  const [s1, s2, s3] = sorted;
+  if (s1 === s2 && s2 === s3) return stabs.map(() => 2);
+  if (s1 === s2) return stabs.map(s => s === s1 ? 3 : 0);
+  const margin = s1 - s2;
+  if (margin >= 2) return stabs.map(s => s === s1 ? 6 : 0);
+  if (s2 === s3) return stabs.map(s => s === s1 ? 4 : 1);
+  return stabs.map(s => s === s1 ? 4 : s === s2 ? 2 : 0);
+}
+
+// ── TABLE ────────────────────────────────────────────────────────────────────
+function buildTable() {
+  const tbody = document.getElementById('tbody');
+  const tfoot = document.getElementById('tfoot');
+  tbody.innerHTML = '';
+
+  for (let h = 0; h < 18; h++) {
+    const { par, si } = HOLES[h];
+    if (h === 9) {
+      const dtr = document.createElement('tr');
+      dtr.className = 'divider-row';
+      dtr.id = 'out-row';
+      dtr.innerHTML = buildSubtotalRow('OUT');
+      tbody.appendChild(dtr);
+    }
+    const tr = document.createElement('tr');
+    tr.id = 'row-' + h;
+    tr.innerHTML = `
+      <td class="hole-num">${HOLE_LABELS[h]}</td>
+      <td class="par-cell">${par}</td>
+      <td class="si-cell">${si}</td>
+      ${[0,1,2].map(p => `
+        <td>
+          <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
+            <input class="score-input" type="number" min="1" max="20" id="g${h}_${p}" placeholder="—"
+              oninput="onScore(${h},${p},this.value)" value="${grossScores[h][p] !== null ? grossScores[h][p] : ''}">
+            <span class="shot-dot" id="dot${h}_${p}"></span>
+          </div>
+        </td>
+        <td class="net-cell" id="net${h}_${p}">—</td>
+        <td class="stab-cell stab-dash" id="stab${h}_${p}">—</td>
+        <td class="pts-cell pts-dash" id="pts${h}_${p}">—</td>
+      `).join('')}
+    `;
+    tbody.appendChild(tr);
+  }
+
+  const itr = document.createElement('tr');
+  itr.className = 'divider-row';
+  itr.id = 'in-row';
+  itr.innerHTML = buildSubtotalRow('IN');
+  tbody.appendChild(itr);
+
+  tfoot.innerHTML = `<tr>
+    <td colspan="3" style="text-align:left;">TOTAL</td>
+    ${[0,1,2].map(p => `
+      <td id="tot-gross-${p}">—</td>
+      <td id="tot-net-${p}">—</td>
+      <td id="tot-stab-${p}">—</td>
+      <td id="tot-pts-${p}" style="font-size:15px;">0</td>
+    `).join('')}
+  </tr>`;
+
+  updateAllRows();
+}
+
+function buildSubtotalRow(label) {
+  return `<td colspan="3">${label}</td>` +
+    [0,1,2].map(p => `
+      <td id="sub-gross-${label}-${p}">—</td>
+      <td id="sub-net-${label}-${p}">—</td>
+      <td id="sub-stab-${label}-${p}">—</td>
+      <td id="sub-pts-${label}-${p}">—</td>
+    `).join('');
+}
+
+function onScore(h, p, val) {
+  grossScores[h][p] = val === '' ? null : parseInt(val);
+  updateRow(h);
+  updateTotals();
+}
+
+function updateRow(h) {
+  const { par, si } = HOLES[h];
+  const hcps = [0,1,2].map(getHcp);
+  const stabs = [0,1,2].map(p => {
+    const strokes = strokesOnHole(hcps[p], si);
+    const net = grossScores[h][p] !== null ? grossScores[h][p] - strokes : null;
+    document.getElementById(`net${h}_${p}`).textContent = net !== null ? net : '—';
+    const stab = stablefordPts(grossScores[h][p], par, strokes);
+    const sl = stabLabel(stab);
+    const stabEl = document.getElementById(`stab${h}_${p}`);
+    stabEl.textContent = sl.text;
+    stabEl.className = 'stab-cell ' + sl.cls;
+    return stab;
+  });
+  const pts = splitSixesPts(stabs);
+  for (let p = 0; p < 3; p++) {
+    const ptsEl = document.getElementById(`pts${h}_${p}`);
+    ptsEl.textContent = pts[p] !== null ? pts[p] : '—';
+    ptsEl.className = pts[p] !== null ? 'pts-cell pts-' + pts[p] : 'pts-cell pts-dash';
+  }
+}
+
+function updateAllRows() {
+  for (let h = 0; h < 18; h++) updateRow(h);
+  updateShotDots();
+  buildShotSummary();
+  updateTotals();
+}
+
+function buildShotSummary() {
+  const colors = ['#2563eb','#16a34a','#dc2626'];
+  const body = document.getElementById('shot-summary-body');
+  if (!body) return;
+  body.innerHTML = [0,1,2].map(p => {
+    const hcp = getHcp(p);
+    const name = getName(p);
+    const shotHoles = HOLES.map((h, i) => ({ label: HOLE_LABELS[i], strokes: strokesOnHole(hcp, h.si) }))
+      .filter(x => x.strokes > 0)
+      .map(x => x.strokes > 1 ? `<b>${x.label}(${x.strokes})</b>` : x.label);
+    return `<div>
+      <div style="font-weight:600;color:${colors[p]};margin-bottom:4px;">${name} (HC ${hcp})</div>
+      <div style="color:#555;line-height:1.6;">${shotHoles.length ? shotHoles.join(', ') : 'No shots'}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateShotDots() {
+  for (let h = 0; h < 18; h++) {
+    const { si } = HOLES[h];
+    for (let p = 0; p < 3; p++) {
+      const hcp = getHcp(p);
+      const strokes = strokesOnHole(hcp, si);
+      const dot = document.getElementById(`dot${h}_${p}`);
+      if (!dot) continue;
+      dot.className = 'shot-dot' + (strokes > 0 ? ` has-shot-${p+1}` : '');
+      dot.title = strokes > 0 ? `${strokes} stroke${strokes > 1 ? 's' : ''}` : '';
+    }
+  }
+}
+
+function updateTotals() {
+  const hcps = [0,1,2].map(getHcp);
+  let totGross=[0,0,0], totNet=[0,0,0], totStab=[0,0,0], totPts=[0,0,0];
+  let hasGross=[false,false,false];
+  const subGross={OUT:[0,0,0],IN:[0,0,0]}, subNet={OUT:[0,0,0],IN:[0,0,0]};
+  const subStab={OUT:[0,0,0],IN:[0,0,0]}, subPts={OUT:[0,0,0],IN:[0,0,0]};
+
+  for (let h = 0; h < 18; h++) {
+    const { par, si } = HOLES[h];
+    const label = h < 9 ? 'OUT' : 'IN';
+    const stabs = [];
+    for (let p = 0; p < 3; p++) {
+      const strokes = strokesOnHole(hcps[p], si);
+      const gross = grossScores[h][p];
+      const net = gross !== null ? gross - strokes : null;
+      const stab = stablefordPts(gross, par, strokes);
+      if (gross !== null) { totGross[p] += gross; subGross[label][p] += gross; hasGross[p] = true; }
+      if (net !== null)   { totNet[p] += net; subNet[label][p] += net; }
+      if (stab !== null)  { totStab[p] += stab; subStab[label][p] += stab; }
+      stabs.push(stab);
+    }
+    const pts = splitSixesPts(stabs);
+    for (let p = 0; p < 3; p++) {
+      if (pts[p] !== null) { totPts[p] += pts[p]; subPts[label][p] += pts[p]; }
+    }
+  }
+
+  ['OUT','IN'].forEach(label => {
+    for (let p = 0; p < 3; p++) {
+      setText(`sub-gross-${label}-${p}`, hasGross[p] ? subGross[label][p] : '—');
+      setText(`sub-net-${label}-${p}`, hasGross[p] ? subNet[label][p] : '—');
+      setText(`sub-stab-${label}-${p}`, subStab[label][p]);
+      setText(`sub-pts-${label}-${p}`, subPts[label][p]);
+    }
+  });
+
+  for (let p = 0; p < 3; p++) {
+    setText(`tot-gross-${p}`, hasGross[p] ? totGross[p] : '—');
+    setText(`tot-net-${p}`, hasGross[p] ? totNet[p] : '—');
+    setText(`tot-stab-${p}`, totStab[p]);
+    setText(`tot-pts-${p}`, totPts[p]);
+    document.getElementById('sn'+p).textContent = getName(p);
+    document.getElementById('sp'+p).textContent = totPts[p];
+    document.getElementById('ss'+p).textContent = 'Stableford: ' + totStab[p];
+    setText('th-gross-'+p, getName(p) + ' gross');
+  }
+
+  const ranked = [0,1,2].sort((a,b) => totPts[b]-totPts[a]);
+  for (let i = 0; i < 3; i++) {
+    const p = ranked[i];
+    document.getElementById('card'+p).className = 'summary-card' + (i===0 && totPts[p]>0 ? ' leader' : '');
+    document.getElementById('sr'+p).textContent = totPts.every(x=>x===0) ? '' : (i===0?'Leading':i===1?'2nd place':'3rd place');
+  }
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function refresh() { updateAllRows(); }
+
+function resetScores() {
+  if (!confirm('Reset all scores?')) return;
+  for (let h = 0; h < 18; h++) grossScores[h] = [null, null, null];
+  buildTable();
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+loadSavedSettings();
+buildTable();
+</script>
+</body>
+</html>
