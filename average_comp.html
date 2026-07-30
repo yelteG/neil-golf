@@ -91,21 +91,23 @@
   }
 
   .hole-nav-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    border: none;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    border: 2px solid #c8a84b;
     background: #1e3a5f;
-    color: #fff;
-    font-size: 22px;
+    color: #c8a84b;
+    font-size: 30px;
+    font-weight: 700;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
   }
 
-  .hole-nav-btn:active { background: #2a4a7f; }
-  .hole-nav-btn:disabled { opacity: 0.3; }
+  .hole-nav-btn:active { background: #c8a84b; color: #0f1f35; }
+  .hole-nav-btn.dim { border-color: #2a4a7f; color: #2a4a7f; }
 
   .hole-nav-center { text-align: center; }
   .hole-nav-label { font-size: 22px; font-weight: 800; color: #c8a84b; line-height: 1; }
@@ -120,10 +122,11 @@
   }
 
   .hole-pip {
-    width: 16px;
-    height: 5px;
-    border-radius: 3px;
+    width: 14px;
+    height: 8px;
+    border-radius: 4px;
     background: #1e3a5f;
+    transition: background 0.2s;
   }
 
   .hole-pip.done { background: #4ade80; }
@@ -478,13 +481,13 @@
   <div class="page-pad">
     <!-- Hole nav -->
     <div class="hole-nav">
-      <button class="hole-nav-btn" id="prev-btn" onclick="goHole(currentHole-1)">‹</button>
+      <button class="hole-nav-btn" id="prev-btn" onclick="goHole(currentHole-1)">❮</button>
       <div class="hole-nav-center">
         <div class="hole-nav-label" id="hole-label-display">Hole 2</div>
         <div class="hole-nav-meta">Par <span id="hole-par">4</span> · SI <span id="hole-si">3</span></div>
         <div class="hole-progress" id="hole-progress"></div>
       </div>
-      <button class="hole-nav-btn" id="next-btn" onclick="goHole(currentHole+1)">›</button>
+      <button class="hole-nav-btn" id="next-btn" onclick="goHole(currentHole+1)">❯</button>
     </div>
 
     <!-- Team player cards -->
@@ -613,6 +616,7 @@ function saveSetup() {
   });
   try { localStorage.setItem('ac_setup', JSON.stringify({ teams: TEAMS, pin: ADMIN_PIN })); } catch(e) {}
   closeAdmin();
+  pushScores();
   renderAll();
 }
 
@@ -678,7 +682,7 @@ async function pushScores() {
     await fetch(SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'write', scores })
+      body: JSON.stringify({ action:'write', scores, teams: TEAMS })
     });
     setSync('synced', 'Saved ✓');
   } catch(e) { setSync('error', 'Offline'); }
@@ -689,10 +693,12 @@ async function pullScores() {
   try {
     const res = await fetch(SCRIPT_URL + '?action=read&t=' + Date.now());
     const data = await res.json();
-    if (data && data.scores) {
-      scores = data.scores;
-      renderAll();
+    if (data && data.scores) scores = data.scores;
+    if (data && data.teams) {
+      TEAMS = data.teams;
+      try { localStorage.setItem('ac_setup', JSON.stringify({ teams: TEAMS, pin: ADMIN_PIN })); } catch(e) {}
     }
+    renderAll();
     setSync('synced', 'Live ✓');
   } catch(e) { setSync('error', 'Offline'); }
 }
@@ -765,14 +771,14 @@ function renderHoleNav() {
   document.getElementById('hole-label-display').textContent = 'Hole ' + HOLE_LABELS[h];
   document.getElementById('hole-par').textContent = HOLES[h].par;
   document.getElementById('hole-si').textContent = HOLES[h].si;
-  document.getElementById('prev-btn').disabled = h === 0;
-  document.getElementById('next-btn').disabled = h === 17;
+  document.getElementById('prev-btn').className = 'hole-nav-btn' + (h === 0 ? ' dim' : '');
+  document.getElementById('next-btn').className = 'hole-nav-btn' + (h === 17 ? ' dim' : '');
 
   const prog = document.getElementById('hole-progress');
   prog.innerHTML = HOLE_LABELS.map((_,i) => {
     const hasAny = TEAMS.some((tm,t) => tm.players.some((_,pi) => getScore(t,pi,i) !== null));
     const cls = i === h ? 'current' : hasAny ? 'done' : '';
-    return `<div class="hole-pip ${cls}"></div>`;
+    return `<div class="hole-pip ${cls}" onclick="goHole(${i})" style="cursor:pointer;" title="Hole ${HOLE_LABELS[i]}"></div>`;
   }).join('');
 }
 
