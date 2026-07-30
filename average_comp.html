@@ -84,7 +84,7 @@
   .hole-nav {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     background: #1a2740;
     padding: 10px 16px;
     border-bottom: 1px solid #1e3a5f;
@@ -467,12 +467,14 @@
         <div class="tscard-name" id="t1-card-name">Team Blue</div>
         <div class="tscard-score" id="t1-total">0.0</div>
         <div class="tscard-sub">avg stableford total</div>
+        <div class="tscard-sub" style="color:#93c5fd;font-size:11px;">Total stab: <span id="t1-raw-total">0</span></div>
         <div class="tscard-lead" id="t1-lead"></div>
       </div>
       <div class="team-score-card t2" id="t2-card">
         <div class="tscard-name" id="t2-card-name">Team Green</div>
         <div class="tscard-score" id="t2-total">0.0</div>
         <div class="tscard-sub">avg stableford total</div>
+        <div class="tscard-sub" style="color:#86efac;font-size:11px;">Total stab: <span id="t2-raw-total">0</span></div>
         <div class="tscard-lead" id="t2-lead"></div>
       </div>
     </div>
@@ -481,13 +483,15 @@
   <div class="page-pad">
     <!-- Hole nav -->
     <div class="hole-nav">
-      <button class="hole-nav-btn" id="prev-btn" onclick="goHole(currentHole-1)">❮</button>
       <div class="hole-nav-center">
-        <div class="hole-nav-label" id="hole-label-display">Hole 2</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
+          <button class="hole-nav-btn" id="prev-btn" onclick="goHole(currentHole-1)">❮</button>
+          <div class="hole-nav-label" id="hole-label-display">Hole 2</div>
+          <button class="hole-nav-btn" id="next-btn" onclick="goHole(currentHole+1)">❯</button>
+        </div>
         <div class="hole-nav-meta">Par <span id="hole-par">4</span> · SI <span id="hole-si">3</span></div>
         <div class="hole-progress" id="hole-progress"></div>
       </div>
-      <button class="hole-nav-btn" id="next-btn" onclick="goHole(currentHole+1)">❯</button>
     </div>
 
     <!-- Team player cards -->
@@ -752,6 +756,20 @@ function teamTotal(team) {
   return t;
 }
 
+function teamRawTotal(team) {
+  let total = 0;
+  for (let h = 0; h < 18; h++) {
+    TEAMS[team].players.forEach((p, i) => {
+      const gross = getScore(team, i, h);
+      if (gross) {
+        const pts = stabPts(gross, HOLES[h].par, strokesOnHole(p.hcp, HOLES[h].si));
+        if (pts !== null) total += pts;
+      }
+    });
+  }
+  return total;
+}
+
 // ── RENDER ───────────────────────────────────────────────────────────────────
 function goHole(h) {
   if (h < 0 || h > 17) return;
@@ -856,10 +874,13 @@ function renderSummary() {
 
 function renderScoreboard() {
   const t1 = teamTotal(0), t2 = teamTotal(1);
+  const r1 = teamRawTotal(0), r2 = teamRawTotal(1);
   document.getElementById('t1-card-name').textContent = TEAMS[0].name;
   document.getElementById('t2-card-name').textContent = TEAMS[1].name;
   document.getElementById('t1-total').textContent = t1.toFixed(1);
   document.getElementById('t2-total').textContent = t2.toFixed(1);
+  document.getElementById('t1-raw-total').textContent = r1;
+  document.getElementById('t2-raw-total').textContent = r2;
   const diff = Math.abs(t1-t2).toFixed(1);
   document.getElementById('t1-lead').textContent = t1 > t2 ? `▲ ${diff} ahead` : t1 < t2 ? `▼ ${diff} behind` : '';
   document.getElementById('t2-lead').textContent = t2 > t1 ? `▲ ${diff} ahead` : t2 < t1 ? `▼ ${diff} behind` : '';
