@@ -430,8 +430,12 @@
     <h2>⛳ Monday Golf Setup</h2>
 
     <label>Apps Script URL</label>
-    <input type="url" id="setup-url" placeholder="https://script.google.com/macros/s/..." value="">
+    <input type="url" id="setup-url" placeholder="https://script.google.com/macros/s/..." value="https://script.google.com/macros/s/AKfycbxYm5G1oLRMMQdqgSZZrM7ltrV5mXj8Y-DlLh-unskGVeFfuUMOF0zVKnGu9mTtE8879A/exec">
     <div class="url-hint">Paste your Google Apps Script web app URL here. See instructions below.</div>
+
+    <label>Admin PIN (for clearing scores)</label>
+    <input type="number" id="setup-pin" placeholder="e.g. 1234" value="1966">
+    <div class="url-hint">Only people with this PIN can start a new round and clear scores.</div>
 
     <div class="team-label-blue">🔵 Team 1 name</div>
     <input type="text" id="t1-name" placeholder="Team Blue" value="Team Blue">
@@ -529,7 +533,8 @@ const HOLES = [
 ];
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let SCRIPT_URL = '';
+let ADMIN_PIN = '1966'; // Change this to your preferred PIN
+let SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYm5G1oLRMMQdqgSZZrM7ltrV5mXj8Y-DlLh-unskGVeFfuUMOF0zVKnGu9mTtE8879A/exec';
 let TEAMS = [
   { name: 'Team Blue',  players: [{name:'Neil',hcp:14},{name:'Anthony',hcp:18}] },
   { name: 'Team Green', players: [{name:'William',hcp:11},{name:'Player 4',hcp:15}] }
@@ -569,12 +574,14 @@ function populateSetupPlayers() {
     });
   });
   document.getElementById('setup-url').value = SCRIPT_URL;
+  document.getElementById('setup-pin').value = ADMIN_PIN;
   document.getElementById('t1-name').value = TEAMS[0].name;
   document.getElementById('t2-name').value = TEAMS[1].name;
 }
 
 function saveSetup() {
   SCRIPT_URL = document.getElementById('setup-url').value.trim();
+  ADMIN_PIN = document.getElementById('setup-pin').value || '1966';
   [0,1].forEach(t => {
     TEAMS[t].name = document.getElementById(`t${t+1}-name`).value || `Team ${t+1}`;
     const rows = document.getElementById(`t${t+1}-players`).querySelectorAll('.player-setup-row');
@@ -585,7 +592,7 @@ function saveSetup() {
       if (name) TEAMS[t].players.push({ name, hcp });
     });
   });
-  try { localStorage.setItem('mg_setup', JSON.stringify({ url: SCRIPT_URL, teams: TEAMS })); } catch(e) {}
+  try { localStorage.setItem('mg_setup', JSON.stringify({ url: SCRIPT_URL, teams: TEAMS, pin: ADMIN_PIN })); } catch(e) {}
   document.getElementById('setup-modal').style.display = 'none';
   document.getElementById('app').style.display = 'block';
   initApp();
@@ -599,6 +606,12 @@ function openSetup() {
 }
 
 function newRound() {
+  const pin = prompt('Enter admin PIN to clear scores:');
+  if (pin === null) return;
+  if (pin !== ADMIN_PIN) {
+    alert('Incorrect PIN. Only the admin can clear scores.');
+    return;
+  }
   if (!confirm('Clear all scores and start a new round?')) return;
   scores = {};
   pushScores().then(() => {
@@ -613,6 +626,7 @@ function loadSetup() {
       const d = JSON.parse(s);
       if (d.url) SCRIPT_URL = d.url;
       if (d.teams) TEAMS = d.teams;
+      if (d.pin) ADMIN_PIN = d.pin;
       return true;
     }
   } catch(e) {}
