@@ -660,10 +660,12 @@ function computeAllStrokes(hcp, holes) {
   const order = holes
     .map((h, i) => ({ i, si: Array.isArray(h.si) ? h.si[col] : h.si, par: h.par }))
     .sort((a, b) => a.si - b.si);
+  let extrasAssigned = 0;
   let cascadeQueue = 0;
   for (const hole of order) {
-    const wouldGetExtra = hole.si <= extras;
+    const wouldGetExtra = extrasAssigned < extras;
     if (wouldGetExtra) {
+      extrasAssigned++;
       if (hole.par === 3 && base >= 1) {
         cascadeQueue++;
       } else {
@@ -680,16 +682,20 @@ function computeAllStrokes(hcp, holes) {
 }
 
 function strokesOnHole(hcp, siArr, par) {
-  if (hcp <= 0) return 0;
-  const col = hcp <= 18 ? 0 : hcp <= 36 ? 1 : 2;
-  const si = Array.isArray(siArr) ? siArr[col] : siArr;
-  const base = Math.floor(hcp / 18);
-  const extras = hcp % 18;
-  if (si <= extras) {
-    if (par === 3 && base >= 1) return base;
-    return base + 1;
+  // Delegate to computeAllStrokes so cascade logic is consistent
+  const holeIdx = HOLES.findIndex(h => h.si === siArr || (Array.isArray(h.si) && Array.isArray(siArr) && h.si.join() === siArr.join()));
+  if (holeIdx === -1) {
+    // fallback: simple position-based (no cascade) for unknown hole
+    if (hcp <= 0) return 0;
+    const col = hcp <= 18 ? 0 : hcp <= 36 ? 1 : 2;
+    const si = Array.isArray(siArr) ? siArr[col] : siArr;
+    const base = Math.floor(hcp / 18);
+    const extras = hcp % 18;
+    const ordered = HOLES.map(h => Array.isArray(h.si) ? h.si[col] : h.si).sort((a,b)=>a-b);
+    const rank = ordered.indexOf(si);
+    return rank < extras ? base + 1 : base;
   }
-  return base;
+  return computeAllStrokes(hcp, HOLES)[holeIdx];
 }
 
 function stabPts(gross, par, strokes) {
