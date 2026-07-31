@@ -284,6 +284,13 @@
   tfoot td:first-child { text-align: left; padding-left: 12px; }
 
   /* Shot dots */
+  .dot-wrap {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
   .shot-dot {
     display: inline-block;
     width: 7px;
@@ -374,6 +381,127 @@
     .top-bar { flex-direction: column; gap: 10px; }
   }
 
+
+  /* ── MOBILE SCORECARD ──────────────────────────────────────────────────── */
+  @media (max-width: 680px) {
+    body { padding: 10px; }
+    .setup { grid-template-columns: 1fr; }
+    .summary { grid-template-columns: repeat(3,1fr); gap: 6px; }
+    .summary-card { padding: 10px 6px; }
+    .summary-pts { font-size: 28px; }
+    .summary-name { font-size: 11px; }
+    .summary-stab { font-size: 10px; }
+    .legend-grid { grid-template-columns: 1fr; }
+    .settings-course-row { flex-direction: column; }
+    .top-bar { flex-direction: column; gap: 10px; }
+
+    /* Hide the regular table, show mobile cards */
+    .table-wrap { display: none; }
+    .mobile-scorecard { display: block; }
+  }
+
+  @media (min-width: 681px) {
+    .mobile-scorecard { display: none; }
+  }
+
+  /* Mobile hole cards */
+  .mobile-scorecard {
+    margin-bottom: 20px;
+  }
+
+  .mob-hole-card {
+    background: #fff;
+    border: 1px solid #e0e0d8;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+
+  .mob-hole-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f0f0ea;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #444;
+    border-bottom: 1px solid #e0e0d8;
+  }
+
+  .mob-hole-header .mob-hole-num { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+  .mob-hole-header .mob-hole-meta { color: #888; font-size: 11px; font-weight: 400; }
+  .mob-hole-header .mob-hole-pts-total { font-size: 12px; font-weight: 700; color: #555; }
+
+  .mob-players-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: none;
+  }
+
+  .mob-player-cell {
+    padding: 8px 6px;
+    text-align: center;
+    border-right: 1px solid #f0f0ea;
+    position: relative;
+  }
+  .mob-player-cell:last-child { border-right: none; }
+
+  .mob-player-name {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+  }
+  .mob-player-name.c1 { color: #2563eb; }
+  .mob-player-name.c2 { color: #16a34a; }
+  .mob-player-name.c3 { color: #dc2626; }
+
+  .mob-score-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 3px;
+  }
+
+  .mob-gross-input {
+    width: 42px;
+    padding: 5px 3px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+    background: #fafafa;
+  }
+  .mob-gross-input:focus { outline: none; border-color: #4a90d9; background: #fff; }
+
+  .mob-stab { font-size: 13px; font-weight: 600; }
+  .mob-pts  { font-size: 16px; font-weight: 700; min-height: 22px; }
+  .mob-net  { font-size: 10px; color: #999; }
+
+  /* Divider row for OUT/IN */
+  .mob-divider {
+    background: #e8e8e0;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #444;
+    display: grid;
+    grid-template-columns: 60px repeat(3, 1fr);
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .mob-divider-label { color: #555; }
+  .mob-divider-cell { text-align: center; font-size: 11px; }
+
   @media print {
     body { background: #fff; padding: 0; }
     .btn-row, .settings-panel, .settings-btn { display: none; }
@@ -461,8 +589,8 @@
 <div class="legend">
   <h3>Points guide</h3>
   <div class="legend-grid">
-    <div><span style="color:#7c3aed;font-weight:600">6 pts</span> — win by 2+ stableford points</div>
-    <div><span class="pts-4">4 pts</span> — win by 1 point outright</div>
+    <div><span class="pts-4">4 pts / 1 / 1</span> — 1 winner, other 2 wiped</div>
+    <div><span class="pts-4">4 pts</span> / <span class="pts-2">2</span> / 0 — clear 1st, 2nd, 3rd</div>
     <div><span class="pts-2">2 pts</span> — outright 2nd place</div>
     <div><span class="pts-3">3 pts each</span> — tie for 1st</div>
     <div><span class="pts-1">1 pt each</span> — tie for 2nd / 3rd</div>
@@ -496,6 +624,9 @@
     <tfoot id="tfoot"></tfoot>
   </table>
 </div>
+
+<!-- Mobile scorecard (hidden on desktop) -->
+<div class="mobile-scorecard" id="mobile-scorecard"></div>
 
 <!-- Summary -->
 <div class="summary">
@@ -615,6 +746,9 @@ function saveSettings() {
   document.title = `Split Sixes — ${COURSE_NAME}`;
   toggleSettings();
   buildTable();
+  buildMobileScorecard();
+  syncMobileInputs();
+  updateMobileScorecard();
 }
 
 function resetSettings() {
@@ -663,12 +797,13 @@ function computeAllStrokes(hcp, holes) {
     .map((h, i) => ({ i, si: Array.isArray(h.si) ? h.si[col] : h.si, par: h.par }))
     .sort((a, b) => a.si - b.si);
 
-  let extrasLeft = extras;
-  let cascadeQueue = 0; // bumped extras waiting to be assigned
+  let extrasAssigned = 0; // how many extra strokes have been given out
+  let cascadeQueue = 0;   // bumped extras waiting to be assigned
 
   for (const hole of order) {
-    const wouldGetExtra = hole.si <= extras;
+    const wouldGetExtra = extrasAssigned < extras; // next hole in SI order gets the extra
     if (wouldGetExtra) {
+      extrasAssigned++;
       // This hole is in the "extra" zone
       if (hole.par === 3 && base >= 1) {
         // Par 3 already has base strokes — can't take another, cascade it
@@ -680,7 +815,6 @@ function computeAllStrokes(hcp, holes) {
       // This hole is outside the normal extra zone but receives a cascaded stroke
       if (hole.par === 3 && base >= 1) {
         // Still a par 3 — cascade again
-        // (stays in queue, next hole will pick it up)
       } else {
         strokes[hole.i] = base + 1;
         cascadeQueue--;
@@ -732,8 +866,6 @@ function splitSixesPts(stabs) {
   const [s1, s2, s3] = sorted;
   if (s1 === s2 && s2 === s3) return stabs.map(() => 2);
   if (s1 === s2) return stabs.map(s => s === s1 ? 3 : 0);
-  const margin = s1 - s2;
-  if (margin >= 2) return stabs.map(s => s === s1 ? 6 : 0);
   if (s2 === s3) return stabs.map(s => s === s1 ? 4 : 1);
   return stabs.map(s => s === s1 ? 4 : s === s2 ? 2 : 0);
 }
@@ -764,7 +896,7 @@ function buildTable() {
           <div style="display:flex;align-items:center;justify-content:center;gap:3px;">
             <input class="score-input" type="number" min="1" max="20" id="g${h}_${p}" placeholder="—"
               oninput="onScore(${h},${p},this.value)" value="${grossScores[h][p] !== null ? grossScores[h][p] : ''}">
-            <span class="shot-dot" id="dot${h}_${p}"></span>
+            <span class="dot-wrap" id="dotwrap${h}_${p}"><span class="shot-dot" id="dot${h}_${p}"></span></span>
           </div>
         </td>
         <td class="net-cell" id="net${h}_${p}">—</td>
@@ -808,6 +940,8 @@ function onScore(h, p, val) {
   grossScores[h][p] = val === '' ? null : parseInt(val);
   updateRow(h);
   updateTotals();
+  updateMobileScorecard();
+  saveScores();
 }
 
 function updateRow(h) {
@@ -838,6 +972,7 @@ function updateAllRows() {
   updateShotDots();
   buildShotSummary();
   updateTotals();
+  updateMobileScorecard();
 }
 
 function buildShotSummary() {
@@ -850,7 +985,7 @@ function buildShotSummary() {
     const allStrokes = computeAllStrokes(hcp, HOLES);
     const shotHoles = HOLES.map((h, i) => ({ label: HOLE_LABELS[i], strokes: allStrokes[i] }))
       .filter(x => x.strokes > 0)
-      .map(x => x.strokes > 1 ? `<b>${x.label}(${x.strokes})</b>` : x.label);
+      .map(x => x.strokes > 1 ? `<b>${x.label}●●</b>` : x.label);
     return `<div>
       <div style="font-weight:600;color:${colors[p]};margin-bottom:4px;">${name} (HC ${hcp})</div>
       <div style="color:#555;line-height:1.6;">${shotHoles.length ? shotHoles.join(', ') : 'No shots'}</div>
@@ -864,12 +999,149 @@ function updateShotDots() {
     const allStrokes = computeAllStrokes(hcp, HOLES);
     for (let h = 0; h < 18; h++) {
       const strokes = allStrokes[h];
-      const dot = document.getElementById(`dot${h}_${p}`);
-      if (!dot) continue;
-      dot.className = 'shot-dot' + (strokes > 0 ? ` has-shot-${p+1}` : '');
-      dot.title = strokes > 0 ? `${strokes} stroke${strokes > 1 ? 's' : ''}` : '';
+      const wrap = document.getElementById(`dotwrap${h}_${p}`);
+      if (!wrap) continue;
+      if (strokes === 2) {
+        wrap.innerHTML = `<span class="shot-dot has-shot-${p+1}" title="2 strokes"></span><span class="shot-dot has-shot-${p+1}" title="2 strokes"></span>`;
+      } else if (strokes === 1) {
+        wrap.innerHTML = `<span class="shot-dot has-shot-${p+1}" title="1 stroke"></span>`;
+      } else {
+        wrap.innerHTML = `<span class="shot-dot"></span>`;
+      }
     }
   }
+}
+
+
+// ── MOBILE SCORECARD ─────────────────────────────────────────────────────────
+function buildMobileScorecard() {
+  const wrap = document.getElementById('mobile-scorecard');
+  if (!wrap) return;
+  const playerColors = ['c1','c2','c3'];
+  let html = '';
+  for (let h = 0; h < 18; h++) {
+    if (h === 9) {
+      html += `<div class="mob-divider" id="mob-div-OUT">
+        <span class="mob-divider-label">OUT</span>
+        <span class="mob-divider-cell" id="mob-sub-gross-OUT-0">—</span>
+        <span class="mob-divider-cell" id="mob-sub-gross-OUT-1">—</span>
+        <span class="mob-divider-cell" id="mob-sub-gross-OUT-2">—</span>
+      </div>`;
+    }
+    const { par, si } = HOLES[h];
+    const siStr = Array.isArray(si) ? si.join('/') : si;
+    html += `<div class="mob-hole-card" id="mob-row-${h}">
+      <div class="mob-hole-header">
+        <span class="mob-hole-num">Hole ${HOLE_LABELS[h]}</span>
+        <span class="mob-hole-meta">Par ${par} · SI ${siStr}</span>
+        <span class="mob-hole-pts-total" id="mob-hole-pts-${h}"></span>
+      </div>
+      <div class="mob-players-row">
+        ${[0,1,2].map(p => `
+        <div class="mob-player-cell">
+          <div class="mob-player-name ${playerColors[p]}" id="mob-pname-${h}-${p}">
+            P${p+1} <span class="dot-wrap" id="mob-dotwrap-${h}-${p}"><span class="shot-dot"></span></span>
+          </div>
+          <div class="mob-score-row">
+            <input class="mob-gross-input" type="number" min="1" max="20"
+              id="mg${h}_${p}" placeholder="—"
+              oninput="onScore(${h},${p},this.value)"
+              value="">
+          </div>
+          <div class="mob-stab stab-dash" id="mob-stab-${h}-${p}">—</div>
+          <div class="mob-pts pts-dash" id="mob-pts-${h}-${p}">—</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+  // IN divider at end
+  html += `<div class="mob-divider" id="mob-div-IN">
+    <span class="mob-divider-label">IN</span>
+    <span class="mob-divider-cell" id="mob-sub-gross-IN-0">—</span>
+    <span class="mob-divider-cell" id="mob-sub-gross-IN-1">—</span>
+    <span class="mob-divider-cell" id="mob-sub-gross-IN-2">—</span>
+  </div>`;
+  wrap.innerHTML = html;
+}
+
+function syncMobileInputs() {
+  for (let h = 0; h < 18; h++) {
+    for (let p = 0; p < 3; p++) {
+      const el = document.getElementById(`mg${h}_${p}`);
+      if (el) el.value = grossScores[h][p] !== null ? grossScores[h][p] : '';
+    }
+  }
+}
+
+function updateMobileScorecard() {
+  const hcps = [0,1,2].map(getHcp);
+  const allStrokes = [0,1,2].map(p => computeAllStrokes(hcps[p], HOLES));
+  let subGross = {OUT:[0,0,0], IN:[0,0,0]};
+
+  for (let h = 0; h < 18; h++) {
+    const { par } = HOLES[h];
+    const label = h < 9 ? 'OUT' : 'IN';
+    const stabs = [];
+
+    // Update player name labels
+    for (let p = 0; p < 3; p++) {
+      const nameEl = document.getElementById(`mob-pname-${h}-${p}`);
+      if (nameEl) {
+        const wrap = document.getElementById(`mob-dotwrap-${h}-${p}`);
+        nameEl.childNodes[0].textContent = getName(p).split(' ')[0] + ' ';
+        // update dots
+        const strokes = allStrokes[p][h];
+        if (wrap) {
+          if (strokes === 2) {
+            wrap.innerHTML = `<span class="shot-dot has-shot-${p+1}"></span><span class="shot-dot has-shot-${p+1}"></span>`;
+          } else if (strokes === 1) {
+            wrap.innerHTML = `<span class="shot-dot has-shot-${p+1}"></span>`;
+          } else {
+            wrap.innerHTML = `<span class="shot-dot"></span>`;
+          }
+        }
+      }
+    }
+
+    for (let p = 0; p < 3; p++) {
+      const strokes = allStrokes[p][h];
+      const gross = grossScores[h][p];
+      const stab = stablefordPts(gross, par, strokes);
+      if (gross !== null) subGross[label][p] += gross;
+      stabs.push(stab);
+
+      const stabEl = document.getElementById(`mob-stab-${h}-${p}`);
+      if (stabEl) {
+        if (stab === null) { stabEl.textContent = '—'; stabEl.className = 'mob-stab stab-dash'; }
+        else {
+          stabEl.textContent = stab;
+          stabEl.className = 'mob-stab ' + (stab>=4?'stab-eagle':stab===3?'stab-birdie':stab===2?'stab-par':stab===1?'stab-bogey':'stab-double');
+        }
+      }
+    }
+
+    const pts = splitSixesPts(stabs);
+    const ptsEl = document.getElementById(`mob-hole-pts-${h}`);
+    if (ptsEl) {
+      if (pts[0] === null) { ptsEl.textContent = ''; }
+      else { ptsEl.textContent = pts.join(' / ') + ' pts'; }
+    }
+    for (let p = 0; p < 3; p++) {
+      const pEl = document.getElementById(`mob-pts-${h}-${p}`);
+      if (pEl) {
+        if (pts[p] === null) { pEl.textContent = '—'; pEl.className = 'mob-pts pts-dash'; }
+        else { pEl.textContent = pts[p]; pEl.className = 'mob-pts pts-' + pts[p]; }
+      }
+    }
+  }
+
+  // Sub-totals
+  ['OUT','IN'].forEach(label => {
+    for (let p = 0; p < 3; p++) {
+      const el = document.getElementById(`mob-sub-gross-${label}-${p}`);
+      if (el) el.textContent = subGross[label][p] || '—';
+    }
+  });
 }
 
 function updateTotals() {
@@ -909,6 +1181,7 @@ function updateTotals() {
     }
   });
 
+  const ranked = [0,1,2].sort((a,b) => totPts[b]-totPts[a]);
   for (let p = 0; p < 3; p++) {
     setText(`tot-gross-${p}`, hasGross[p] ? totGross[p] : '—');
     setText(`tot-net-${p}`, hasGross[p] ? totNet[p] : '—');
@@ -917,10 +1190,12 @@ function updateTotals() {
     document.getElementById('sn'+p).textContent = getName(p);
     document.getElementById('sp'+p).textContent = totPts[p];
     document.getElementById('ss'+p).textContent = 'Stableford: ' + totStab[p];
-    setText('th-gross-'+p, getName(p) + ' gross');
+    const pos = ranked.indexOf(p) + 1;
+    const posLabel = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
+    const posText = totPts.every(x=>x===0) ? '' : ` ${posLabel}`;
+    document.getElementById('th-gross-'+p).innerHTML = getName(p) + ' gross<br><span style="font-size:13px;letter-spacing:0;">' + totPts[p] + ' pts' + posText + '</span>';
   }
 
-  const ranked = [0,1,2].sort((a,b) => totPts[b]-totPts[a]);
   for (let i = 0; i < 3; i++) {
     const p = ranked[i];
     document.getElementById('card'+p).className = 'summary-card' + (i===0 && totPts[p]>0 ? ' leader' : '');
@@ -986,12 +1261,18 @@ function resetScores() {
   for (let h = 0; h < 18; h++) grossScores[h] = [null, null, null];
   try { localStorage.removeItem('ss_scores'); } catch(e) {}
   buildTable();
+  buildMobileScorecard();
+  syncMobileInputs();
+  updateMobileScorecard();
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 loadSavedSettings();
 loadScores();
 buildTable();
+buildMobileScorecard();
+syncMobileInputs();
+updateMobileScorecard();
 </script>
 </body>
 </html>
