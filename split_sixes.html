@@ -1049,12 +1049,13 @@ function buildMobileScorecard() {
         ${[0,1,2].map(p => `
         <div class="mob-player-cell">
           <div class="mob-player-name ${playerColors[p]}" id="mob-pname-${h}-${p}">
-            P${p+1} <span class="dot-wrap" id="mob-dotwrap-${h}-${p}"><span class="shot-dot"></span></span>
+            <span id="mob-nametxt-${h}-${p}">P${p+1}</span> <span class="dot-wrap" id="mob-dotwrap-${h}-${p}"><span class="shot-dot"></span></span>
           </div>
           <div class="mob-score-row">
             <input class="mob-gross-input" type="number" min="1" max="20"
               id="mg${h}_${p}" placeholder="—"
               oninput="onScore(${h},${p},this.value)"
+              onchange="onScore(${h},${p},this.value)"
               value="">
           </div>
           <div class="mob-stab stab-dash" id="mob-stab-${h}-${p}">—</div>
@@ -1083,6 +1084,7 @@ function syncMobileInputs() {
 }
 
 function updateMobileScorecard() {
+  try {
   const hcps = [0,1,2].map(getHcp);
   const allStrokes = [0,1,2].map(p => computeAllStrokes(hcps[p], HOLES));
   let subGross = {OUT:[0,0,0], IN:[0,0,0]};
@@ -1094,20 +1096,17 @@ function updateMobileScorecard() {
 
     // Update player name labels
     for (let p = 0; p < 3; p++) {
-      const nameEl = document.getElementById(`mob-pname-${h}-${p}`);
-      if (nameEl) {
-        const wrap = document.getElementById(`mob-dotwrap-${h}-${p}`);
-        nameEl.childNodes[0].textContent = getName(p).split(' ')[0] + ' ';
-        // update dots
-        const strokes = allStrokes[p][h];
-        if (wrap) {
-          if (strokes === 2) {
-            wrap.innerHTML = `<span class="shot-dot has-shot-${p+1}"></span><span class="shot-dot has-shot-${p+1}"></span>`;
-          } else if (strokes === 1) {
-            wrap.innerHTML = `<span class="shot-dot has-shot-${p+1}"></span>`;
-          } else {
-            wrap.innerHTML = `<span class="shot-dot"></span>`;
-          }
+      const nameTxt = document.getElementById(`mob-nametxt-${h}-${p}`);
+      if (nameTxt) nameTxt.textContent = getName(p).split(' ')[0];
+      const wrap = document.getElementById(`mob-dotwrap-${h}-${p}`);
+      const strokes = allStrokes[p][h];
+      if (wrap) {
+        if (strokes === 2) {
+          wrap.innerHTML = `<span class="shot-dot has-shot-${p+1}"></span><span class="shot-dot has-shot-${p+1}"></span>`;
+        } else if (strokes === 1) {
+          wrap.innerHTML = `<span class="shot-dot has-shot-${p+1}"></span>`;
+        } else {
+          wrap.innerHTML = `<span class="shot-dot"></span>`;
         }
       }
     }
@@ -1151,6 +1150,7 @@ function updateMobileScorecard() {
       if (el) el.textContent = subGross[label][p] || '—';
     }
   });
+  } catch(e) { console.error('updateMobileScorecard error:', e); }
 }
 
 function updateTotals() {
