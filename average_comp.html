@@ -825,6 +825,20 @@ function teamRawTotal(team) {
   return total;
 }
 
+function playerTotal(t, i) {
+  const player = TEAMS[t].players[i];
+  const allStrokes = computeAllStrokes(player.hcp, HOLES);
+  let total = 0, hasAny = false;
+  for (let h = 0; h < 18; h++) {
+    const gross = getScore(t, i, h);
+    if (gross) {
+      const pts = stabPts(gross, HOLES[h].par, allStrokes[h]);
+      if (pts !== null) { total += pts; hasAny = true; }
+    }
+  }
+  return hasAny ? total : null;
+}
+
 // ── RENDER ───────────────────────────────────────────────────────────────────
 function goHole(h) {
   if (h < 0 || h > 17) return;
@@ -885,7 +899,12 @@ function renderTeams() {
       card.className = 'player-card';
       card.innerHTML = `
         <div class="player-left">
-          <div class="player-card-name">${player.name}</div>
+          <div class="player-card-name" style="display:flex;align-items:baseline;gap:6px;">
+            ${player.name}
+            <span style="font-size:11px;font-weight:600;color:#c8a84b;opacity:0.9;">
+              ${(() => { const tot = playerTotal(t, i); return tot !== null ? tot + ' pts' : ''; })()}
+            </span>
+          </div>
           <div class="player-card-meta">HC ${player.hcp} · ${strokes > 0 ? strokes + ' shot' + (strokes>1?'s':'') + ' on this hole' : 'no shots this hole'}</div>
           <div class="player-card-stab ${stabClass(pts)}">${pts !== null ? stabLabel(pts) : ''}</div>
         </div>
