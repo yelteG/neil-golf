@@ -721,11 +721,11 @@ function populateSettingsPanel() {
       <td>${i + 1}</td>
       <td><input type="text" id="sl-${i}" value="${HOLE_LABELS[i]}" style="width:52px;"></td>
       <td><input type="number" id="sp-${i}" value="${HOLES[i].par}" min="3" max="6" style="width:44px;"></td>
-      <td><input type="number" id="ss-${i}" value="${HOLES[i].si}" min="1" max="18" style="width:44px;"></td>
+      <td><input type="text" id="ss-${i}" value="${Array.isArray(HOLES[i].si) ? HOLES[i].si.join('/') : HOLES[i].si}" placeholder="1/19/37" style="width:72px;"></td>
       <td>${j + 1}</td>
       <td><input type="text" id="sl-${j}" value="${HOLE_LABELS[j]}" style="width:52px;"></td>
       <td><input type="number" id="sp-${j}" value="${HOLES[j].par}" min="3" max="6" style="width:44px;"></td>
-      <td><input type="number" id="ss-${j}" value="${HOLES[j].si}" min="1" max="18" style="width:44px;"></td>
+      <td><input type="text" id="ss-${j}" value="${Array.isArray(HOLES[j].si) ? HOLES[j].si.join('/') : HOLES[j].si}" placeholder="1/19/37" style="width:72px;"></td>
     `;
     tbody.appendChild(tr);
   }
@@ -736,7 +736,8 @@ function saveSettings() {
   for (let i = 0; i < 18; i++) {
     HOLE_LABELS[i] = document.getElementById(`sl-${i}`).value || String(i + 1);
     HOLES[i].par = parseInt(document.getElementById(`sp-${i}`).value) || 4;
-    HOLES[i].si  = parseInt(document.getElementById(`ss-${i}`).value) || (i + 1);
+    const siRaw = document.getElementById(`ss-${i}`).value.trim();
+    HOLES[i].si = siRaw.includes('/') ? siRaw.split('/').map(n => parseInt(n.trim(), 10)) : (parseInt(siRaw, 10) || (i + 1));
   }
   // Persist to localStorage
   try {
@@ -767,7 +768,15 @@ function loadSavedSettings() {
       const d = JSON.parse(saved);
       if (d.name) COURSE_NAME = d.name;
       if (d.labels && d.labels.length === 18) HOLE_LABELS = d.labels;
-      if (d.holes && d.holes.length === 18) HOLES = d.holes;
+      if (d.holes && d.holes.length === 18) {
+        HOLES = d.holes.map(h => ({
+          ...h,
+          si: Array.isArray(h.si) ? h.si
+            : typeof h.si === 'string' && h.si.includes('/')
+              ? h.si.split('/').map(n => parseInt(n.trim(), 10))
+              : [parseInt(h.si, 10) || 1, parseInt(h.si, 10) || 1, parseInt(h.si, 10) || 1]
+        }));
+      }
       document.getElementById('course-subtitle').textContent = `${COURSE_NAME} · 3-player stableford · 6 points per hole · 4-2-0 scoring`;
       document.title = `Split Sixes — ${COURSE_NAME}`;
     }
