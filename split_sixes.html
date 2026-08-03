@@ -560,11 +560,11 @@
           <th>#</th>
           <th>Hole label</th>
           <th>Par</th>
-          <th>SI (≤18/≤36/≤54)</th>
+          <th>SI (or single value)</th>
           <th>#</th>
           <th>Hole label</th>
           <th>Par</th>
-          <th>SI (≤18/≤36/≤54)</th>
+          <th>SI (or single value)</th>
         </tr>
       </thead>
       <tbody id="settings-holes-tbody"></tbody>
@@ -626,7 +626,7 @@
       <tr>
         <th>Hole</th>
         <th>Par</th>
-        <th>SI (≤18/≤36/≤54)</th>
+        <th>SI (or single value)</th>
         <th class="th-player-1" id="th-gross-0">Neil gross</th>
         <th class="th-player-1" id="th-net-0">Net</th>
         <th class="th-player-1" id="th-stab-0">Stab</th>
@@ -758,7 +758,10 @@ function saveSettings() {
     HOLE_LABELS[i] = document.getElementById(`sl-${i}`).value || String(i + 1);
     HOLES[i].par = parseInt(document.getElementById(`sp-${i}`).value) || 4;
     const siRaw = document.getElementById(`ss-${i}`).value.trim();
-    HOLES[i].si = siRaw.includes('/') ? siRaw.split('/').map(n => parseInt(n.trim(), 10)) : (parseInt(siRaw, 10) || (i + 1));
+    const siParsed = siRaw.includes('/')
+      ? siRaw.split('/').map(n => parseInt(n.trim(), 10))
+      : (() => { const v = parseInt(siRaw, 10) || (i + 1); return [v, v, v]; })();
+    HOLES[i].si = siParsed;
   }
   // Persist to localStorage
   try {
