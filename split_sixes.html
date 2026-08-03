@@ -404,6 +404,27 @@
     .mobile-scorecard { display: none; }
   }
 
+  /* Mobile stepper */
+  .mob-stepper-btn {
+    width: 36px; height: 36px;
+    border: none; border-radius: 8px;
+    background: #f0f0ea; color: #333;
+    font-size: 20px; font-weight: 300;
+    cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mob-stepper-btn:active { background: #d8d8d0; }
+  .mob-stepper-val {
+    min-width: 38px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: #1a1a1a;
+    border: 1.5px solid #ddd; border-radius: 8px;
+    background: #fafafa; cursor: pointer;
+    padding: 0 6px;
+  }
+  .mob-stepper-val.entered { border-color: #4a90d9; background: #f0f6ff; }
+
   /* Mobile hole cards */
   .mobile-scorecard {
     margin-bottom: 20px;
@@ -1023,6 +1044,39 @@ function updateShotDots() {
 
 
 // ── MOBILE SCORECARD ─────────────────────────────────────────────────────────
+function mobStep(h, p, delta) {
+  const cur = grossScores[h][p];
+  const next = cur === null ? (delta > 0 ? 1 : null) : Math.max(1, cur + delta);
+  grossScores[h][p] = next;
+  const el = document.getElementById(`mg${h}_${p}`);
+  if (el) {
+    el.textContent = next === null ? '—' : next;
+    el.className = 'mob-stepper-val' + (next !== null ? ' entered' : '');
+  }
+  updateRow(h);
+  updateTotals();
+  updateMobileScorecard();
+  saveScores();
+}
+
+function mobTap(h, p) {
+  const cur = grossScores[h][p];
+  const val = prompt(`Hole ${HOLE_LABELS[h]} — ${getName(p)} gross score:`, cur !== null ? cur : '');
+  if (val === null) return; // cancelled
+  const n = val.trim() === '' ? null : parseInt(val);
+  grossScores[h][p] = (n && n > 0) ? n : null;
+  const el = document.getElementById(`mg${h}_${p}`);
+  if (el) {
+    el.textContent = grossScores[h][p] !== null ? grossScores[h][p] : '—';
+    el.className = 'mob-stepper-val' + (grossScores[h][p] !== null ? ' entered' : '');
+  }
+  updateRow(h);
+  updateTotals();
+  updateMobileScorecard();
+  saveScores();
+}
+
+
 function buildMobileScorecard() {
   const wrap = document.getElementById('mobile-scorecard');
   if (!wrap) return;
@@ -1052,11 +1106,9 @@ function buildMobileScorecard() {
             <span id="mob-nametxt-${h}-${p}">P${p+1}</span> <span class="dot-wrap" id="mob-dotwrap-${h}-${p}"><span class="shot-dot"></span></span>
           </div>
           <div class="mob-score-row">
-            <input class="mob-gross-input" type="number" min="1" max="20"
-              id="mg${h}_${p}" placeholder="—"
-              oninput="onScore(${h},${p},this.value)"
-              onchange="onScore(${h},${p},this.value)"
-              value="">
+            <button class="mob-stepper-btn" onclick="mobStep(${h},${p},-1)">−</button>
+            <div class="mob-stepper-val" id="mg${h}_${p}" onclick="mobTap(${h},${p})">—</div>
+            <button class="mob-stepper-btn" onclick="mobStep(${h},${p},1)">+</button>
           </div>
           <div class="mob-stab stab-dash" id="mob-stab-${h}-${p}">—</div>
           <div class="mob-pts pts-dash" id="mob-pts-${h}-${p}">—</div>
@@ -1078,7 +1130,11 @@ function syncMobileInputs() {
   for (let h = 0; h < 18; h++) {
     for (let p = 0; p < 3; p++) {
       const el = document.getElementById(`mg${h}_${p}`);
-      if (el) el.value = grossScores[h][p] !== null ? grossScores[h][p] : '';
+      if (el) {
+        const v = grossScores[h][p];
+        el.textContent = v !== null ? v : '—';
+        el.className = 'mob-stepper-val' + (v !== null ? ' entered' : '');
+      }
     }
   }
 }
