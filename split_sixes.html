@@ -682,8 +682,9 @@
 // ── DEFAULT COURSE DATA (Riversdale Golf Club) ──────────────────────────────
 const DEFAULTS = {
   courseName: 'Riversdale Golf Club',
-  holeLabels: ['2','3','4','5','6','7','8','9','10','11','12','12A','13','14','15','16','17','18'],
+  holeLabels: ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18'],
   holes: [
+    { par: 3, si: [1,30,48]  },  // Hole 1
     { par: 4, si: [3,19,37]  },  // Hole 2
     { par: 3, si: [16,36,54] },  // Hole 3
     { par: 4, si: [10,31,49] },  // Hole 4
@@ -695,7 +696,6 @@ const DEFAULTS = {
     { par: 4, si: [18,35,53] },  // Hole 10
     { par: 4, si: [6,23,41]  },  // Hole 11
     { par: 4, si: [13,33,51] },  // Hole 12
-    { par: 3, si: [1,30,48]  },  // Hole 12A
     { par: 5, si: [14,27,45] },  // Hole 13
     { par: 3, si: [11,32,50] },  // Hole 14
     { par: 5, si: [9,20,38]  },  // Hole 15
@@ -783,6 +783,17 @@ function resetSettings() {
 }
 
 function loadSavedSettings() {
+  // Clear cache if it's the old 12A layout
+  try {
+    const saved = localStorage.getItem('ss_course');
+    if (saved) {
+      const d = JSON.parse(saved);
+      if (d.labels && d.labels.includes('12A')) {
+        localStorage.removeItem('ss_course');
+        localStorage.removeItem('ss_scores');
+      }
+    }
+  } catch(e) {}
   try {
     const saved = localStorage.getItem('ss_course');
     if (saved) {
