@@ -523,6 +523,82 @@
   .mob-divider-label { color: #555; }
   .mob-divider-cell { text-align: center; font-size: 11px; }
 
+
+  /* ── WOLF PACK ─────────────────────────────────────────────────────────── */
+  .wolfpack-banner {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .wolfpack-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #c8a84b;
+    margin-bottom: 3px;
+  }
+  .wolfpack-leader-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+  }
+  .wolfpack-leader-score {
+    font-size: 13px;
+    color: #a0aec0;
+    margin-top: 2px;
+  }
+  .wolfpack-badge {
+    font-size: 28px;
+    font-weight: 900;
+    color: #c8a84b;
+    text-align: right;
+    min-width: 60px;
+    line-height: 1;
+  }
+  .wolfpack-badge.allsquare {
+    font-size: 16px;
+    color: #718096;
+  }
+  .wolfpack-trail {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+  .wolfpack-trail-chip {
+    font-size: 10px;
+    background: rgba(255,255,255,0.08);
+    color: #a0aec0;
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
+  /* Hole-level wolf pack indicator */
+  .wolf-hole-result {
+    font-size: 10px;
+    font-weight: 600;
+    text-align: center;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .wolf-hole-result.wolf-win  { background: #c8a84b22; color: #92741f; }
+  .wolf-hole-result.wolf-claw { background: #dc262622; color: #dc2626; }
+  .wolf-hole-result.wolf-as   { background: #e8f5e9;   color: #16a34a; }
+  .wolf-hole-result.wolf-half { background: #f5f5f5;   color: #999; }
+
+  /* Desktop table wolf pack column */
+  .th-wolf { background: #1a1a2e; color: #c8a84b; font-size: 11px; letter-spacing: 0.06em; }
+  .wolf-cell { font-size: 11px; font-weight: 600; color: #555; text-align: center; }
+
   @media print {
     body { background: #fff; padding: 0; }
     .btn-row, .settings-panel, .settings-btn { display: none; }
@@ -619,6 +695,17 @@
   </div>
 </div>
 
+
+<!-- Wolf Pack Banner -->
+<div class="wolfpack-banner" id="wolfpack-banner">
+  <div>
+    <div class="wolfpack-title">🐺 Wolf Pack</div>
+    <div class="wolfpack-leader-name" id="wp-leader-name">All Square</div>
+    <div class="wolfpack-leader-score" id="wp-leader-score">Enter scores to begin</div>
+  </div>
+  <div class="wolfpack-badge allsquare" id="wp-badge">AS</div>
+</div>
+
 <!-- Scorecard -->
 <div class="table-wrap">
   <table>
@@ -639,6 +726,7 @@
         <th class="th-player-3" id="th-net-2">Net</th>
         <th class="th-player-3" id="th-stab-2">Stab</th>
         <th class="th-player-3" id="th-pts-2">Pts</th>
+        <th class="th-wolf">🐺</th>
       </tr>
     </thead>
     <tbody id="tbody"></tbody>
@@ -947,6 +1035,7 @@ function buildTable() {
         <td class="stab-cell stab-dash" id="stab${h}_${p}">—</td>
         <td class="pts-cell pts-dash" id="pts${h}_${p}">—</td>
       `).join('')}
+      <td class="wolf-cell" id="wolf-cell-${h}"></td>
     `;
     tbody.appendChild(tr);
   }
@@ -1111,7 +1200,10 @@ function buildMobileScorecard() {
       <div class="mob-hole-header">
         <span class="mob-hole-num">Hole ${HOLE_LABELS[h]}</span>
         <span class="mob-hole-meta">Par ${par} · SI ${siStr}</span>
-        <span class="mob-hole-pts-total" id="mob-hole-pts-${h}"></span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+          <span class="mob-hole-pts-total" id="mob-hole-pts-${h}"></span>
+          <span class="wolf-hole-result" id="mob-wolf-${h}"></span>
+        </div>
       </div>
       <div class="mob-players-row">
         ${[0,1,2].map(p => `
@@ -1223,6 +1315,111 @@ function updateMobileScorecard() {
   } catch(e) { console.error('updateMobileScorecard error:', e); }
 }
 
+
+// ── WOLF PACK ─────────────────────────────────────────────────────────────────
+// Returns array of per-hole results: { leader: p|null, margin: n, event: 'win'|'claw'|'as'|'half' }
+function computeWolfPack(stabsPerHole) {
+  let leader = null;   // player index 0/1/2, or null = all square
+  let margin = 0;
+  const results = [];
+
+  for (let h = 0; h < 18; h++) {
+    const stabs = stabsPerHole[h];
+    if (stabs.some(s => s === null)) {
+      results.push({ leader, margin, event: null });
+      continue;
+    }
+    const max = Math.max(...stabs);
+    const winners = stabs.map((s,i) => s === max ? i : -1).filter(i => i >= 0);
+    const outright = winners.length === 1 ? winners[0] : null; // sole winner
+
+    if (leader === null) {
+      // All square — free for all
+      if (outright !== null) {
+        leader = outright;
+        margin = 1;
+        results.push({ leader, margin, event: 'win' });
+      } else {
+        results.push({ leader: null, margin: 0, event: 'half' });
+      }
+    } else {
+      // Someone leads
+      if (outright === leader) {
+        // Leader wins outright — extends lead
+        margin++;
+        results.push({ leader, margin, event: 'win' });
+      } else if (outright !== null && outright !== leader) {
+        // A trailing player wins outright — claws back
+        margin--;
+        if (margin === 0) {
+          leader = null;
+          results.push({ leader: null, margin: 0, event: 'as' });
+        } else {
+          results.push({ leader, margin, event: 'claw' });
+        }
+      } else {
+        // Halved — no change
+        results.push({ leader, margin, event: 'half' });
+      }
+    }
+  }
+  return results;
+}
+
+function updateWolfPack(stabsPerHole) {
+  const results = computeWolfPack(stabsPerHole);
+
+  // Find last played hole
+  let lastPlayed = -1;
+  for (let h = 0; h < 18; h++) {
+    if (results[h].event !== null) lastPlayed = h;
+  }
+
+  const { leader, margin } = lastPlayed >= 0 ? results[lastPlayed] : { leader: null, margin: 0 };
+  const names = [0,1,2].map(getName);
+  const colors = ['#2563eb','#16a34a','#dc2626'];
+
+  // Update banner
+  const nameEl  = document.getElementById('wp-leader-name');
+  const scoreEl = document.getElementById('wp-leader-score');
+  const badgeEl = document.getElementById('wp-badge');
+
+  if (leader === null) {
+    nameEl.textContent  = lastPlayed < 0 ? 'All Square' : 'All Square';
+    nameEl.style.color  = '#fff';
+    scoreEl.textContent = lastPlayed < 0 ? 'Enter scores to begin' : 'Free for all — next outright winner leads';
+    badgeEl.textContent = 'AS';
+    badgeEl.className   = 'wolfpack-badge allsquare';
+  } else {
+    const trailers = [0,1,2].filter(p => p !== leader).map(p => names[p]).join(' & ');
+    nameEl.textContent  = names[leader];
+    nameEl.style.color  = colors[leader];
+    scoreEl.textContent = `leads vs ${trailers}`;
+    badgeEl.textContent = `+${margin}`;
+    badgeEl.className   = 'wolfpack-badge';
+    badgeEl.style.color = colors[leader];
+  }
+
+  // Update hole-level indicators
+  for (let h = 0; h < 18; h++) {
+    const r = results[h];
+    // Desktop
+    const deskEl = document.getElementById(`wolf-cell-${h}`);
+    // Mobile
+    const mobEl  = document.getElementById(`mob-wolf-${h}`);
+
+    let text = '', cls = '';
+    if (r.event === null) { text = ''; cls = ''; }
+    else if (r.event === 'half') { text = '—'; cls = 'wolf-half'; }
+    else if (r.event === 'as')   { text = 'AS 🤝'; cls = 'wolf-as'; }
+    else if (r.event === 'win')  { text = `${names[r.leader].split(' ')[0]} +${r.margin}`; cls = 'wolf-win'; }
+    else if (r.event === 'claw') { text = `${names[r.leader].split(' ')[0]} +${r.margin}`; cls = 'wolf-win'; }
+
+    if (deskEl) { deskEl.textContent = text; deskEl.className = `wolf-cell ${cls}`; }
+    if (mobEl)  { mobEl.textContent  = text; mobEl.className  = `wolf-hole-result ${cls}`; }
+  }
+}
+
 function updateTotals() {
   const hcps = [0,1,2].map(getHcp);
   const allStrokes = [0,1,2].map(p => computeAllStrokes(hcps[p], HOLES));
@@ -1259,6 +1456,16 @@ function updateTotals() {
       setText(`sub-pts-${label}-${p}`, subPts[label][p]);
     }
   });
+
+  // Wolf Pack — collect stableford per hole for all players
+  const stabsPerHole = [];
+  for (let h = 0; h < 18; h++) {
+    const { par } = HOLES[h];
+    const hcps = [0,1,2].map(getHcp);
+    const allStrokes = [0,1,2].map(pp => computeAllStrokes(hcps[pp], HOLES));
+    stabsPerHole.push([0,1,2].map(pp => stablefordPts(grossScores[h][pp], par, allStrokes[pp][h])));
+  }
+  updateWolfPack(stabsPerHole);
 
   const ranked = [0,1,2].sort((a,b) => totPts[b]-totPts[a]);
   for (let p = 0; p < 3; p++) {
