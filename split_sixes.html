@@ -1344,12 +1344,13 @@ function computeWolfPack(stabsPerHole) {
       }
     } else {
       // Someone leads
+      const trailersBeatLeader = winners.length === 2 && !winners.includes(leader) && stabs[winners[0]] > stabs[leader];
       if (outright === leader) {
         // Leader wins outright — extends lead
         margin++;
         results.push({ leader, margin, event: 'win' });
-      } else if (outright !== null && outright !== leader) {
-        // A trailing player wins outright — claws back
+      } else if ((outright !== null && outright !== leader) || trailersBeatLeader) {
+        // A trailing player wins outright, OR both trailers tie above leader — claws back
         margin--;
         if (margin === 0) {
           leader = null;
