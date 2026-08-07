@@ -319,11 +319,7 @@
     text-align: center;
   }
 
-  .summary-card.leader { border: 2px solid #2563eb; background: #eff6ff; }
-  .summary-name { font-size: 13px; color: #666; margin-bottom: 4px; }
-  .summary-pts { font-size: 36px; font-weight: 700; color: #1a1a1a; line-height: 1; margin-bottom: 4px; }
-  .summary-stab { font-size: 12px; color: #888; margin-bottom: 4px; }
-  .summary-rank { font-size: 12px; font-weight: 600; color: #2563eb; }
+  /* summary replaced by dual-footer */
 
   /* Legend */
   .legend {
@@ -524,6 +520,167 @@
   .mob-divider-cell { text-align: center; font-size: 11px; }
 
 
+  /* ── DUAL GAME HEADER ──────────────────────────────────────────────────── */
+  .dual-header {
+    display: flex;
+    align-items: stretch;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 14px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.18);
+    min-height: 72px;
+  }
+  .dh-game {
+    flex: 1;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+  }
+  .dh-divider {
+    width: 1px;
+    background: rgba(255,255,255,0.1);
+    margin: 10px 0;
+  }
+  .dh-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #c8a84b;
+  }
+  .dh-players {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .dh-player {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+  }
+  .dh-pname {
+    font-size: 12px;
+    color: #a0aec0;
+    font-weight: 500;
+  }
+  .dh-pscore {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .dh-pscore.c1 { color: #60a5fa; }
+  .dh-pscore.c2 { color: #4ade80; }
+  .dh-pscore.c3 { color: #f87171; }
+  .dh-wolf {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .dh-wolf-state { flex: 1; }
+  .dh-wolf-name {
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+  }
+  .dh-wolf-sub {
+    font-size: 11px;
+    color: #718096;
+    margin-top: 2px;
+  }
+
+  /* ── DUAL GAME FOOTER ──────────────────────────────────────────────────── */
+  .dual-footer {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .df-section {
+    background: #fff;
+    border: 1px solid #e0e0d8;
+    border-radius: 12px;
+    padding: 14px 16px;
+    flex: 2;
+    min-width: 220px;
+  }
+  .df-wolf-section {
+    flex: 1;
+    min-width: 160px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-color: #2d3748;
+  }
+  .df-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #c8a84b;
+    margin-bottom: 10px;
+  }
+  .df-cards {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 8px;
+  }
+  .df-card {
+    text-align: center;
+    padding: 8px 4px;
+    border-radius: 8px;
+    background: #f8f8f4;
+    border: 1px solid #eee;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .df-card.leader { border-color: #2563eb; background: #eff6ff; }
+  .df-name { font-size: 11px; color: #666; margin-bottom: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .df-pts  { font-size: 30px; font-weight: 800; line-height: 1; margin-bottom: 2px; }
+  .df-pts.c1 { color: #2563eb; }
+  .df-pts.c2 { color: #16a34a; }
+  .df-pts.c3 { color: #dc2626; }
+  .df-sub  { font-size: 10px; color: #888; }
+  .df-rank { font-size: 10px; font-weight: 600; color: #2563eb; margin-top: 2px; min-height: 14px; }
+  .df-wolf-result {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .df-wolf-leader {
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff !important;
+    flex: 1;
+    line-height: 1.1;
+  }
+  .df-wolf-badge {
+    font-size: 26px;
+    font-weight: 900;
+    color: #c8a84b;
+    min-width: 44px;
+    text-align: right;
+  }
+  .df-wolf-sub {
+    font-size: 10px;
+    color: #718096;
+    margin-top: 4px;
+    width: 100%;
+  }
+  .df-wolf-result-wrap { width: 100%; }
+
+  @media (max-width: 680px) {
+    .dh-players { gap: 8px; }
+    .dh-pscore { font-size: 17px; }
+    .dh-pname { font-size: 11px; }
+    .dh-wolf-name { font-size: 15px; }
+    .dual-footer { flex-direction: column; gap: 8px; }
+    .df-section { min-width: unset; }
+    .df-pts { font-size: 24px; }
+    .df-wolf-section { padding: 12px 14px; }
+  }
+
   /* ── WOLF PACK ─────────────────────────────────────────────────────────── */
   .wolfpack-banner {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -696,14 +853,37 @@
 </div>
 
 
-<!-- Wolf Pack Banner -->
-<div class="wolfpack-banner" id="wolfpack-banner">
-  <div>
-    <div class="wolfpack-title">🐺 Wolf Pack</div>
-    <div class="wolfpack-leader-name" id="wp-leader-name">All Square</div>
-    <div class="wolfpack-leader-score" id="wp-leader-score">Enter scores to begin</div>
+<!-- Dual Game Header -->
+<div class="dual-header" id="dual-header">
+  <!-- Split Sixes side -->
+  <div class="dh-game dh-sixes">
+    <div class="dh-label">✂ Split Sixes</div>
+    <div class="dh-players" id="dh-sixes-players">
+      <div class="dh-player">
+        <span class="dh-pname" id="dh-sn0">Neil</span>
+        <span class="dh-pscore c1" id="dh-sp0">0</span>
+      </div>
+      <div class="dh-player">
+        <span class="dh-pname" id="dh-sn1">Anthony</span>
+        <span class="dh-pscore c2" id="dh-sp1">0</span>
+      </div>
+      <div class="dh-player">
+        <span class="dh-pname" id="dh-sn2">William</span>
+        <span class="dh-pscore c3" id="dh-sp2">0</span>
+      </div>
+    </div>
   </div>
-  <div class="wolfpack-badge allsquare" id="wp-badge">AS</div>
+  <!-- Divider -->
+  <div class="dh-divider"></div>
+  <!-- Wolf Pack side -->
+  <div class="dh-game dh-wolf">
+    <div class="dh-label">🐺 Wolf Pack</div>
+    <div class="dh-wolf-state">
+      <div class="dh-wolf-name" id="wp-leader-name">All Square</div>
+      <div class="dh-wolf-sub" id="wp-leader-score">Enter scores to begin</div>
+    </div>
+    <div class="wolfpack-badge allsquare" id="wp-badge">AS</div>
+  </div>
 </div>
 
 <!-- Scorecard -->
@@ -737,25 +917,40 @@
 <!-- Mobile scorecard (hidden on desktop) -->
 <div class="mobile-scorecard" id="mobile-scorecard"></div>
 
-<!-- Summary -->
-<div class="summary">
-  <div class="summary-card" id="card0">
-    <div class="summary-name" id="sn0">Neil</div>
-    <div class="summary-pts" id="sp0">0</div>
-    <div class="summary-stab" id="ss0">Stableford: 0</div>
-    <div class="summary-rank" id="sr0"></div>
+<!-- Dual Game Footer -->
+<div class="dual-footer">
+  <!-- Split Sixes totals -->
+  <div class="df-section">
+    <div class="df-label">✂ Split Sixes</div>
+    <div class="df-cards">
+      <div class="df-card" id="card0">
+        <div class="df-name" id="sn0">Neil</div>
+        <div class="df-pts c1" id="sp0">0</div>
+        <div class="df-sub" id="ss0">Stab: 0</div>
+        <div class="df-rank" id="sr0"></div>
+      </div>
+      <div class="df-card" id="card1">
+        <div class="df-name" id="sn1">Anthony</div>
+        <div class="df-pts c2" id="sp1">0</div>
+        <div class="df-sub" id="ss1">Stab: 0</div>
+        <div class="df-rank" id="sr1"></div>
+      </div>
+      <div class="df-card" id="card2">
+        <div class="df-name" id="sn2">William</div>
+        <div class="df-pts c3" id="sp2">0</div>
+        <div class="df-sub" id="ss2">Stab: 0</div>
+        <div class="df-rank" id="sr2"></div>
+      </div>
+    </div>
   </div>
-  <div class="summary-card" id="card1">
-    <div class="summary-name" id="sn1">Anthony</div>
-    <div class="summary-pts" id="sp1">0</div>
-    <div class="summary-stab" id="ss1">Stableford: 0</div>
-    <div class="summary-rank" id="sr1"></div>
-  </div>
-  <div class="summary-card" id="card2">
-    <div class="summary-name" id="sn2">William</div>
-    <div class="summary-pts" id="sp2">0</div>
-    <div class="summary-stab" id="ss2">Stableford: 0</div>
-    <div class="summary-rank" id="sr2"></div>
+  <!-- Wolf Pack result -->
+  <div class="df-section df-wolf-section">
+    <div class="df-label">🐺 Wolf Pack</div>
+    <div class="df-wolf-result">
+      <div class="df-wolf-leader" id="df-wp-leader">All Square</div>
+      <div class="df-wolf-badge" id="df-wp-badge">AS</div>
+      <div class="df-wolf-sub" id="df-wp-sub">No scores yet</div>
+    </div>
   </div>
 </div>
 
@@ -1380,26 +1575,37 @@ function updateWolfPack(stabsPerHole) {
   const names = [0,1,2].map(getName);
   const colors = ['#2563eb','#16a34a','#dc2626'];
 
-  // Update banner
-  const nameEl  = document.getElementById('wp-leader-name');
-  const scoreEl = document.getElementById('wp-leader-score');
-  const badgeEl = document.getElementById('wp-badge');
-
-  if (leader === null) {
-    nameEl.textContent  = lastPlayed < 0 ? 'All Square' : 'All Square';
-    nameEl.style.color  = '#fff';
-    scoreEl.textContent = lastPlayed < 0 ? 'Enter scores to begin' : 'Free for all — next outright winner leads';
-    badgeEl.textContent = 'AS';
-    badgeEl.className   = 'wolfpack-badge allsquare';
-  } else {
-    const trailers = [0,1,2].filter(p => p !== leader).map(p => names[p]).join(' & ');
-    nameEl.textContent  = names[leader];
-    nameEl.style.color  = colors[leader];
-    scoreEl.textContent = `leads vs ${trailers}`;
-    badgeEl.textContent = `+${margin}`;
-    badgeEl.className   = 'wolfpack-badge';
-    badgeEl.style.color = colors[leader];
+  // Helper to set wolf pack state on any pair of elements
+  function setWolfUI(nameEl, scoreEl, badgeEl, isHeader) {
+    if (!nameEl) return;
+    if (leader === null) {
+      nameEl.textContent  = 'All Square';
+      nameEl.style.color  = '#fff';
+      if (scoreEl) scoreEl.textContent = lastPlayed < 0 ? 'Enter scores to begin' : 'Free for all';
+      if (badgeEl) { badgeEl.textContent = 'AS'; badgeEl.className = (isHeader ? 'wolfpack-badge' : 'df-wolf-badge') + ' allsquare'; badgeEl.style.color = ''; }
+    } else {
+      const trailers = [0,1,2].filter(p => p !== leader).map(p => names[p]).join(' & ');
+      nameEl.textContent  = names[leader];
+      nameEl.style.color  = colors[leader];
+      if (scoreEl) scoreEl.textContent = `leads vs ${trailers}`;
+      if (badgeEl) { badgeEl.textContent = `+${margin}`; badgeEl.className = isHeader ? 'wolfpack-badge' : 'df-wolf-badge'; badgeEl.style.color = colors[leader]; }
+    }
   }
+
+  // Header
+  setWolfUI(
+    document.getElementById('wp-leader-name'),
+    document.getElementById('wp-leader-score'),
+    document.getElementById('wp-badge'),
+    true
+  );
+  // Footer
+  setWolfUI(
+    document.getElementById('df-wp-leader'),
+    document.getElementById('df-wp-sub'),
+    document.getElementById('df-wp-badge'),
+    false
+  );
 
   // Update hole-level indicators
   for (let h = 0; h < 18; h++) {
@@ -1476,16 +1682,24 @@ function updateTotals() {
     setText(`tot-pts-${p}`, totPts[p]);
     document.getElementById('sn'+p).textContent = getName(p);
     document.getElementById('sp'+p).textContent = totPts[p];
-    document.getElementById('ss'+p).textContent = 'Stableford: ' + totStab[p];
+    document.getElementById('ss'+p).textContent = 'Stab: ' + totStab[p];
+    // df- footer names
+    const dfName = document.getElementById('df-sn'+p);
+    if (dfName) dfName.textContent = getName(p);
     const pos = ranked.indexOf(p) + 1;
     const posLabel = pos === 1 ? '🥇' : pos === 2 ? '🥈' : '🥉';
     const posText = totPts.every(x=>x===0) ? '' : ` ${posLabel}`;
     document.getElementById('th-gross-'+p).innerHTML = getName(p) + ' gross<br><span style="font-size:13px;letter-spacing:0;">' + totPts[p] + ' pts' + posText + '</span>';
+    // Update dual header Split Sixes scores
+    const dhName = document.getElementById('dh-sn'+p);
+    const dhScore = document.getElementById('dh-sp'+p);
+    if (dhName) dhName.textContent = getName(p);
+    if (dhScore) dhScore.textContent = totPts[p];
   }
 
   for (let i = 0; i < 3; i++) {
     const p = ranked[i];
-    document.getElementById('card'+p).className = 'summary-card' + (i===0 && totPts[p]>0 ? ' leader' : '');
+    document.getElementById('card'+p).className = 'df-card' + (i===0 && totPts[p]>0 ? ' leader' : '');
     document.getElementById('sr'+p).textContent = totPts.every(x=>x===0) ? '' : (i===0?'Leading':i===1?'2nd place':'3rd place');
   }
 }
