@@ -720,6 +720,9 @@ function stabClass(pts) {
 }
 
 // ── SYNC ────────────────────────────────────────────────────────────────────
+let lastLocalChange = 0;   // timestamp of last local score entry
+let pushDebounceTimer = null;  // debounce push so rapid +/- don't spam sheet
+const LOCAL_LOCK_MS = 5000;    // block pulls for 5s after any local change
 function setSync(state, text) {
   const dot = document.getElementById('sync-dot');
   const txt = document.getElementById('sync-text');
@@ -739,7 +742,18 @@ async function pushScores() {
   } catch(e) { setSync('error', 'Offline'); }
 }
 
+function debouncePush() {
+  lastLocalChange = Date.now();  // mark local change timestamp
+  clearTimeout(pushDebounceTimer);
+  pushDebounceTimer = setTimeout(pushScores, 800); // wait 800ms after last tap
+}
+
 async function pullScores() {
+  // Don't pull if a local change was made recently — prevents overwriting mid-entry
+  if (Date.now() - lastLocalChange < LOCAL_LOCK_MS) {
+    setSync('synced', 'Local ✓');
+    return;
+  }
   setSync('syncing', 'Syncing…');
   try {
     const res = await fetch(SCRIPT_URL + '?action=read&t=' + Date.now());
@@ -773,7 +787,7 @@ function changeScore(t, i, delta) {
   if (!scores[k]) scores[k] = {};
   scores[k][currentHole] = nv;
   renderAll();
-  pushScores();
+  debouncePush();
 }
 
 function tapScore(t, i) {
@@ -786,7 +800,7 @@ function tapScore(t, i) {
   if (!scores[k]) scores[k] = {};
   scores[k][currentHole] = n;
   renderAll();
-  pushScores();
+  debouncePush();
 }
 
 // ── TEAM AVG ─────────────────────────────────────────────────────────────────
