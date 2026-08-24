@@ -781,11 +781,15 @@ function getScore(t, i, h) {
 }
 
 function changeScore(t, i, delta) {
-  const cur = getScore(t, i, currentHole) || 0;
-  const nv = Math.max(1, Math.min(20, cur + delta));
+  const cur = getScore(t, i, currentHole);
   const k = playerKey(t, i);
   if (!scores[k]) scores[k] = {};
-  scores[k][currentHole] = nv;
+  // Pressing − when score is 1 or already blank clears it to blank
+  if (delta < 0 && (cur === null || cur <= 1)) {
+    scores[k][currentHole] = null;
+  } else {
+    scores[k][currentHole] = Math.max(1, Math.min(20, (cur || 0) + delta));
+  }
   renderAll();
   debouncePush();
 }
