@@ -295,6 +295,11 @@
   .hs-hole { color: #888; width: 48px; }
   .hs-t1 { color: #60a5fa; font-weight: 700; text-align: center; flex: 1; }
   .hs-t2 { color: #4ade80; font-weight: 700; text-align: center; flex: 1; }
+  .hs-mp { font-weight: 700; text-align: center; width: 72px; font-size: 11px; }
+  .hs-mp.mp-t1 { color: #60a5fa; }
+  .hs-mp.mp-t2 { color: #4ade80; }
+  .hs-mp.mp-as { color: #c8a84b; }
+  .hs-mp.mp-hdr { color: #c8a84b; font-size: 11px; }
   .hs-header { color: #666; font-size: 11px; }
   .total-summary-row { margin-top: 6px; padding-top: 6px; border-top: 1px solid #2a4a7f; font-weight: 800; font-size: 15px; }
 
@@ -517,12 +522,14 @@
         <div class="hs-hole hs-header">Hole</div>
         <div class="hs-t1 hs-header" id="sum-t1-hdr">Team 1</div>
         <div class="hs-t2 hs-header" id="sum-t2-hdr">Team 2</div>
+        <div class="hs-mp mp-hdr">Match</div>
       </div>
       <div id="summary-rows"></div>
       <div class="hole-summary-row total-summary-row">
         <div class="hs-hole" style="color:#c8a84b;">Total</div>
         <div class="hs-t1" id="sum-t1-total">0.0</div>
         <div class="hs-t2" id="sum-t2-total">0.0</div>
+        <div class="hs-mp" id="sum-mp-total">AS</div>
       </div>
     </div>
   </div>
@@ -955,7 +962,9 @@ function renderSummary() {
   document.getElementById('sum-t2-hdr').textContent = TEAMS[1].name;
 
   let t1run = 0, t2run = 0;
+  let mpScore = 0; // positive = t1 leads, negative = t2 leads
   let rows = '';
+  let lastMp = null;
 
   HOLE_LABELS.forEach((label, h) => {
     const a1 = teamAvg(0, h);
@@ -963,17 +972,41 @@ function renderSummary() {
     if (a1 !== null) t1run += a1;
     if (a2 !== null) t2run += a2;
     if (a1 === null && a2 === null) return;
+
+    // Matchplay: only update if both teams have scored
+    let mpHole = '', mpCls = 'mp-as';
+    if (a1 !== null && a2 !== null) {
+      if (a1 > a2) mpScore++;
+      else if (a2 > a1) mpScore--;
+      lastMp = mpScore;
+    }
+
+    if (lastMp !== null) {
+      if (lastMp === 0)      { mpHole = 'AS';                              mpCls = 'mp-as'; }
+      else if (lastMp > 0)   { mpHole = `${TEAMS[0].name.split(' ')[1]||TEAMS[0].name} ${lastMp}↑`; mpCls = 'mp-t1'; }
+      else                   { mpHole = `${TEAMS[1].name.split(' ')[1]||TEAMS[1].name} ${Math.abs(lastMp)}↑`; mpCls = 'mp-t2'; }
+    }
+
     const cur = h === currentHole ? 'style="background:rgba(200,168,75,0.08)"' : '';
     rows += `<div class="hole-summary-row" ${cur}>
       <div class="hs-hole">${label}</div>
       <div class="hs-t1">${a1 !== null ? a1.toFixed(1) : '—'}</div>
       <div class="hs-t2">${a2 !== null ? a2.toFixed(1) : '—'}</div>
+      <div class="hs-mp ${mpCls}">${mpHole}</div>
     </div>`;
   });
 
   document.getElementById('summary-rows').innerHTML = rows;
   document.getElementById('sum-t1-total').textContent = t1run.toFixed(1);
   document.getElementById('sum-t2-total').textContent = t2run.toFixed(1);
+
+  // Final matchplay result in total row
+  const mpEl = document.getElementById('sum-mp-total');
+  if (mpEl) {
+    if (lastMp === null || lastMp === 0) { mpEl.textContent = 'AS'; mpEl.className = 'hs-mp mp-as'; }
+    else if (lastMp > 0) { mpEl.textContent = `${TEAMS[0].name.split(' ')[1]||TEAMS[0].name} ${lastMp}↑`; mpEl.className = 'hs-mp mp-t1'; }
+    else { mpEl.textContent = `${TEAMS[1].name.split(' ')[1]||TEAMS[1].name} ${Math.abs(lastMp)}↑`; mpEl.className = 'hs-mp mp-t2'; }
+  }
 }
 
 function renderScoreboard() {
