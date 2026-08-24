@@ -898,8 +898,8 @@ function renderTeams() {
 
     block.innerHTML = `
       <div class="team-block-header ${t===0?'t1':'t2'}">
-        <span class="team-block-name">${team.name}</span>
-        <span class="team-block-avg">Hole avg: ${avgStr}</span>
+        <span class="team-block-name">${team.name} <span style="font-size:12px;font-weight:500;opacity:0.7;">· Hole ${HOLE_LABELS[h]} (Par ${par})</span></span>
+        <span class="team-block-avg">Avg: ${avgStr}</span>
       </div>
     `;
 
