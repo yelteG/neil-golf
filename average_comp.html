@@ -1009,6 +1009,19 @@ function renderSummary() {
   }
 }
 
+function getMatchplayScore() {
+  let mpScore = 0, lastMp = null;
+  for (let h = 0; h < HOLE_LABELS.length; h++) {
+    const a1 = teamAvg(0, h), a2 = teamAvg(1, h);
+    if (a1 !== null && a2 !== null) {
+      if (a1 > a2) mpScore++;
+      else if (a2 > a1) mpScore--;
+      lastMp = mpScore;
+    }
+  }
+  return lastMp;
+}
+
 function renderScoreboard() {
   const t1 = teamTotal(0), t2 = teamTotal(1);
   const r1 = teamRawTotal(0), r2 = teamRawTotal(1);
@@ -1018,11 +1031,32 @@ function renderScoreboard() {
   document.getElementById('t2-total').textContent = t2.toFixed(1);
   document.getElementById('t1-raw-total').textContent = r1;
   document.getElementById('t2-raw-total').textContent = r2;
-  const diff = Math.abs(t1-t2).toFixed(1);
-  document.getElementById('t1-lead').textContent = t1 > t2 ? `▲ ${diff} ahead` : t1 < t2 ? `▼ ${diff} behind` : '';
-  document.getElementById('t2-lead').textContent = t2 > t1 ? `▲ ${diff} ahead` : t2 < t1 ? `▼ ${diff} behind` : '';
-  document.getElementById('t1-card').className = 'team-score-card t1' + (t1>=t2&&(t1+t2)>0?' leading':'');
-  document.getElementById('t2-card').className = 'team-score-card t2' + (t2>t1?' leading':'');
+
+  // Matchplay score replaces ahead/behind
+  const mp = getMatchplayScore();
+  const t1Lead = document.getElementById('t1-lead');
+  const t2Lead = document.getElementById('t2-lead');
+  if (mp === null) {
+    t1Lead.textContent = ''; t2Lead.textContent = '';
+  } else if (mp === 0) {
+    t1Lead.textContent = '🤝 Match All Square';
+    t1Lead.style.color = '#c8a84b';
+    t2Lead.textContent = '🤝 Match All Square';
+    t2Lead.style.color = '#c8a84b';
+  } else if (mp > 0) {
+    t1Lead.textContent = `▲ ${mp} up (match)`;
+    t1Lead.style.color = '#4ade80';
+    t2Lead.textContent = `▼ ${mp} down (match)`;
+    t2Lead.style.color = '#f87171';
+  } else {
+    t1Lead.textContent = `▼ ${Math.abs(mp)} down (match)`;
+    t1Lead.style.color = '#f87171';
+    t2Lead.textContent = `▲ ${Math.abs(mp)} up (match)`;
+    t2Lead.style.color = '#4ade80';
+  }
+
+  document.getElementById('t1-card').className = 'team-score-card t1' + (mp !== null && mp > 0 ? ' leading' : '');
+  document.getElementById('t2-card').className = 'team-score-card t2' + (mp !== null && mp < 0 ? ' leading' : '');
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
