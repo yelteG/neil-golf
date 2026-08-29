@@ -761,6 +761,98 @@
   .th-wolf { background: #1a1a2e; color: #c8a84b; font-size: 11px; letter-spacing: 0.06em; }
   .wolf-cell { font-size: 11px; font-weight: 600; color: #555; text-align: center; }
 
+
+  /* ── NUMPAD MODAL ─────────────────────────────────────────────────────── */
+  .numpad-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 1000;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .numpad-overlay.open { display: flex; }
+
+  .numpad-sheet {
+    background: #1e2a3a;
+    border-radius: 18px 18px 0 0;
+    padding: 16px 16px 32px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+    animation: slideUp 0.2s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  .numpad-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #a0aec0;
+    text-align: center;
+    margin-bottom: 10px;
+    letter-spacing: 0.04em;
+  }
+  .numpad-display {
+    font-size: 36px;
+    font-weight: 900;
+    text-align: center;
+    color: #fff;
+    background: #0f1f35;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 14px;
+    min-height: 58px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .numpad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .numpad-btn {
+    height: 54px;
+    border: none;
+    border-radius: 10px;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    background: #2d3f55;
+    color: #fff;
+    transition: background 0.1s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .numpad-btn:active { background: #3d5070; transform: scale(0.95); }
+  .numpad-btn.numpad-p {
+    background: #374151;
+    color: #c8a84b;
+    font-size: 18px;
+    letter-spacing: 0.05em;
+  }
+  .numpad-btn.numpad-del {
+    background: #374151;
+    color: #f87171;
+    font-size: 18px;
+  }
+  .numpad-btn.numpad-ok {
+    background: #2563eb;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+  }
+  .numpad-btn.numpad-cancel {
+    background: #374151;
+    color: #9ca3af;
+    font-size: 14px;
+  }
+
   @media print {
     body { background: #fff; padding: 0; }
     .btn-row, .settings-panel, .settings-btn { display: none; }
@@ -1362,22 +1454,71 @@ function mobStep(h, p, delta) {
   saveScores();
 }
 
+
+// ── NUMPAD ────────────────────────────────────────────────────────────────────
+let _numpadH = null, _numpadP = null, _numpadVal = null;
+
 function mobTap(h, p) {
-  const cur = grossScores[h][p];
-  const val = prompt(`Hole ${HOLE_LABELS[h]} — ${getName(p)} gross score:`, cur !== null ? cur : '');
-  if (val === null) return; // cancelled
-  const n = val.trim() === '' ? null : parseInt(val);
-  grossScores[h][p] = (n && n > 0) ? n : null;
-  const el = document.getElementById(`mg${h}_${p}`);
-  if (el) {
-    el.textContent = grossScores[h][p] !== null ? grossScores[h][p] : '—';
-    el.className = 'mob-stepper-val' + (grossScores[h][p] !== null ? ' entered' : '');
+  _numpadH = h; _numpadP = p;
+  _numpadVal = grossScores[h][p] !== null ? String(grossScores[h][p]) : '';
+  const colors = ['#60a5fa','#4ade80','#f87171'];
+  document.getElementById('numpad-title').textContent =
+    `Hole ${HOLE_LABELS[h]} — ${getName(p)}`;
+  document.getElementById('numpad-title').style.color = colors[p];
+  numpadRefresh();
+  document.getElementById('numpad-overlay').classList.add('open');
+}
+
+function numpadRefresh() {
+  const disp = document.getElementById('numpad-display');
+  if (_numpadVal === 'P') { disp.textContent = 'P (pick up)'; disp.style.color = '#c8a84b'; }
+  else if (_numpadVal === '') { disp.textContent = '—'; disp.style.color = '#555'; }
+  else { disp.textContent = _numpadVal; disp.style.color = '#fff'; }
+}
+
+function numpadDigit(d) {
+  if (_numpadVal === 'P') _numpadVal = '';
+  const next = _numpadVal + d;
+  if (parseInt(next) > 20) return; // cap at 20
+  _numpadVal = next;
+  numpadRefresh();
+}
+
+function numpadP() { _numpadVal = 'P'; numpadRefresh(); }
+
+function numpadDel() {
+  if (_numpadVal === 'P') _numpadVal = '';
+  else _numpadVal = _numpadVal.slice(0, -1);
+  numpadRefresh();
+}
+
+function numpadOK() {
+  if (_numpadH === null) return;
+  if (_numpadVal === 'P') {
+    grossScores[_numpadH][_numpadP] = 0; // P = pick up = 0 gross = 0 stableford
+  } else {
+    const n = parseInt(_numpadVal);
+    grossScores[_numpadH][_numpadP] = (n > 0 && n <= 20) ? n : null;
   }
-  updateRow(h);
+  const el = document.getElementById(`mg${_numpadH}_${_numpadP}`);
+  if (el) {
+    const v = grossScores[_numpadH][_numpadP];
+    el.textContent = v === 0 ? 'P' : v !== null ? v : '—';
+    el.className = 'mob-stepper-val' + (v !== null ? ' entered' : '');
+  }
+  updateRow(_numpadH);
   updateTotals();
   updateMobileScorecard();
   saveScores();
+  numpadCancel();
 }
+
+function numpadClose(e) { if (e.target === document.getElementById('numpad-overlay')) numpadCancel(); }
+function numpadCancel() {
+  document.getElementById('numpad-overlay').classList.remove('open');
+  _numpadH = null; _numpadP = null; _numpadVal = null;
+}
+
 
 
 function buildMobileScorecard() {
@@ -1438,7 +1579,7 @@ function syncMobileInputs() {
       const el = document.getElementById(`mg${h}_${p}`);
       if (el) {
         const v = grossScores[h][p];
-        el.textContent = v !== null ? v : '—';
+        el.textContent = v === 0 ? 'P' : v !== null ? v : '—';
         el.className = 'mob-stepper-val' + (v !== null ? ' entered' : '');
       }
     }
@@ -1780,5 +1921,27 @@ buildMobileScorecard();
 syncMobileInputs();
 updateMobileScorecard();
 </script>
+
+<!-- Numpad Modal -->
+<div class="numpad-overlay" id="numpad-overlay" onclick="numpadClose(event)">
+  <div class="numpad-sheet" onclick="event.stopPropagation()">
+    <div class="numpad-title" id="numpad-title">Enter score</div>
+    <div class="numpad-display" id="numpad-display">—</div>
+    <div class="numpad-grid">
+      <button class="numpad-btn" onclick="numpadDigit(1)">1</button>
+      <button class="numpad-btn" onclick="numpadDigit(2)">2</button>
+      <button class="numpad-btn" onclick="numpadDigit(3)">3</button>
+      <button class="numpad-btn" onclick="numpadDigit(4)">4</button>
+      <button class="numpad-btn" onclick="numpadDigit(5)">5</button>
+      <button class="numpad-btn" onclick="numpadDigit(6)">6</button>
+      <button class="numpad-btn" onclick="numpadDigit(7)">7</button>
+      <button class="numpad-btn" onclick="numpadDigit(8)">8</button>
+      <button class="numpad-btn" onclick="numpadDigit(9)">9</button>
+      <button class="numpad-btn numpad-p" onclick="numpadP()">P (pick up)</button>
+      <button class="numpad-btn numpad-del" onclick="numpadDel()">⌫</button>
+      <button class="numpad-btn numpad-ok" onclick="numpadOK()">OK</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
