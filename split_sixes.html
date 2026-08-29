@@ -1460,7 +1460,7 @@ let _numpadH = null, _numpadP = null, _numpadVal = null;
 
 function mobTap(h, p) {
   _numpadH = h; _numpadP = p;
-  _numpadVal = grossScores[h][p] !== null ? String(grossScores[h][p]) : '';
+  _numpadVal = ''; // always start fresh — first digit replaces existing score
   const colors = ['#60a5fa','#4ade80','#f87171'];
   document.getElementById('numpad-title').textContent =
     `Hole ${HOLE_LABELS[h]} — ${getName(p)}`;
@@ -1472,7 +1472,12 @@ function mobTap(h, p) {
 function numpadRefresh() {
   const disp = document.getElementById('numpad-display');
   if (_numpadVal === 'P') { disp.textContent = 'P (pick up)'; disp.style.color = '#c8a84b'; }
-  else if (_numpadVal === '') { disp.textContent = '—'; disp.style.color = '#555'; }
+  else if (_numpadVal === '') {
+    // show existing score dimmed as hint
+    const existing = grossScores[_numpadH][_numpadP];
+    disp.textContent = existing === 0 ? 'P' : existing !== null ? existing : '—';
+    disp.style.color = '#555';
+  }
   else { disp.textContent = _numpadVal; disp.style.color = '#fff'; }
 }
 
