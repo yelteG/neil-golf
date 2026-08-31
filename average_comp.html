@@ -424,6 +424,95 @@
   .bottom-nav-btn.scores.active { background: #c8a84b; color: #0f1f35; }
 
   .page-pad { padding-bottom: 90px; }
+
+  /* ── NUMPAD MODAL ──────────────────────────────────────────────────────── */
+  .numpad-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 1000;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .numpad-overlay.open { display: flex; }
+  .numpad-sheet {
+    background: #1e2a3a;
+    border-radius: 18px 18px 0 0;
+    padding: 16px 16px 32px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+    animation: slideUp 0.2s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  .numpad-title {
+    font-size: 13px; font-weight: 600; color: #a0aec0;
+    text-align: center; margin-bottom: 10px; letter-spacing: 0.04em;
+  }
+  .numpad-display {
+    font-size: 36px; font-weight: 900; text-align: center; color: #fff;
+    background: #0f1f35; border-radius: 10px; padding: 10px;
+    margin-bottom: 14px; min-height: 58px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .numpad-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .numpad-btn {
+    height: 54px; border: none; border-radius: 10px;
+    font-size: 22px; font-weight: 700; cursor: pointer;
+    background: #2d3f55; color: #fff;
+    transition: background 0.1s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .numpad-btn:active { background: #3d5070; transform: scale(0.95); }
+  .numpad-btn.numpad-del { background: #374151; color: #f87171; font-size: 18px; }
+  .numpad-btn.numpad-p   { background: #374151; color: #c8a84b; font-size: 15px; font-weight: 800; }
+  .numpad-btn.numpad-ok  { background: #2563eb; color: #fff; font-size: 16px; font-weight: 800; }
+  .numpad-btn.numpad-clr { background: #374151; color: #9ca3af; font-size: 13px; }
+
+  /* ── INLINE TEAM NAME EDIT ─────────────────────────────────────────────── */
+  .team-name-edit-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55); z-index: 1000;
+    align-items: flex-end; justify-content: center;
+  }
+  .team-name-edit-overlay.open { display: flex; }
+  .team-name-edit-sheet {
+    background: #1e2a3a; border-radius: 18px 18px 0 0;
+    padding: 20px 20px 36px; width: 100%; max-width: 400px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+    animation: slideUp 0.2s ease;
+  }
+  .team-name-edit-title {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: #c8a84b; margin-bottom: 12px;
+  }
+  .team-name-input {
+    width: 100%; box-sizing: border-box;
+    background: #0f1f35; border: 1.5px solid #2d3f55; border-radius: 10px;
+    color: #fff; font-size: 20px; font-weight: 700;
+    padding: 12px 14px; margin-bottom: 12px; outline: none;
+  }
+  .team-name-input:focus { border-color: #c8a84b; }
+  .team-name-btns { display: flex; gap: 8px; }
+  .team-name-save {
+    flex: 1; padding: 14px; background: #2563eb; color: #fff;
+    border: none; border-radius: 10px; font-size: 16px; font-weight: 700;
+    cursor: pointer;
+  }
+  .team-name-cancel {
+    padding: 14px 20px; background: #374151; color: #9ca3af;
+    border: none; border-radius: 10px; font-size: 14px; cursor: pointer;
+  }
+  .team-block-name { cursor: pointer; }
+  .team-block-name:active { opacity: 0.7; }
+  .tscard-name { cursor: pointer; }
+
 </style>
 </head>
 <body>
@@ -482,14 +571,14 @@
     </div>
     <div class="scoreboard">
       <div class="team-score-card t1" id="t1-card">
-        <div class="tscard-name" id="t1-card-name">Team Blue</div>
+        <div class="tscard-name" id="t1-card-name" onclick="editTeamName(0)">Team Blue</div>
         <div class="tscard-score" id="t1-total">0.0</div>
         <div class="tscard-sub">avg stableford total</div>
         <div class="tscard-sub" style="color:#93c5fd;font-size:11px;">Total stab: <span id="t1-raw-total">0</span></div>
         <div class="tscard-lead" id="t1-lead"></div>
       </div>
       <div class="team-score-card t2" id="t2-card">
-        <div class="tscard-name" id="t2-card-name">Team Green</div>
+        <div class="tscard-name" id="t2-card-name" onclick="editTeamName(1)">Team Green</div>
         <div class="tscard-score" id="t2-total">0.0</div>
         <div class="tscard-sub">avg stableford total</div>
         <div class="tscard-sub" style="color:#86efac;font-size:11px;">Total stab: <span id="t2-raw-total">0</span></div>
@@ -717,6 +806,7 @@ function strokesOnHole(hcp, siArr, par) {
 }
 
 function stabPts(gross, par, strokes) {
+  if (gross === -1) return 0;  // pickup = 0 stableford points
   if (!gross) return null;
   const diff = par - (gross - strokes);
   if (diff >= 2) return 4;
@@ -803,26 +893,124 @@ function changeScore(t, i, delta) {
   const k = playerKey(t, i);
   if (!scores[k]) scores[k] = {};
   // Pressing − when score is 1 or already blank clears it to blank
-  if (delta < 0 && (cur === null || cur <= 1)) {
+  if (delta < 0 && (cur === null || cur === -1 || cur <= 1)) {
     scores[k][currentHole] = null;
   } else {
-    scores[k][currentHole] = Math.max(1, Math.min(20, (cur || 0) + delta));
+    scores[k][currentHole] = Math.max(1, Math.min(20, (cur === -1 ? 0 : cur || 0) + delta));
   }
   renderAll();
   debouncePush();
 }
 
 function tapScore(t, i) {
-  const cur = getScore(t, i, currentHole);
-  const val = prompt(`${TEAMS[t].players[i].name} — Hole ${HOLE_LABELS[currentHole]} gross score:`, cur || '');
-  if (val === null) return;
-  const n = parseInt(val);
-  if (isNaN(n) || n < 1) return;
-  const k = playerKey(t, i);
+  _numpadT = t; _numpadI = i; _numpadVal = '';
+  const colors = ['#60a5fa', '#4ade80'];
+  document.getElementById('numpad-title').textContent =
+    `${TEAMS[t].players[i].name} — Hole ${HOLE_LABELS[currentHole]}`;
+  document.getElementById('numpad-title').style.color = colors[t] || '#c8a84b';
+  numpadRefresh();
+  document.getElementById('numpad-overlay').classList.add('open');
+}
+
+// ── NUMPAD ────────────────────────────────────────────────────────────────────
+let _numpadT = null, _numpadI = null, _numpadVal = '';
+
+function numpadRefresh() {
+  const disp = document.getElementById('numpad-display');
+  if (_numpadVal === 'P') {
+    disp.textContent = 'P (pick up)'; disp.style.color = '#c8a84b';
+  } else if (_numpadVal === '') {
+    const existing = _numpadT !== null ? getScore(_numpadT, _numpadI, currentHole) : null;
+    disp.textContent = existing === -1 ? 'P (pick up)' : existing !== null ? existing : '—';
+    disp.style.color = '#555';
+  } else {
+    disp.textContent = _numpadVal; disp.style.color = '#fff';
+  }
+}
+
+function numpadP() { _numpadVal = 'P'; numpadRefresh(); }
+
+function numpadDigit(d) {
+  if (_numpadVal === 'P') _numpadVal = '';
+  const next = _numpadVal + d;
+  if (parseInt(next) > 20) return;
+  _numpadVal = next;
+  numpadRefresh();
+}
+
+function numpadDel() {
+  _numpadVal = _numpadVal.slice(0, -1);
+  numpadRefresh();
+}
+
+function numpadClear() {
+  _numpadVal = '';
+  // Also clear the stored score
+  if (_numpadT !== null) {
+    const k = playerKey(_numpadT, _numpadI);
+    if (!scores[k]) scores[k] = {};
+    scores[k][currentHole] = null;
+  }
+  numpadRefresh();
+}
+
+function numpadOK() {
+  if (_numpadT === null) return;
+  const k = playerKey(_numpadT, _numpadI);
   if (!scores[k]) scores[k] = {};
-  scores[k][currentHole] = n;
+  if (_numpadVal === 'P') {
+    scores[k][currentHole] = -1; // pickup sentinel = 0 stableford
+  } else {
+    const n = parseInt(_numpadVal);
+    if (_numpadVal !== '' && n >= 1 && n <= 20) {
+      scores[k][currentHole] = n;
+    }
+  }
   renderAll();
   debouncePush();
+  numpadCancel();
+}
+
+function numpadClose(e) {
+  if (e.target === document.getElementById('numpad-overlay')) numpadCancel();
+}
+function numpadCancel() {
+  document.getElementById('numpad-overlay').classList.remove('open');
+  _numpadT = null; _numpadI = null; _numpadVal = '';
+}
+
+// ── TEAM NAME EDIT ────────────────────────────────────────────────────────────
+let _editTeamIdx = null;
+
+function editTeamName(t) {
+  _editTeamIdx = t;
+  const colors = ['#60a5fa', '#4ade80'];
+  const el = document.getElementById('team-name-edit-title');
+  el.textContent = `Edit ${t === 0 ? 'Blue' : 'Green'} Team Name`;
+  el.style.color = colors[t];
+  const inp = document.getElementById('team-name-input');
+  inp.value = TEAMS[t].name;
+  inp.style.borderColor = colors[t];
+  document.getElementById('team-name-overlay').classList.add('open');
+  setTimeout(() => inp.focus(), 200);
+}
+
+function teamNameSave() {
+  if (_editTeamIdx === null) return;
+  const val = document.getElementById('team-name-input').value.trim();
+  if (val) {
+    TEAMS[_editTeamIdx].name = val;
+    try { localStorage.setItem('ac_setup', JSON.stringify({ teams: TEAMS, pin: ADMIN_PIN })); } catch(e) {}
+    renderAll();
+    debouncePush();
+  }
+  teamNameClose();
+}
+
+function teamNameClose(e) {
+  if (e && e.target !== document.getElementById('team-name-overlay')) return;
+  document.getElementById('team-name-overlay').classList.remove('open');
+  _editTeamIdx = null;
 }
 
 // ── TEAM AVG ─────────────────────────────────────────────────────────────────
@@ -920,7 +1108,7 @@ function renderTeams() {
 
     block.innerHTML = `
       <div class="team-block-header ${t===0?'t1':'t2'}">
-        <span class="team-block-name">${team.name} <span style="font-size:12px;font-weight:500;opacity:0.7;">· Hole ${HOLE_LABELS[h]} (Par ${par})</span></span>
+        <span class="team-block-name" onclick="editTeamName(${t})">${team.name} <span style="font-size:11px;font-weight:400;opacity:0.6;">✎</span> <span style="font-size:12px;font-weight:500;opacity:0.7;">· Hole ${HOLE_LABELS[h]} (Par ${par})</span></span>
         <span class="team-block-avg">Avg: ${avgStr}</span>
       </div>
     `;
@@ -946,7 +1134,7 @@ function renderTeams() {
         </div>
         <div class="stepper">
           <button class="stepper-btn minus" onclick="changeScore(${t},${i},-1)">−</button>
-          <div class="stepper-val ${gross?'entered':''}" onclick="tapScore(${t},${i})">${gross || '—'}</div>
+          <div class="stepper-val ${gross!=null?'entered':''}" onclick="tapScore(${t},${i})">${gross===-1?'P':gross||'—'}</div>
           <button class="stepper-btn plus" onclick="changeScore(${t},${i},1)">+</button>
         </div>
       `;
@@ -1070,5 +1258,41 @@ function initApp() {
 loadSetup();
 initApp();
 </script>
+
+<!-- Numpad Modal -->
+<div class="numpad-overlay" id="numpad-overlay" onclick="numpadClose(event)">
+  <div class="numpad-sheet" onclick="event.stopPropagation()">
+    <div class="numpad-title" id="numpad-title">Enter score</div>
+    <div class="numpad-display" id="numpad-display">—</div>
+    <div class="numpad-grid">
+      <button class="numpad-btn" onclick="numpadDigit(1)">1</button>
+      <button class="numpad-btn" onclick="numpadDigit(2)">2</button>
+      <button class="numpad-btn" onclick="numpadDigit(3)">3</button>
+      <button class="numpad-btn" onclick="numpadDigit(4)">4</button>
+      <button class="numpad-btn" onclick="numpadDigit(5)">5</button>
+      <button class="numpad-btn" onclick="numpadDigit(6)">6</button>
+      <button class="numpad-btn" onclick="numpadDigit(7)">7</button>
+      <button class="numpad-btn" onclick="numpadDigit(8)">8</button>
+      <button class="numpad-btn" onclick="numpadDigit(9)">9</button>
+      <button class="numpad-btn numpad-p" onclick="numpadP()">P</button>
+      <button class="numpad-btn numpad-del" onclick="numpadDel()">⌫</button>
+      <button class="numpad-btn numpad-ok" onclick="numpadOK()">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- Team Name Edit Modal -->
+<div class="team-name-edit-overlay" id="team-name-overlay" onclick="teamNameClose(event)">
+  <div class="team-name-edit-sheet" onclick="event.stopPropagation()">
+    <div class="team-name-edit-title" id="team-name-edit-title">Edit Team Name</div>
+    <input class="team-name-input" id="team-name-input" type="text" maxlength="20"
+      onkeydown="if(event.key==='Enter')teamNameSave()">
+    <div class="team-name-btns">
+      <button class="team-name-save" onclick="teamNameSave()">Save</button>
+      <button class="team-name-cancel" onclick="teamNameClose()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
