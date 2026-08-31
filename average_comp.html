@@ -918,10 +918,10 @@ let _numpadT = null, _numpadI = null, _numpadVal = '';
 function numpadRefresh() {
   const disp = document.getElementById('numpad-display');
   if (_numpadVal === 'P') {
-    disp.textContent = 'P (pick up)'; disp.style.color = '#c8a84b';
+    disp.textContent = 'P (😂)'; disp.style.color = '#c8a84b';
   } else if (_numpadVal === '') {
     const existing = _numpadT !== null ? getScore(_numpadT, _numpadI, currentHole) : null;
-    disp.textContent = existing === -1 ? 'P (pick up)' : existing !== null ? existing : '—';
+    disp.textContent = existing === -1 ? 'P (😂)' : existing !== null ? existing : '—';
     disp.style.color = '#555';
   } else {
     disp.textContent = _numpadVal; disp.style.color = '#fff';
