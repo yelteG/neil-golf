@@ -1375,10 +1375,18 @@ function updateRow(h) {
   const hcps = [0,1,2].map(getHcp);
   const allStrokes = [0,1,2].map(p => computeAllStrokes(hcps[p], HOLES));
   const stabs = [0,1,2].map(p => {
+    const gross = grossScores[h][p];
     const strokes = allStrokes[p][h];
-    const net = grossScores[h][p] !== null ? grossScores[h][p] - strokes : null;
+    // Sync desktop input
+    const inp = document.getElementById(`g${h}_${p}`);
+    if (inp) {
+      if (gross === -1) { inp.value = ''; inp.placeholder = 'P'; }
+      else if (gross !== null) { inp.value = gross; inp.placeholder = '—'; }
+      else { inp.value = ''; inp.placeholder = '—'; }
+    }
+    const net = (gross !== null && gross !== -1) ? gross - strokes : null;
     document.getElementById(`net${h}_${p}`).textContent = net !== null ? net : '—';
-    const stab = stablefordPts(grossScores[h][p], par, strokes);
+    const stab = stablefordPts(gross, par, strokes);
     const sl = stabLabel(stab);
     const stabEl = document.getElementById(`stab${h}_${p}`);
     stabEl.textContent = sl.text;
@@ -1457,11 +1465,12 @@ function mobStep(h, p, delta) {
 
 
 // ── NUMPAD ────────────────────────────────────────────────────────────────────
-let _numpadH = null, _numpadP = null, _numpadVal = null;
+let _numpadH = null, _numpadP = null, _numpadVal = null, _numpadFresh = true;
 
 function mobTap(h, p) {
   _numpadH = h; _numpadP = p;
   _numpadVal = ''; // always start fresh — first digit replaces existing score
+  _numpadFresh = true; // next digit typed is the first one
   const colors = ['#60a5fa','#4ade80','#f87171'];
   document.getElementById('numpad-title').textContent =
     `Hole ${HOLE_LABELS[h]} — ${getName(p)}`;
@@ -1483,18 +1492,25 @@ function numpadRefresh() {
 }
 
 function numpadDigit(d) {
-  if (_numpadVal === 'P') _numpadVal = '';
-  const next = _numpadVal + d;
-  if (parseInt(next) > 20) return; // cap at 20
-  _numpadVal = next;
+  if (_numpadVal === 'P') { _numpadVal = ''; _numpadFresh = false; }
+  if (_numpadFresh) {
+    // First digit replaces whatever was there
+    _numpadVal = String(d);
+    _numpadFresh = false;
+  } else {
+    const next = _numpadVal + d;
+    if (parseInt(next) > 20) return; // cap at 20
+    _numpadVal = next;
+  }
   numpadRefresh();
 }
 
-function numpadP() { _numpadVal = 'P'; numpadRefresh(); }
+function numpadP() { _numpadVal = 'P'; _numpadFresh = false; numpadRefresh(); }
 
 function numpadDel() {
   if (_numpadVal === 'P') _numpadVal = '';
   else _numpadVal = _numpadVal.slice(0, -1);
+  _numpadFresh = false;
   numpadRefresh();
 }
 
@@ -1522,7 +1538,7 @@ function numpadOK() {
 function numpadClose(e) { if (e.target === document.getElementById('numpad-overlay')) numpadCancel(); }
 function numpadCancel() {
   document.getElementById('numpad-overlay').classList.remove('open');
-  _numpadH = null; _numpadP = null; _numpadVal = null;
+  _numpadH = null; _numpadP = null; _numpadVal = null; _numpadFresh = true;
 }
 
 
