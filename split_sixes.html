@@ -1492,15 +1492,14 @@ function numpadRefresh() {
 }
 
 function numpadDigit(d) {
-  if (_numpadVal === 'P') { _numpadVal = ''; _numpadFresh = false; }
-  if (_numpadFresh) {
-    // First digit replaces whatever was there
-    _numpadVal = String(d);
-    _numpadFresh = false;
-  } else {
+  if (_numpadVal === 'P') _numpadVal = '';
+  // Single digit always replaces; only append if user tapped 1 first (for 10-20)
+  if (_numpadVal === '1' && d >= 0 && d <= 9) {
     const next = _numpadVal + d;
-    if (parseInt(next) > 20) return; // cap at 20
-    _numpadVal = next;
+    if (parseInt(next) <= 20) { _numpadVal = next; }
+    else { _numpadVal = String(d); }
+  } else {
+    _numpadVal = String(d); // always replace
   }
   numpadRefresh();
 }
