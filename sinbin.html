@@ -126,6 +126,7 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
     <button class="tab active" onclick="showTab('leaderboard',this)">Leaderboard</button>
     <button class="tab" onclick="showTab('charts',this)">Charts</button>
     <button class="tab" onclick="showTab('fun',this)">Stats &amp; records</button>
+    <button class="tab" onclick="showTab('rounds-list',this)">Rounds</button>
   </div>
 
   <div id="leaderboard" class="view active">
@@ -178,6 +179,23 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
           </tr>
         </thead>
         <tbody id="summary-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="rounds-list" class="view">
+    <div class="section-label">All rounds — newest to oldest</div>
+    <div class="chart-card" style="padding:0;overflow:hidden;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border);">
+            <th style="text-align:left;padding:10px 20px;font-weight:600;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Date</th>
+            <th style="text-align:left;padding:10px 8px;font-weight:600;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Player</th>
+            <th style="text-align:center;padding:10px 8px;font-weight:600;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Score</th>
+            <th style="text-align:right;padding:10px 20px;font-weight:600;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;">Penalty</th>
+          </tr>
+        </thead>
+        <tbody id="rounds-list-body"></tbody>
       </table>
     </div>
   </div>
@@ -265,6 +283,17 @@ async function loadData() {
       lastPlayed: r.c[3]?.f || r.c[3]?.v || '',
     }));
 
+  // --- All rounds for the Rounds tab (no score filter, sorted newest first) ---
+  const allRounds = rows
+    .filter(r => r.c[0]?.v && r.c[1]?.v)
+    .map(r => ({
+      dateStr:  r.c[0]?.f || String(r.c[0]?.v || ''),
+      player:   String(r.c[1]?.v || '').trim(),
+      score:    r.c[4]?.v != null ? Number(r.c[4]?.v) : null,
+      penaltyRaw: r.c[7]?.f || (r.c[7]?.v != null ? String(r.c[7]?.v) : null),
+    }))
+    .sort((a, b) => (parseDateStr(b.dateStr) || 0) - (parseDateStr(a.dateStr) || 0));
+
   // --- Per-player stats from round data ---
   const today = new Date();
   const stats = {};
@@ -301,11 +330,49 @@ async function loadData() {
   const totalRounds  = rounds.length;
   const totalSins    = Object.values(stats).reduce((a,p) => a + p.sins, 0);
 
-  return { rounds, stats, summary, sinJarTotal, proposedTotal, totalRounds, totalSins };
+  return { rounds, allRounds, stats, summary, sinJarTotal, proposedTotal, totalRounds, totalSins };
+}
+
+function formatDisplayDate(dateStr) {
+  const d = parseDateStr(dateStr);
+  if (!d || isNaN(d)) return dateStr;
+  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function renderRoundsTab(allRounds) {
+  const tbody = document.getElementById('rounds-list-body');
+  if (!allRounds.length) {
+    tbody.innerHTML = `<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--text-faint);">No rounds found</td></tr>`;
+    return;
+  }
+  let lastDate = null;
+  tbody.innerHTML = allRounds.map((r, i) => {
+    const isNewDate = r.dateStr !== lastDate;
+    lastDate = r.dateStr;
+    const rowBg = i % 2 === 0 ? '' : 'background:rgba(0,0,0,0.018);';
+    const cfg = PLAYER_CONFIG[r.player];
+    const initHtml = cfg
+      ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:9px;font-weight:600;font-family:var(--mono);background:${cfg.bg};color:${cfg.col};margin-right:6px;">${cfg.init}</span>`
+      : '';
+    const scoreHtml = r.score !== null && r.score > 0
+      ? `<span class="pill ${r.score < 30 ? 'pill-red' : 'pill-green'}">${r.score}</span>`
+      : `<span style="color:var(--text-faint);">—</span>`;
+    const pen = r.penaltyRaw;
+    const penNum = pen ? parseFloat(String(pen).replace(/[$,\s]/g,'')) : 0;
+    const penHtml = pen && penNum !== 0
+      ? `<span style="color:${penNum < 0 ? 'var(--green)' : 'var(--red)'}; font-family:var(--mono); font-weight:600;">${pen.startsWith('$') || pen.startsWith('-') ? pen : '$'+pen}</span>`
+      : `<span style="color:var(--text-faint);">—</span>`;
+    return `<tr style="border-bottom:1px solid var(--border);${rowBg}">
+      <td style="padding:10px 20px;color:var(--text-muted);white-space:nowrap;">${isNewDate ? formatDisplayDate(r.dateStr) : ''}</td>
+      <td style="padding:10px 8px;">${initHtml}${r.player}</td>
+      <td style="padding:10px 8px;text-align:center;">${scoreHtml}</td>
+      <td style="padding:10px 20px;text-align:right;">${penHtml}</td>
+    </tr>`;
+  }).join('');
 }
 
 function renderApp(data) {
-  const { stats, summary, sinJarTotal, proposedTotal, totalRounds, totalSins } = data;
+  const { stats, summary, sinJarTotal, proposedTotal, totalRounds, totalSins, allRounds } = data;
 
   // Build merged player list from summary (it has all 10 players)
   const players = Object.entries(summary)
@@ -415,6 +482,9 @@ function renderApp(data) {
   // --- Footer ---
   document.getElementById('footer').textContent =
     `Riversdale Golf Club · Sin Bin 2026 · ${players.length} players · ${totalRounds} rounds · Live from Google Sheets`;
+
+  // --- Rounds tab ---
+  renderRoundsTab(allRounds);
 
   // --- Charts ---
   document.getElementById('rounds-chart-sub').textContent =
