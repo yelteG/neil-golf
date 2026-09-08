@@ -354,7 +354,7 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
           <div id="scorecard-total-score" class="value">—</div>
         </div>
         <div class="scorecard-chip">
-          <div class="label">Gross diff</div>
+          <div class="label">Gross</div>
           <div id="scorecard-gross-diff" class="value">—</div>
         </div>
         <div class="scorecard-chip">
@@ -723,6 +723,7 @@ function openScorecard(row) {
   const headerPlayer = row && row.Player ? row.Player : 'Neil Hua';
   const headerScore = row && row._score ? row._score : '';
   const headerDiff = row && row['Gross Diff'] ? row['Gross Diff'] : '—';
+  let estGross = null;
   const key = candidateKeys[0] || getDetailRoundKey(row);
   const overlay = document.getElementById('scorecard-overlay');
   const body = document.getElementById('scorecard-body');
@@ -807,6 +808,10 @@ function openScorecard(row) {
     const back  = rowsForRound.filter(r => Number(r.Hole) >= 10 && Number(r.Hole) <= 18);
     const totalGross = rowsForRound.reduce((s,r) => s + (Number(r.Score)||0), 0);
     const totalPar   = rowsForRound.reduce((s,r) => s + (Number(r.Par)||0), 0);
+    const hcpVal  = Number(row && row['Daily Hcp'] || 0);
+    const sfVal   = Number(headerScore) || 0;
+    const parVal  = totalPar > 0 ? totalPar : 72;
+    estGross = sfVal > 0 ? parVal + hcpVal + 36 - sfVal : null;
 
     body.innerHTML = `
       <div class="sc-legend">
@@ -818,7 +823,7 @@ function openScorecard(row) {
       </div>
       ${buildNine(front, 'Front 9')}
       ${buildNine(back,  'Back 9')}
-      <div class="sc-totals">
+      <div class="sc-totals" style="grid-template-columns:1fr 1fr 1fr;">
         <div class="sc-total-item">
           <div class="sc-total-label">Total gross</div>
           <div class="sc-total-value">${totalGross||'—'} <span style="font-size:14px;color:var(--text-muted);font-family:var(--font)">/ ${totalPar}</span></div>
@@ -826,6 +831,10 @@ function openScorecard(row) {
         <div class="sc-total-item">
           <div class="sc-total-label">Stableford</div>
           <div class="sc-total-value" style="color:var(--green)">${total}</div>
+        </div>
+        <div class="sc-total-item">
+          <div class="sc-total-label">Est. gross</div>
+          <div class="sc-total-value">${estGross !== null ? estGross : '—'}</div>
         </div>
       </div>
       <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--text-faint);">Played off ${row&&row.Tee?row.Tee:'—'}</div>
@@ -835,7 +844,7 @@ function openScorecard(row) {
   document.getElementById('scorecard-title').textContent = `${headerCourse || 'Round'} scorecard`;
   document.getElementById('scorecard-sub').textContent = `${headerDate} · ${headerPlayer}`;
   document.getElementById('scorecard-total-score').textContent = headerScore || '—';
-  document.getElementById('scorecard-gross-diff').textContent = headerDiff;
+  document.getElementById('scorecard-gross-diff').textContent = estGross !== null ? estGross : '—';
   document.getElementById('scorecard-hcp').textContent = (row && row['Daily Hcp']) ? row['Daily Hcp'] : '—';
   overlay.classList.add('visible');
 }
