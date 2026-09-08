@@ -132,61 +132,6 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
 .hcp-summary-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:4px;}
 .hcp-summary-value{font-family:var(--font-d);font-size:20px;font-weight:600;}
 
-/* Scorecard modal */
-.round-row{cursor:pointer;transition:background 0.12s ease;}
-.round-row:hover td{background:rgba(61,184,112,0.04);}
-.scorecard-overlay{position:fixed;inset:0;background:rgba(6,10,8,0.82);display:none;align-items:flex-end;justify-content:center;z-index:100;}
-.scorecard-overlay.visible{display:flex;}
-.scorecard-modal{width:100%;max-width:640px;max-height:92vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;box-shadow:0 -12px 60px rgba(0,0,0,0.55);-webkit-overflow-scrolling:touch;}
-@media(min-width:640px){
-  .scorecard-overlay{align-items:center;padding:20px;}
-  .scorecard-modal{border-radius:20px;max-height:88vh;}
-}
-.scorecard-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:2;}
-.scorecard-title{font-family:var(--font-d);font-size:18px;font-weight:600;line-height:1.2;}
-.scorecard-sub{color:var(--text-muted);font-size:12px;margin-top:3px;}
-.close-scorecard{background:var(--card);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:20px;line-height:1;flex-shrink:0;}
-.scorecard-body{padding:14px 14px 24px;}
-.scorecard-chips{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.scorecard-chip{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
-.scorecard-chip .label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:4px;}
-.scorecard-chip .value{font-size:20px;font-weight:700;}
-.scorecard-empty{padding:18px;color:var(--text-muted);font-size:14px;}
-/* MiScore-style table scorecard */
-.sc-nine{margin-bottom:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
-.sc-tbl{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11px;}
-.sc-tbl th{background:#0c1c2e;color:rgba(255,255,255,0.8);padding:8px 1px;text-align:center;font-size:10px;font-weight:600;letter-spacing:0.04em;border-right:1px solid rgba(255,255,255,0.06);}
-.sc-tbl th:last-child{border-right:none;}
-.sc-tbl th.sc-lbl{text-align:left;padding-left:10px;width:52px;}
-.sc-tbl td{padding:6px 1px;text-align:center;border-bottom:1px solid var(--border2);border-right:1px solid var(--border2);color:var(--text);}
-.sc-tbl td:last-child{border-right:none;}
-.sc-tbl td.sc-lbl{text-align:left;padding-left:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);background:rgba(0,0,0,0.15);white-space:nowrap;}
-.sc-tbl td.sc-tot{font-weight:700;background:rgba(255,255,255,0.04);}
-.sc-tbl tr:nth-child(even) td:not(.sc-lbl):not(.sc-tot){background:rgba(255,255,255,0.02);}
-.sc-tbl .sc-pts-row td{color:var(--green);font-weight:600;}
-.sc-tbl .sc-pts-row td.sc-lbl,.sc-tbl .sc-pts-row td.sc-tot{color:var(--green);}
-/* Score markers */
-.sc-mk{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;font-size:11px;font-weight:700;line-height:1;}
-.sc-mk.eagle {border:2.5px solid #47c56b;border-radius:50%;color:#47c56b;}
-.sc-mk.birdie{border:2.5px solid #d4a843;border-radius:50%;}
-.sc-mk.par   {}
-.sc-mk.bogey {border:2px solid #d4a843;border-radius:3px;}
-.sc-mk.double{border:2px solid #e05c5c;border-radius:2px;color:#e05c5c;}
-.sc-mk.pickup{border:2px solid #e05c5c;border-radius:2px;color:#e05c5c;font-size:9px;}
-/* Legend */
-.sc-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-bottom:12px;}
-.sc-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted);}
-.sc-lmk{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;font-size:9px;font-weight:700;flex-shrink:0;}
-.sc-lmk.eagle {border:2px solid #47c56b;border-radius:50%;color:#47c56b;}
-.sc-lmk.birdie{border:2px solid #d4a843;border-radius:50%;}
-.sc-lmk.par   {color:var(--text-muted);}
-.sc-lmk.bogey {border:2px solid #d4a843;border-radius:2px;}
-.sc-lmk.double{border:2px solid #e05c5c;border-radius:1px;color:#e05c5c;}
-/* Totals */
-.sc-totals{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
-.sc-total-item{text-align:center;}
-.sc-total-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:4px;}
-.sc-total-value{font-size:22px;font-weight:700;font-family:var(--font-d);}
 @media(max-width:500px){
   .insight-grid{grid-template-columns:1fr;}
   .container{padding:14px;}
@@ -338,31 +283,6 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
 
 </div><!-- #app -->
 
-<div id="scorecard-overlay" class="scorecard-overlay" aria-live="polite">
-  <div class="scorecard-modal" role="dialog" aria-modal="true" aria-labelledby="scorecard-title">
-    <div class="scorecard-header">
-      <div>
-        <div id="scorecard-title" class="scorecard-title">Round scorecard</div>
-        <div id="scorecard-sub" class="scorecard-sub">—</div>
-      </div>
-      <button class="close-scorecard" type="button" aria-label="Close scorecard" onclick="document.getElementById('scorecard-overlay').classList.remove('visible')">×</button>
-    </div>
-    <div class="scorecard-body">
-      <div class="scorecard-chips">
-        <div class="scorecard-chip">
-          <div class="label">Stableford</div>
-          <div id="scorecard-total-score" class="value">—</div>
-        </div>
-        <div class="scorecard-chip">
-          <div class="label">Gross diff</div>
-          <div id="scorecard-gross-diff" class="value">—</div>
-        </div>
-      </div>
-      <div id="scorecard-body"></div>
-    </div>
-  </div>
-</div>
-
 <footer id="footer"></footer>
 
 <script>
@@ -371,112 +291,9 @@ const TAB_NAME  = 'Neil Rounds';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(TAB_NAME)}`;
 
 let ALL_ROWS = [];
-let SCORED_ROWS = []; // rows with a valid score — used for HCP/stats calculations
 let filteredRows = [];
 let scoreFilter = 'all';
 let allCourseData = [];
-let SCORECARD_BY_ROUND = new Map();
-
-function normalizeRoundKeyValue(value) {
-  return String(value ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
-}
-
-function makeRoundKey(row) {
-  const date = row && row.Date ? String(row.Date) : '';
-  const course = row && row.Course ? String(row.Course).trim() : '';
-  const player = row && row.Player ? String(row.Player).trim() : '';
-  const tee = row && row.Tee ? String(row.Tee).trim() : '';
-  return `${date}|${course}|${player}|${tee}`.toLowerCase();
-}
-
-function addRoundKeyBucket(map, key, obj) {
-  const safeKey = normalizeRoundKeyValue(key);
-  if (!safeKey) return;
-  if (!map.has(safeKey)) map.set(safeKey, []);
-  map.get(safeKey).push(obj);
-}
-
-function getDetailRoundKeys(row) {
-  const entries = [];
-  const values = [
-    row && (row.roundId || row['Round ID']),
-    row && row.Date,
-    row && row.Course,
-    row && row.Player,
-    row && row.Tee,
-    row && row['Player'],
-    row && row['Tee'],
-  ];
-
-  values.forEach(v => {
-    if (v === undefined || v === null || v === '') return;
-    entries.push(String(v).trim());
-  });
-
-  const directKey = row && (row.roundKey || row['roundKey'] || makeRoundKey(row));
-  if (directKey) entries.push(String(directKey));
-
-  const date = row && row.Date ? String(row.Date).trim() : '';
-  const course = row && row.Course ? String(row.Course).trim() : '';
-  const player = row && row.Player ? String(row.Player).trim() : (row && row['Player'] ? String(row['Player']).trim() : 'neil hua');
-  const tee = row && row.Tee ? String(row.Tee).trim() : (row && row['Tee'] ? String(row['Tee']).trim() : '');
-
-  if (date && course) {
-    entries.push(`${date}|${course}`.toLowerCase());
-    entries.push(`${date}|${course}|${player}`.toLowerCase());
-    entries.push(`${date}|${course}|${player}|${tee}`.toLowerCase());
-  }
-
-  return [...new Set(entries.map(v => normalizeRoundKeyValue(v)).filter(Boolean))];
-}
-
-async function loadScorecardData() {
-  const SCORECARD_SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('Round Scores')}`;
-  try {
-    const res = await fetch(SCORECARD_SHEET_URL);
-    const text = await res.text();
-    const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
-    if (!match) return;
-    const json = JSON.parse(match[1]);
-    const cols = json.table.cols.map(c => c.label);
-    const byRound = new Map();
-
-    json.table.rows.forEach(r => {
-      if (!r || !r.c) return;
-      const obj = {};
-      cols.forEach((c, i) => {
-        if (c) obj[c] = r.c[i] ? (r.c[i].f ?? r.c[i].v ?? '') : '';
-      });
-      const roundId = String(obj['Round ID'] || '').trim();
-      const date = String(obj.Date || '').trim();
-      const course = String(obj.Course || '').trim();
-      const player = String(obj.Player || '').trim();
-      const tee = String(obj.Tee || '').trim();
-
-      obj.Hole = parseInt(obj['Hole']) || 0;
-      obj.Par = parseInt(obj['Par']) || 0;
-      obj.Net = parseInt(obj['Net']) || 0;
-      obj.Stableford = parseInt(obj['Stableford']) || 0;
-      obj['Stableford Total'] = parseInt(obj['Stableford Total']) || 0;
-      obj.Score = String(obj['Score'] || '').trim().toUpperCase() === 'P'
-        ? 'P'
-        : (parseInt(obj['Score']) || 0);
-
-      if (roundId) addRoundKeyBucket(byRound, roundId, obj);
-      if (date && course) {
-        addRoundKeyBucket(byRound, `${date}|${course}`.toLowerCase(), obj);
-        addRoundKeyBucket(byRound, `${date}|${course}|${player}`.toLowerCase(), obj);
-        addRoundKeyBucket(byRound, `${date}|${course}|${player}|${tee}`.toLowerCase(), obj);
-      }
-      if (!roundId) addRoundKeyBucket(byRound, makeRoundKey(obj), obj);
-    });
-
-    SCORECARD_BY_ROUND = byRound;
-  } catch (e) {
-    console.warn('Could not load Round Scores sheet:', e);
-    SCORECARD_BY_ROUND = new Map();
-  }
-}
 
 async function loadData() {
   try {
@@ -525,7 +342,7 @@ async function loadData() {
         obj._playedTo = parseFloat(obj['Gross Diff']) || null;
         return obj;
       })
-      .filter(r => r._date && !isNaN(r._date)); // keep all rows with a valid date
+      .filter(r => r._score > 0 && r._date && !isNaN(r._date));
 
     rows.sort((a,b) => a._date - b._date);
     return rows;
@@ -543,9 +360,8 @@ function scoreClass(s) {
 }
 
 function buildStats(rows) {
-  const scoredRows = rows.filter(r => r._score > 0); // exclude tracking-only rows
-  const scores  = scoredRows.map(r => r._score);
-  const hcps    = scoredRows.map(r => r._hcp).filter(Boolean);
+  const scores  = rows.map(r => r._score);
+  const hcps    = rows.map(r => r._hcp).filter(Boolean);
   // Low HCP = min Prior GA Hcp in last 12 months
   const oneYearAgo = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear()-1);
   const priorHcpLast12 = rows
@@ -557,7 +373,7 @@ function buildStats(rows) {
   const trend   = prev5.length ? (last5.reduce((a,b)=>a+b,0)/last5.length - prev5.reduce((a,b)=>a+b,0)/prev5.length).toFixed(1) : 0;
 
   const monthly = {};
-  scoredRows.forEach(r => {
+  rows.forEach(r => {
     const k = r._date.toLocaleDateString('en-AU', {month:'short',year:'numeric'});
     if (!monthly[k]) monthly[k] = [];
     monthly[k].push(r._score);
@@ -567,25 +383,24 @@ function buildStats(rows) {
 
   const courses = {};
   rows.forEach(r => {
-    if (!r.Course) return;
     if (!courses[r.Course]) courses[r.Course] = {scores:[], dates:[]};
-    if (r._score > 0) courses[r.Course].scores.push(r._score);
+    courses[r.Course].scores.push(r._score);
     courses[r.Course].dates.push(r._date);
   });
   const bestCourse = Object.entries(courses).filter(([,v])=>v.scores.length>=3).sort((a,b)=>(b[1].scores.reduce((x,y)=>x+y,0)/b[1].scores.length)-(a[1].scores.reduce((x,y)=>x+y,0)/a[1].scores.length))[0];
 
   const yearly = {};
-  scoredRows.forEach(r => {
+  rows.forEach(r => {
     const yr = r._date.getFullYear();
     if (!yearly[yr]) yearly[yr] = [];
     yearly[yr].push(r._score);
   });
 
   // Best played to
-  const bestPT = scoredRows.filter(r=>r._playedTo).sort((a,b)=>a._playedTo-b._playedTo)[0];
+  const bestPT = rows.filter(r=>r._playedTo).sort((a,b)=>a._playedTo-b._playedTo)[0];
 
   return {
-    total:      scoredRows.length,
+    total:      rows.length,
     avg:        (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1),
     best:       Math.max(...scores),
     worst:      Math.min(...scores),
@@ -616,13 +431,11 @@ function renderHeader(stats, lastUpdated) {
   document.getElementById('header-sub').textContent = `${stats.total} rounds · Last updated ${lastUpdated}`;
 
   const strip = document.getElementById('stats-strip');
-  const softCap = stats.lowHcp ? (parseFloat(stats.lowHcp) + 3.0).toFixed(1) : '—';
-  const hardCap = stats.lowHcp ? (parseFloat(stats.lowHcp) + 5.0).toFixed(1) : '—';
   const items = [
     ['Rounds', stats.total, ''],
     ['Avg score', stats.avg, ''],
-    ['Soft cap', softCap, 'gold'],
-    ['Hard cap', hardCap, 'r'],
+    ['Best', stats.best, 'g'],
+    ['Worst', stats.worst, 'r'],
     ['Last 5 avg', stats.last5avg, ''],
     ['Low HCP', stats.lowHcp, 'gold'],
     ['Great rounds', stats.great, 'g'],
@@ -653,11 +466,11 @@ function renderInsights(stats) {
   const trendText = parseFloat(stats.trend) > 0 ? 'Your recent form is trending upward — keep it going! ▲' : 'Your recent form is trending down — focus on consistency.';
 
   // Dynamically calculate realistic score targets using last round's course params
-  const lastR  = SCORED_ROWS[SCORED_ROWS.length - 1];
+  const lastR  = ALL_ROWS[ALL_ROWS.length - 1];
   const sr10   = parseFloat(lastR['Scratch Rating']) || 72;
   const sl10   = parseFloat(lastR['Slope']) || 131;
   const par10  = 72;
-  const last20for10 = SCORED_ROWS.slice(-20);
+  const last20for10 = ALL_ROWS.slice(-20);
   const diffs10 = last20for10.map(r => parseFloat(r['Gross Diff'])).filter(v => !isNaN(v) && v > 0).sort((a,b)=>a-b);
   const best8diffs10 = diffs10.slice(0, 8);
   const worst8 = best8diffs10[7] || best8diffs10[best8diffs10.length - 1];
@@ -666,21 +479,32 @@ function renderInsights(stats) {
   const calcHcp10 = (sumBest8_10 / 8) * 0.93;
   const dailyHcp10 = Math.round((stats.currentHcp * sl10 / 113 + (sr10 - par10)) * 0.93 * 0.9986);
 
-  // Score to drop HCP by 0.5 and 1.0 — realistic next goals
-  function scoreForDrop(drop) {
-    const target = Math.round((calcHcp10 - drop) * 10) / 10;
-    const needed = (target / 0.93) * 8 - (sumBest8_10 - worst8);
-    return { target: target.toFixed(1), score: Math.ceil(36 + dailyHcp10 + par10 - sr10 - (needed * sl10 / 113)) };
+  // Calculate resulting HCP for a given stableford score
+  function hcpForScore(stableford) {
+    const diff = (36 + dailyHcp10 + par10 - sr10 - stableford) * (113 / sl10);
+    if (diff >= worst8) return null; // doesn't enter best 8
+    const newSum = sumBest8_10 - worst8 + diff;
+    return (Math.round((newSum / 8) * 0.93 * 10) / 10).toFixed(1);
   }
-  const goal1 = scoreForDrop(0.5);
-  const goal2 = scoreForDrop(1.0);
+
+  // Score just needed to enter best 8 at all (replace worst diff)
+  const minScore = Math.ceil(36 + dailyHcp10 + par10 - sr10 - (worst8 - 0.1) * sl10 / 113);
+  // Three realistic tiers: solid, good, great
+  const tier1Score = Math.max(minScore, 34);
+  const tier2Score = tier1Score + 2;
+  const tier3Score = tier1Score + 4;
+  const tier1Hcp = hcpForScore(tier1Score);
+  const tier2Hcp = hcpForScore(tier2Score);
+  const tier3Hcp = hcpForScore(tier3Score);
 
   document.getElementById('hcp10-text').innerHTML =
     `Your current handicap is <strong style="color:var(--gold)">${stats.currentHcp}</strong>. You need to drop <strong style="color:var(--text)">${hcpDiff} strokes</strong> to reach 10.
     Your low handicap over the past year is <strong style="color:var(--green)">${stats.lowHcp}</strong> — so you've been close recently.
     Your average score is <strong style="color:var(--text)">${stats.avg} pts</strong>.<br><br>
-    🎯 <strong style="color:var(--green)">Next goal — HCP ${goal1.target}:</strong> score <strong style="color:var(--green)">${goal1.score}+ pts</strong> in your next round.<br>
-    🏆 <strong style="color:var(--blue)">Bigger goal — HCP ${goal2.target}:</strong> score <strong style="color:var(--blue)">${goal2.score}+ pts</strong> in your next round.<br><br>
+    📌 <strong style="color:var(--text-muted)">Score ${minScore} pts</strong> to enter your best 8 at all — any lower won't move your HCP.<br>
+    🎯 <strong style="color:var(--green)">Score ${tier1Score} pts</strong> → HCP <strong style="color:var(--green)">${tier1Hcp || stats.currentHcp}</strong><br>
+    ⛳ <strong style="color:var(--blue)">Score ${tier2Score} pts</strong> → HCP <strong style="color:var(--blue)">${tier2Hcp || tier1Hcp}</strong><br>
+    🏆 <strong style="color:var(--gold)">Score ${tier3Score} pts</strong> → HCP <strong style="color:var(--gold)">${tier3Hcp || tier2Hcp}</strong><br><br>
     ${trendText}`;
 }
 
@@ -691,138 +515,9 @@ function renderLast5(rows) {
     <tr>
       <td>${r._dateStr}</td>
       <td class="tc">${r.Course}</td>
-      <td>${r._score > 0 ? `<span class="pill ${scoreClass(r._score)}">${r._score}</span>` : '<span style="color:var(--text-faint)">—</span>'}</td>
+      <td><span class="pill ${scoreClass(r._score)}">${r._score}</span></td>
       <td class="hc">${r._playedTo || '—'}</td>
     </tr>`).join('');
-}
-
-function getDetailRoundKey(row) {
-  const candidates = getDetailRoundKeys(row);
-  return candidates[0] || String((row && row.roundKey) || '').trim().toLowerCase();
-}
-
-function getScoreStyle(score) {
-  if (score >= 36) return 'score-good';
-  if (score >= 28) return 'score-avg';
-  return 'score-bad';
-}
-
-function openScorecard(row) {
-  const candidateKeys = getDetailRoundKeys(row);
-  let rowsForRound = [];
-  for (const key of candidateKeys) {
-    rowsForRound = SCORECARD_BY_ROUND.get(key) || [];
-    if (rowsForRound.length) break;
-  }
-  const headerDate = row && row._dateStr ? row._dateStr : (row && row.Date ? row.Date : '');
-  const headerCourse = row && row.Course ? row.Course : '';
-  const headerPlayer = row && row.Player ? row.Player : 'Neil Hua';
-  const headerScore = row && row._score ? row._score : '';
-  const headerDiff = row && row['Gross Diff'] ? row['Gross Diff'] : '—';
-  const key = candidateKeys[0] || getDetailRoundKey(row);
-  const overlay = document.getElementById('scorecard-overlay');
-  const body = document.getElementById('scorecard-body');
-
-  if (!overlay || !body) return;
-
-  if (!rowsForRound.length) {
-    body.innerHTML = `<div class="scorecard-empty">No hole-by-hole data yet for this round.</div>`;
-  } else {
-    rowsForRound.sort((a, b) => (a.Hole || 0) - (b.Hole || 0));
-    const total = Number(rowsForRound[0]?.['Stableford Total']) || Number(headerScore) || rowsForRound.reduce((sum, r) => sum + (Number(r.Stableford) || 0), 0);
-
-    function getScoreClass(score, par) {
-      if (score === 'P') return 'pickup';
-      const s = Number(score);
-      if (!s) return 'par';
-      if (s <= par - 2) return 'eagle';
-      if (s === par - 1) return 'birdie';
-      if (s === par) return 'par';
-      if (s === par + 1) return 'bogey';
-      return 'double';
-    }
-
-    function buildNine(subset, label) {
-      if (!subset.length) return '';
-      const grossTot = subset.reduce((s,r) => s + (Number(r.Score)||0), 0);
-      const parTot   = subset.reduce((s,r) => s + (Number(r.Par)||0), 0);
-      const ptsTot   = subset.reduce((s,r) => s + (Number(r.Stableford)||0), 0);
-      const shotsTot = subset.reduce((s,r) => { const sh=(Number(r.Score)||0)-(Number(r.Net)||0); return s+(sh>0?sh:0); }, 0);
-      const outIn    = label === 'Front 9' ? 'OUT' : 'IN';
-      return `<div class="sc-nine">
-        <table class="sc-tbl">
-          <thead><tr>
-            <th class="sc-lbl">HOLE</th>
-            ${subset.map(r=>`<th>${r.Hole}</th>`).join('')}
-            <th>${outIn}</th>
-          </tr></thead>
-          <tbody>
-            <tr>
-              <td class="sc-lbl">PAR</td>
-              ${subset.map(r=>`<td>${Number(r.Par)||'—'}</td>`).join('')}
-              <td class="sc-tot">${parTot}</td>
-            </tr>
-            <tr>
-              <td class="sc-lbl">STROKES</td>
-              ${subset.map(r=>{
-                const score = (r.Score==='P'||r.Score==='*')?'P':(Number(r.Score)||null);
-                const cls = getScoreClass(score, Number(r.Par)||0);
-                return `<td><span class="sc-mk ${cls}">${score??'—'}</span></td>`;
-              }).join('')}
-              <td class="sc-tot">${grossTot}</td>
-            </tr>
-            <tr>
-              <td class="sc-lbl">SHOTS</td>
-              ${subset.map(r=>{
-                const sh=(Number(r.Score)||0)-(Number(r.Net)||0);
-                return `<td>${sh>0?sh:sh===0?'0':'—'}</td>`;
-              }).join('')}
-              <td class="sc-tot">${shotsTot}</td>
-            </tr>
-            <tr class="sc-pts-row">
-              <td class="sc-lbl">SCORE</td>
-              ${subset.map(r=>`<td>${Number(r.Stableford)||'—'}</td>`).join('')}
-              <td class="sc-tot">${ptsTot}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>`;
-    }
-
-    const front = rowsForRound.filter(r => Number(r.Hole) >= 1  && Number(r.Hole) <= 9);
-    const back  = rowsForRound.filter(r => Number(r.Hole) >= 10 && Number(r.Hole) <= 18);
-    const totalGross = rowsForRound.reduce((s,r) => s + (Number(r.Score)||0), 0);
-    const totalPar   = rowsForRound.reduce((s,r) => s + (Number(r.Par)||0), 0);
-
-    body.innerHTML = `
-      <div class="sc-legend">
-        <div class="sc-legend-item"><span class="sc-lmk eagle">E</span> Eagle+</div>
-        <div class="sc-legend-item"><span class="sc-lmk birdie">B</span> Birdie</div>
-        <div class="sc-legend-item"><span class="sc-lmk par">4</span> Par</div>
-        <div class="sc-legend-item"><span class="sc-lmk bogey">B</span> Bogey</div>
-        <div class="sc-legend-item"><span class="sc-lmk double">D</span> Dbl+</div>
-      </div>
-      ${buildNine(front, 'Front 9')}
-      ${buildNine(back,  'Back 9')}
-      <div class="sc-totals">
-        <div class="sc-total-item">
-          <div class="sc-total-label">Total gross</div>
-          <div class="sc-total-value">${totalGross||'—'} <span style="font-size:14px;color:var(--text-muted);font-family:var(--font)">/ ${totalPar}</span></div>
-        </div>
-        <div class="sc-total-item">
-          <div class="sc-total-label">Stableford</div>
-          <div class="sc-total-value" style="color:var(--green)">${total}</div>
-        </div>
-      </div>
-      <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--text-faint);">Played off ${row&&row.Tee?row.Tee:'—'}</div>
-    `;
-  }
-
-  document.getElementById('scorecard-title').textContent = `${headerCourse || 'Round'} scorecard`;
-  document.getElementById('scorecard-sub').textContent = `${headerDate} · ${headerPlayer}`;
-  document.getElementById('scorecard-total-score').textContent = headerScore || '—';
-  document.getElementById('scorecard-gross-diff').textContent = headerDiff;
-  overlay.classList.add('visible');
 }
 
 function renderRounds(rows) {
@@ -830,37 +525,25 @@ function renderRounds(rows) {
   const tbody = document.getElementById('rounds-body');
   const totalRows = rows.length;
   const display = rows.slice().reverse();
-
-  // The dividing line should fall after the 20th most recent SCORED row
-  // (score-less tracking rows don't count toward the HCP window)
-  let scoredSeen = 0;
-  let boundaryIdx = -1;
-  for (let i = 0; i < display.length; i++) {
-    if (display[i]._score > 0) {
-      scoredSeen++;
-      if (scoredSeen === 20) { boundaryIdx = i; break; }
-    }
-  }
+  // The dividing line: top 20 rounds are the most recent 20
+  const top20cutoff = Math.min(20, display.length);
 
   tbody.innerHTML = display.map((r, i) => {
     const rowNum = totalRows - i;
-    const borderBottom = i === boundaryIdx ? 'border-bottom:3px solid var(--green);' : '';
-    const k = getDetailRoundKey(r);
-    const scoreValue = r._score > 0 ? `<span class="pill ${scoreClass(r._score)}">${r._score}</span>` : '<span style="color:var(--text-faint)">—</span>';
-    return `<tr class="round-row" data-round-key="${k}" style="${borderBottom}">
+    const isTop20 = i < top20cutoff;
+    const isBoundary = i === top20cutoff - 1; // last row of top 20
+    const borderBottom = isBoundary
+      ? 'border-bottom:3px solid var(--green);'
+      : '';
+    return `<tr style="${borderBottom}">
       <td style="color:var(--text-faint);font-size:11px;text-align:center;padding:10px 6px;width:32px;">${rowNum}</td>
       <td style="white-space:nowrap;font-size:12px;">${r._dateStr}</td>
       <td class="tc">${r.Course}</td>
-      <td>${scoreValue}</td>
+      <td><span class="pill ${scoreClass(r._score)}">${r._score}</span></td>
       <td class="hc">${r['Daily Hcp'] || '—'}</td>
       <td class="hc">${r['Gross Diff'] || '—'}</td>
     </tr>`;
   }).join('');
-
-  tbody.querySelectorAll('.round-row').forEach(tr => {
-    tr.addEventListener('click', () => openScorecard({ ...rows.find(row => getDetailRoundKey(row) === tr.dataset.roundKey), roundKey: tr.dataset.roundKey }));
-  });
-
   document.getElementById('rounds-count').textContent = `Showing all ${rows.length} rounds`;
 }
 
@@ -899,12 +582,11 @@ function renderYears(stats) {
 function renderCourses(stats) {
   allCourseData = Object.entries(stats.courses).map(([name, data]) => ({
     name,
-    visits: data.dates.length,                          // all visits including no-score
-    rounds: data.scores.length,                         // scored rounds only
-    avg:    data.scores.length ? (data.scores.reduce((a,b)=>a+b,0)/data.scores.length).toFixed(1) : null,
-    best:   data.scores.length ? Math.max(...data.scores) : null,
-    last:   new Date(Math.max(...data.dates)).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}),
-  })).sort((a,b) => b.visits - a.visits);
+    rounds: data.scores.length,
+    avg: (data.scores.reduce((a,b)=>a+b,0)/data.scores.length).toFixed(1),
+    best: Math.max(...data.scores),
+    last: new Date(Math.max(...data.dates)).toLocaleDateString('en-AU', {day:'numeric',month:'short',year:'numeric'}),
+  })).sort((a,b) => b.rounds - a.rounds);
   renderCoursesTable(allCourseData);
 }
 
@@ -912,9 +594,9 @@ function renderCoursesTable(data) {
   document.getElementById('courses-body').innerHTML = data.map(c => `
     <tr>
       <td style="font-weight:500;">${c.name}</td>
-      <td class="hc">${c.visits}${c.rounds < c.visits ? ` <span style="color:var(--text-faint);font-size:10px;">(${c.rounds} scored)</span>` : ''}</td>
-      <td>${c.avg != null ? `<span class="pill ${scoreClass(Math.round(c.avg))}">${c.avg}</span>` : '<span style="color:var(--text-faint)">—</span>'}</td>
-      <td class="hc">${c.best ?? '—'}</td>
+      <td class="hc">${c.rounds}</td>
+      <td><span class="pill ${scoreClass(Math.round(c.avg))}">${c.avg}</span></td>
+      <td class="hc">${c.best}</td>
       <td class="hc" style="white-space:nowrap;">${c.last}</td>
     </tr>`).join('');
 }
@@ -1005,8 +687,7 @@ function renderHcpTracker(rows) {
   });
   const validDiffs = diffs.filter(d => !d.pending);
   const sorted = [...validDiffs].sort((a,b) => a.diff - b.diff);
-  const threshold = sorted.length >= 8 ? sorted[7].diff : (sorted.length > 0 ? sorted[sorted.length-1].diff : Infinity);
-  const best8idx = new Set(validDiffs.filter(d => d.diff <= threshold).map(d => d.i));
+  const best8idx = new Set(sorted.slice(0, 8).map(d => d.i));
 
   // Summary: best 8 diffs
   const best8diffs = sorted.slice(0,8).map(d => d.diff);
@@ -1105,16 +786,14 @@ function showTab(id, btn) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   btn.classList.add('active');
-  if (id === 'trends' && !window.trendsBuilt) { renderTrends(SCORED_ROWS); window.trendsBuilt = true; }
-  if (id === 'hcptrack' && !window.hcpBuilt) { renderHcpTracker(SCORED_ROWS); window.hcpBuilt = true; }
+  if (id === 'trends' && !window.trendsBuilt) { renderTrends(ALL_ROWS); window.trendsBuilt = true; }
+  if (id === 'hcptrack' && !window.hcpBuilt) { renderHcpTracker(ALL_ROWS); window.hcpBuilt = true; }
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
 (async () => {
   try {
-    ALL_ROWS    = await loadData();
-    SCORED_ROWS = ALL_ROWS.filter(r => r._score > 0);
-    await loadScorecardData();
+    ALL_ROWS = await loadData();
     const stats = buildStats(ALL_ROWS);
     const lastUpdated = ALL_ROWS[ALL_ROWS.length-1]._dateStr;
 
