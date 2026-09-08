@@ -152,37 +152,37 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
 .scorecard-chip .label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:4px;}
 .scorecard-chip .value{font-size:20px;font-weight:700;}
 .scorecard-empty{padding:18px;color:var(--text-muted);font-size:14px;}
-/* Hole card grid */
-.sc-section{margin-bottom:14px;}
-.sc-section-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-faint);margin-bottom:8px;}
-.sc-holes{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
-@media(min-width:480px){.sc-holes{grid-template-columns:repeat(9,1fr);}}
-.sc-hole{background:var(--card2);border:1px solid var(--border2);border-radius:9px;padding:7px 4px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;}
-.sc-hole-num{font-size:9px;font-weight:700;letter-spacing:0.06em;color:var(--text-faint);text-transform:uppercase;}
-.sc-hole-par{font-size:9px;color:var(--text-faint);}
-.sc-score-circle{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;line-height:1;}
-.sc-score-circle.eagle {background:#47c56b;color:#fff;border-radius:50%;}
-.sc-score-circle.birdie{background:#df5a4e;color:#fff;border-radius:50%;}
-.sc-score-circle.par   {background:#3f86ff;color:#fff;border-radius:6px;}
-.sc-score-circle.bogey {background:#1a1a1f;color:#ccc;border-radius:4px;border:1px solid #333;}
-.sc-score-circle.double{background:#e8ede9;color:#111;border-radius:2px;}
-.sc-score-circle.none  {background:var(--card);color:var(--text-faint);border-radius:4px;border:1px solid var(--border);font-size:12px;}
-.sc-pts{font-size:10px;color:var(--text-muted);font-weight:500;}
-/* Summary row */
-.sc-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;}
-.sc-sum-item{background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:7px 6px;text-align:center;}
-.sc-sum-label{font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:2px;}
-.sc-sum-value{font-size:14px;font-weight:700;color:var(--text);}
+/* MiScore-style table scorecard */
+.sc-nine{margin-bottom:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+.sc-tbl{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11px;}
+.sc-tbl th{background:#0c1c2e;color:rgba(255,255,255,0.8);padding:8px 1px;text-align:center;font-size:10px;font-weight:600;letter-spacing:0.04em;border-right:1px solid rgba(255,255,255,0.06);}
+.sc-tbl th:last-child{border-right:none;}
+.sc-tbl th.sc-lbl{text-align:left;padding-left:10px;width:52px;}
+.sc-tbl td{padding:6px 1px;text-align:center;border-bottom:1px solid var(--border2);border-right:1px solid var(--border2);color:var(--text);}
+.sc-tbl td:last-child{border-right:none;}
+.sc-tbl td.sc-lbl{text-align:left;padding-left:10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);background:rgba(0,0,0,0.15);white-space:nowrap;}
+.sc-tbl td.sc-tot{font-weight:700;background:rgba(255,255,255,0.04);}
+.sc-tbl tr:nth-child(even) td:not(.sc-lbl):not(.sc-tot){background:rgba(255,255,255,0.02);}
+.sc-tbl .sc-pts-row td{color:var(--green);font-weight:600;}
+.sc-tbl .sc-pts-row td.sc-lbl,.sc-tbl .sc-pts-row td.sc-tot{color:var(--green);}
+/* Score markers */
+.sc-mk{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;font-size:11px;font-weight:700;line-height:1;}
+.sc-mk.eagle {border:2.5px solid #47c56b;border-radius:50%;color:#47c56b;}
+.sc-mk.birdie{border:2.5px solid #d4a843;border-radius:50%;}
+.sc-mk.par   {}
+.sc-mk.bogey {border:2px solid #d4a843;border-radius:3px;}
+.sc-mk.double{border:2px solid #e05c5c;border-radius:2px;color:#e05c5c;}
+.sc-mk.pickup{border:2px solid #e05c5c;border-radius:2px;color:#e05c5c;font-size:9px;}
 /* Legend */
-.sc-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-bottom:12px;}
-.sc-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted);}
-.sc-legend-dot{width:12px;height:12px;flex-shrink:0;}
-.sc-legend-dot.eagle {background:#47c56b;border-radius:50%;}
-.sc-legend-dot.birdie{background:#df5a4e;border-radius:50%;}
-.sc-legend-dot.par   {background:#3f86ff;border-radius:2px;}
-.sc-legend-dot.bogey {background:#1a1a1f;border-radius:2px;border:1px solid #444;}
-.sc-legend-dot.double{background:#e8ede9;border-radius:1px;}
-/* Total strip */
+.sc-legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-bottom:12px;}
+.sc-legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-muted);}
+.sc-lmk{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;font-size:9px;font-weight:700;flex-shrink:0;}
+.sc-lmk.eagle {border:2px solid #47c56b;border-radius:50%;color:#47c56b;}
+.sc-lmk.birdie{border:2px solid #d4a843;border-radius:50%;}
+.sc-lmk.par   {color:var(--text-muted);}
+.sc-lmk.bogey {border:2px solid #d4a843;border-radius:2px;}
+.sc-lmk.double{border:2px solid #e05c5c;border-radius:1px;color:#e05c5c;}
+/* Totals */
 .sc-totals{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
 .sc-total-item{text-align:center;}
 .sc-total-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:4px;}
@@ -732,75 +732,89 @@ function openScorecard(row) {
     const total = Number(rowsForRound[0]?.['Stableford Total']) || Number(headerScore) || rowsForRound.reduce((sum, r) => sum + (Number(r.Stableford) || 0), 0);
 
     function getScoreClass(score, par) {
-      if (!score || score === 'P') return score === 'P' ? 'par' : 'none';
-      if (score <= par - 2) return 'eagle';
-      if (score === par - 1) return 'birdie';
-      if (score === par) return 'par';
-      if (score === par + 1) return 'bogey';
+      if (score === 'P') return 'pickup';
+      const s = Number(score);
+      if (!s) return 'par';
+      if (s <= par - 2) return 'eagle';
+      if (s === par - 1) return 'birdie';
+      if (s === par) return 'par';
+      if (s === par + 1) return 'bogey';
       return 'double';
     }
 
-    function buildHoleCards(subset) {
-      return subset.map(r => {
-        const score = r.Score === 'P' ? 'P' : (Number(r.Score) || null);
-        const par = Number(r.Par) || 0;
-        const cls = getScoreClass(score, par);
-        const pts = Number(r.Stableford) || 0;
-        return `<div class="sc-hole">
-          <div class="sc-hole-num">H${r.Hole}</div>
-          <div class="sc-score-circle ${cls}">${score ?? '—'}</div>
-          <div class="sc-hole-par">Par ${par || '—'}</div>
-          <div class="sc-pts">${pts > 0 ? pts+'pt' : '—'}</div>
-        </div>`;
-      }).join('');
-    }
-
-    function buildSummary(subset) {
-      const gross = subset.reduce((s, r) => s + (Number(r.Score) || 0), 0);
-      const par   = subset.reduce((s, r) => s + (Number(r.Par) || 0), 0);
-      const pts   = subset.reduce((s, r) => s + (Number(r.Stableford) || 0), 0);
-      const topar = gross - par;
-      return `<div class="sc-summary">
-        <div class="sc-sum-item"><div class="sc-sum-label">Gross</div><div class="sc-sum-value">${gross || '—'}</div></div>
-        <div class="sc-sum-item"><div class="sc-sum-label">To par</div><div class="sc-sum-value" style="color:${topar>0?'var(--red)':topar<0?'var(--green)':'var(--text-muted)'}">${topar>0?'+'+topar:topar||'E'}</div></div>
-        <div class="sc-sum-item"><div class="sc-sum-label">Points</div><div class="sc-sum-value" style="color:var(--green)">${pts || '—'}</div></div>
+    function buildNine(subset, label) {
+      if (!subset.length) return '';
+      const grossTot = subset.reduce((s,r) => s + (Number(r.Score)||0), 0);
+      const parTot   = subset.reduce((s,r) => s + (Number(r.Par)||0), 0);
+      const ptsTot   = subset.reduce((s,r) => s + (Number(r.Stableford)||0), 0);
+      const shotsTot = subset.reduce((s,r) => { const sh=(Number(r.Score)||0)-(Number(r.Net)||0); return s+(sh>0?sh:0); }, 0);
+      const outIn    = label === 'Front 9' ? 'OUT' : 'IN';
+      return `<div class="sc-nine">
+        <table class="sc-tbl">
+          <thead><tr>
+            <th class="sc-lbl">HOLE</th>
+            ${subset.map(r=>`<th>${r.Hole}</th>`).join('')}
+            <th>${outIn}</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td class="sc-lbl">PAR</td>
+              ${subset.map(r=>`<td>${Number(r.Par)||'—'}</td>`).join('')}
+              <td class="sc-tot">${parTot}</td>
+            </tr>
+            <tr>
+              <td class="sc-lbl">STROKES</td>
+              ${subset.map(r=>{
+                const score = r.Score==='P'?'P':(Number(r.Score)||null);
+                const cls = getScoreClass(score, Number(r.Par)||0);
+                return `<td><span class="sc-mk ${cls}">${score??'—'}</span></td>`;
+              }).join('')}
+              <td class="sc-tot">${grossTot}</td>
+            </tr>
+            <tr>
+              <td class="sc-lbl">SHOTS</td>
+              ${subset.map(r=>{
+                const sh=(Number(r.Score)||0)-(Number(r.Net)||0);
+                return `<td>${sh>0?sh:sh===0?'0':'—'}</td>`;
+              }).join('')}
+              <td class="sc-tot">${shotsTot}</td>
+            </tr>
+            <tr class="sc-pts-row">
+              <td class="sc-lbl">SCORE</td>
+              ${subset.map(r=>`<td>${Number(r.Stableford)||'—'}</td>`).join('')}
+              <td class="sc-tot">${ptsTot}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>`;
     }
 
     const front = rowsForRound.filter(r => Number(r.Hole) >= 1  && Number(r.Hole) <= 9);
     const back  = rowsForRound.filter(r => Number(r.Hole) >= 10 && Number(r.Hole) <= 18);
-    const totalGross = rowsForRound.reduce((s, r) => s + (Number(r.Score) || 0), 0);
-    const totalPar   = rowsForRound.reduce((s, r) => s + (Number(r.Par) || 0), 0);
+    const totalGross = rowsForRound.reduce((s,r) => s + (Number(r.Score)||0), 0);
+    const totalPar   = rowsForRound.reduce((s,r) => s + (Number(r.Par)||0), 0);
 
     body.innerHTML = `
       <div class="sc-legend">
-        <div class="sc-legend-item"><div class="sc-legend-dot eagle"></div> Eagle+</div>
-        <div class="sc-legend-item"><div class="sc-legend-dot birdie"></div> Birdie</div>
-        <div class="sc-legend-item"><div class="sc-legend-dot par"></div> Par</div>
-        <div class="sc-legend-item"><div class="sc-legend-dot bogey"></div> Bogey</div>
-        <div class="sc-legend-item"><div class="sc-legend-dot double"></div> Dbl+</div>
+        <div class="sc-legend-item"><span class="sc-lmk eagle">E</span> Eagle+</div>
+        <div class="sc-legend-item"><span class="sc-lmk birdie">B</span> Birdie</div>
+        <div class="sc-legend-item"><span class="sc-lmk par">4</span> Par</div>
+        <div class="sc-legend-item"><span class="sc-lmk bogey">B</span> Bogey</div>
+        <div class="sc-legend-item"><span class="sc-lmk double">D</span> Dbl+</div>
       </div>
-      ${front.length ? `<div class="sc-section">
-        <div class="sc-section-label">Front 9</div>
-        <div class="sc-holes">${buildHoleCards(front)}</div>
-        ${buildSummary(front)}
-      </div>` : ''}
-      ${back.length ? `<div class="sc-section">
-        <div class="sc-section-label">Back 9</div>
-        <div class="sc-holes">${buildHoleCards(back)}</div>
-        ${buildSummary(back)}
-      </div>` : ''}
+      ${buildNine(front, 'Front 9')}
+      ${buildNine(back,  'Back 9')}
       <div class="sc-totals">
         <div class="sc-total-item">
           <div class="sc-total-label">Total gross</div>
-          <div class="sc-total-value">${totalGross || '—'} <span style="font-size:14px;color:var(--text-muted);font-family:var(--font)">/ ${totalPar}</span></div>
+          <div class="sc-total-value">${totalGross||'—'} <span style="font-size:14px;color:var(--text-muted);font-family:var(--font)">/ ${totalPar}</span></div>
         </div>
         <div class="sc-total-item">
           <div class="sc-total-label">Stableford</div>
           <div class="sc-total-value" style="color:var(--green)">${total}</div>
         </div>
       </div>
-      <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text-faint);">Played off ${row && row.Tee ? row.Tee : '—'}</div>
+      <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--text-faint);">Played off ${row&&row.Tee?row.Tee:'—'}</div>
     `;
   }
 
