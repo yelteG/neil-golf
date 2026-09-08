@@ -135,67 +135,63 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
 /* Scorecard modal */
 .round-row{cursor:pointer;transition:background 0.12s ease;}
 .round-row:hover td{background:rgba(61,184,112,0.04);}
-.scorecard-overlay{position:fixed;inset:0;background:rgba(6,10,8,0.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:100;}
+.scorecard-overlay{position:fixed;inset:0;background:rgba(6,10,8,0.82);display:none;align-items:flex-end;justify-content:center;z-index:100;}
 .scorecard-overlay.visible{display:flex;}
-.scorecard-modal{width:min(980px,100%);max-height:88vh;overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,0.45);}
-.scorecard-header{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid var(--border);}
-.scorecard-title{font-family:var(--font-d);font-size:22px;font-weight:600;}
-.scorecard-sub{color:var(--text-muted);font-size:12px;margin-top:4px;}
-.close-scorecard{background:transparent;border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:22px;line-height:1;}
-.scorecard-body{padding:18px 18px 20px;}
-.scorecard-grid{display:grid;grid-template-columns:repeat(2, minmax(0, 1fr));gap:12px;margin-bottom:16px;}
+.scorecard-modal{width:100%;max-width:640px;max-height:92vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:20px 20px 0 0;box-shadow:0 -12px 60px rgba(0,0,0,0.55);-webkit-overflow-scrolling:touch;}
+@media(min-width:640px){
+  .scorecard-overlay{align-items:center;padding:20px;}
+  .scorecard-modal{border-radius:20px;max-height:88vh;}
+}
+.scorecard-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:2;}
+.scorecard-title{font-family:var(--font-d);font-size:18px;font-weight:600;line-height:1.2;}
+.scorecard-sub{color:var(--text-muted);font-size:12px;margin-top:3px;}
+.close-scorecard{background:var(--card);border:1px solid var(--border);color:var(--text);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:20px;line-height:1;flex-shrink:0;}
+.scorecard-body{padding:14px 14px 24px;}
+.scorecard-chips{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
 .scorecard-chip{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
 .scorecard-chip .label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:4px;}
-.scorecard-chip .value{font-size:18px;font-weight:600;}
-.scorecard-table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--card);}
-.scorecard-table{width:100%;border-collapse:collapse;min-width:620px;}
-.scorecard-table th{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);}
-.scorecard-table td{padding:10px 12px;border-bottom:1px solid var(--border2);}
-.scorecard-table tbody tr:last-child td{border-bottom:none;}
-.scorecard-table .score-good{color:#6bcf86;font-weight:600;}
-.scorecard-table .score-bad{color:#1b1d20;font-weight:600;}
-.scorecard-table .score-avg{color:#d7d9d8;font-weight:600;}
+.scorecard-chip .value{font-size:20px;font-weight:700;}
 .scorecard-empty{padding:18px;color:var(--text-muted);font-size:14px;}
-.scorecard-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:8px 0 12px;border-bottom:1px solid var(--border);margin-bottom:8px;} 
-.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-muted);}
-.legend-swatch{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:11px;font-weight:700;line-height:1;border:1px solid transparent;}
-.legend-swatch.eagle{background:#47c56b;color:#fff;border-color:#47c56b;}
-.legend-swatch.birdie{background:#df5a4e;color:#fff;border-color:#df5a4e;}
-.legend-swatch.par{background:#3f86ff;border-radius:4px;color:#fff;border-color:#3f86ff;}
-.legend-swatch.bogey{background:#0d0d0f;border-radius:4px;color:#fff;border-color:#0d0d0f;}
-.legend-swatch.double{background:#f2f6f2;border-radius:4px;color:#111827;border-color:#111827;}
-.scorecard-scoreboard{overflow:auto;border:1px solid var(--border);border-radius:12px;background:#0f1411;}
-.scorecard-scoreboard table{width:100%;border-collapse:collapse;}
-.scorecard-scoreboard th,.scorecard-scoreboard td{padding:10px 12px;border-right:1px solid rgba(255,255,255,0.08);text-align:center;font-size:12px;}
-.scorecard-scoreboard th{color:var(--text-faint);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;padding-top:12px;padding-bottom:12px;background:rgba(255,255,255,0.02);}
-.scorecard-scoreboard td{color:var(--text);background:transparent;}
-.scorecard-scoreboard .gross-row td{padding-top:12px;padding-bottom:12px;}
-.scorecell{display:inline-flex;align-items:center;justify-content:center;width:38px;height:32px;border-radius:6px;font-weight:700;font-size:16px;line-height:1;}
-.scorecell.eagle{background:#47c56b;color:#fff;border:1px solid #47c56b;}
-.scorecell.birdie{background:#df5a4e;color:#fff;border:1px solid #df5a4e;}
-.scorecell.par{background:#3f86ff;color:#fff;border:1px solid #3f86ff;}
-.scorecell.bogey{background:#0d0d0f;color:#fff;border:1px solid #0d0d0f;}
-.scorecell.double{background:#f2f6f2;color:#111827;border:1px solid #111827;}
-.scorecard-scoreboard .dist-row td{color:var(--text-muted);font-size:12px;}
-.scorecard-scoreboard .totals-cell{font-weight:700;color:var(--text);} 
-.scorecard-compact{display:grid;grid-template-columns:1fr;gap:12px;align-items:start;}
-.scorecard-halfboard{border:1px solid var(--border);border-radius:12px;background:#0f1411;overflow:hidden;}
-.scorecard-halfboard table{width:100%;border-collapse:collapse;}
-.scorecard-halfboard th,.scorecard-halfboard td{padding:8px 10px;border-right:1px solid rgba(255,255,255,0.08);text-align:center;font-size:12px;}
-.scorecard-halfboard th{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);background:rgba(255,255,255,0.02);}
-.scorecard-halfboard .half-title{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.08);font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#dfe7e3;background:rgba(255,255,255,0.02);}
-.scorecard-footer{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid var(--border);margin-top:14px;color:var(--text-muted);font-size:12px;}
-.scorecard-footer strong{color:var(--text);}
-@media(max-width:760px){
-  .scorecard-holes{grid-template-columns:repeat(3,minmax(0,1fr));}
-  .hole-card{min-height:94px;}
-}
+/* Hole card grid */
+.sc-section{margin-bottom:14px;}
+.sc-section-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-faint);margin-bottom:8px;}
+.sc-holes{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+@media(min-width:480px){.sc-holes{grid-template-columns:repeat(9,1fr);}}
+.sc-hole{background:var(--card2);border:1px solid var(--border2);border-radius:9px;padding:7px 4px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.sc-hole-num{font-size:9px;font-weight:700;letter-spacing:0.06em;color:var(--text-faint);text-transform:uppercase;}
+.sc-hole-par{font-size:9px;color:var(--text-faint);}
+.sc-score-circle{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;line-height:1;}
+.sc-score-circle.eagle {background:#47c56b;color:#fff;border-radius:50%;}
+.sc-score-circle.birdie{background:#df5a4e;color:#fff;border-radius:50%;}
+.sc-score-circle.par   {background:#3f86ff;color:#fff;border-radius:6px;}
+.sc-score-circle.bogey {background:#1a1a1f;color:#ccc;border-radius:4px;border:1px solid #333;}
+.sc-score-circle.double{background:#e8ede9;color:#111;border-radius:2px;}
+.sc-score-circle.none  {background:var(--card);color:var(--text-faint);border-radius:4px;border:1px solid var(--border);font-size:12px;}
+.sc-pts{font-size:10px;color:var(--text-muted);font-weight:500;}
+/* Summary row */
+.sc-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;}
+.sc-sum-item{background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:8px;padding:7px 6px;text-align:center;}
+.sc-sum-label{font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:2px;}
+.sc-sum-value{font-size:14px;font-weight:700;color:var(--text);}
+/* Legend */
+.sc-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-bottom:12px;}
+.sc-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted);}
+.sc-legend-dot{width:12px;height:12px;flex-shrink:0;}
+.sc-legend-dot.eagle {background:#47c56b;border-radius:50%;}
+.sc-legend-dot.birdie{background:#df5a4e;border-radius:50%;}
+.sc-legend-dot.par   {background:#3f86ff;border-radius:2px;}
+.sc-legend-dot.bogey {background:#1a1a1f;border-radius:2px;border:1px solid #444;}
+.sc-legend-dot.double{background:#e8ede9;border-radius:1px;}
+/* Total strip */
+.sc-totals{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.sc-total-item{text-align:center;}
+.sc-total-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:4px;}
+.sc-total-value{font-size:22px;font-weight:700;font-family:var(--font-d);}
 @media(max-width:500px){
   .insight-grid{grid-template-columns:1fr;}
   .container{padding:14px;}
   .header{padding:12px 14px;}
   .hcp-value{font-size:20px;}
-  .scorecard-grid{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -352,18 +348,14 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
       <button class="close-scorecard" type="button" aria-label="Close scorecard" onclick="document.getElementById('scorecard-overlay').classList.remove('visible')">×</button>
     </div>
     <div class="scorecard-body">
-      <div class="scorecard-grid">
+      <div class="scorecard-chips">
         <div class="scorecard-chip">
-          <div class="label">Total score</div>
+          <div class="label">Stableford</div>
           <div id="scorecard-total-score" class="value">—</div>
         </div>
         <div class="scorecard-chip">
           <div class="label">Gross diff</div>
           <div id="scorecard-gross-diff" class="value">—</div>
-        </div>
-        <div class="scorecard-chip">
-          <div class="label">Round ID</div>
-          <div id="scorecard-round-id" class="value" style="font-size:14px;word-break:break-word;">—</div>
         </div>
       </div>
       <div id="scorecard-body"></div>
@@ -465,7 +457,10 @@ async function loadScorecardData() {
       obj.Par = parseInt(obj['Par']) || 0;
       obj.Net = parseInt(obj['Net']) || 0;
       obj.Stableford = parseInt(obj['Stableford']) || 0;
-      obj.Score = parseInt(obj['Score']) || 0;
+      obj['Stableford Total'] = parseInt(obj['Stableford Total']) || 0;
+      obj.Score = String(obj['Score'] || '').trim().toUpperCase() === 'P'
+        ? 'P'
+        : (parseInt(obj['Score']) || 0);
 
       if (roundId) addRoundKeyBucket(byRound, roundId, obj);
       if (date && course) {
@@ -731,18 +726,13 @@ function openScorecard(row) {
   if (!overlay || !body) return;
 
   if (!rowsForRound.length) {
-    body.innerHTML = `<div class="scorecard-empty">No hole-by-hole data is available for this round yet. Add rows to the Round Scores tab using the Round ID and one row per hole.</div>`;
+    body.innerHTML = `<div class="scorecard-empty">No hole-by-hole data yet for this round.</div>`;
   } else {
     rowsForRound.sort((a, b) => (a.Hole || 0) - (b.Hole || 0));
-    const total = rowsForRound.reduce((sum, item) => sum + (Number(item.Stableford) || 0), 0);
-    const holeNumbers = rowsForRound.map(r => Number(r.Hole) || 0);
-    const grossScores = rowsForRound.map(r => Number(r.Score) || 0);
-    const parScores = rowsForRound.map(r => Number(r.Par) || 0);
-    const distScores = rowsForRound.map(r => Number(r.Dist) || 0);
-    const outTotal = grossScores.slice(0, 9).reduce((sum, v) => sum + v, 0);
-    const inTotal = grossScores.slice(9).reduce((sum, v) => sum + v, 0);
+    const total = Number(rowsForRound[0]?.['Stableford Total']) || Number(headerScore) || rowsForRound.reduce((sum, r) => sum + (Number(r.Stableford) || 0), 0);
 
     function getScoreClass(score, par) {
+      if (!score || score === 'P') return score === 'P' ? 'par' : 'none';
       if (score <= par - 2) return 'eagle';
       if (score === par - 1) return 'birdie';
       if (score === par) return 'par';
@@ -750,81 +740,67 @@ function openScorecard(row) {
       return 'double';
     }
 
-    const legend = `
-      <div class="scorecard-legend">
-        <div class="legend-item"><span class="legend-swatch eagle">0</span> Eagles or better</div>
-        <div class="legend-item"><span class="legend-swatch birdie">2</span> Birdies</div>
-        <div class="legend-item"><span class="legend-swatch par">5</span> Par</div>
-        <div class="legend-item"><span class="legend-swatch bogey">7</span> Bogey</div>
-        <div class="legend-item"><span class="legend-swatch double">9</span> Double Bogey or more</div>
-      </div>
-    `;
+    function buildHoleCards(subset) {
+      return subset.map(r => {
+        const score = r.Score === 'P' ? 'P' : (Number(r.Score) || null);
+        const par = Number(r.Par) || 0;
+        const cls = getScoreClass(score, par);
+        const pts = Number(r.Stableford) || 0;
+        return `<div class="sc-hole">
+          <div class="sc-hole-num">H${r.Hole}</div>
+          <div class="sc-score-circle ${cls}">${score ?? '—'}</div>
+          <div class="sc-hole-par">Par ${par || '—'}</div>
+          <div class="sc-pts">${pts > 0 ? pts+'pt' : '—'}</div>
+        </div>`;
+      }).join('');
+    }
 
-    const cellsHtml = rowsForRound.map(r => {
-      const score = Number(r.Score) || 0;
-      const par = Number(r.Par) || 0;
-      const scoreClass = getScoreClass(score, par);
-      const holeLabel = r.Hole || '';
-      return `
-        <td>
-          <div class="scorecell ${scoreClass}">${score || '—'}</div>
-        </td>
-      `;
-    }).join('');
+    function buildSummary(subset) {
+      const gross = subset.reduce((s, r) => s + (Number(r.Score) || 0), 0);
+      const par   = subset.reduce((s, r) => s + (Number(r.Par) || 0), 0);
+      const pts   = subset.reduce((s, r) => s + (Number(r.Stableford) || 0), 0);
+      const topar = gross - par;
+      return `<div class="sc-summary">
+        <div class="sc-sum-item"><div class="sc-sum-label">Gross</div><div class="sc-sum-value">${gross || '—'}</div></div>
+        <div class="sc-sum-item"><div class="sc-sum-label">To par</div><div class="sc-sum-value" style="color:${topar>0?'var(--red)':topar<0?'var(--green)':'var(--text-muted)'}">${topar>0?'+'+topar:topar||'E'}</div></div>
+        <div class="sc-sum-item"><div class="sc-sum-label">Points</div><div class="sc-sum-value" style="color:var(--green)">${pts || '—'}</div></div>
+      </div>`;
+    }
 
-    const buildHalfBoard = (start, end) => {
-      const subset = rowsForRound.filter(r => Number(r.Hole) >= start && Number(r.Hole) <= end);
-      const totalGross = subset.reduce((sum, r) => sum + (Number(r.Score) || 0), 0);
-      const totalPar = subset.reduce((sum, r) => sum + (Number(r.Par) || 0), 0);
-      const totalStableford = subset.reduce((sum, r) => sum + (Number(r.Stableford) || 0), 0);
-      return `
-        <div class="scorecard-halfboard">
-          <div class="half-title">${start === 1 ? 'Front 9' : 'Back 9'}</div>
-          <table>
-            <thead>
-              <tr>
-                <th>Hole</th>
-                ${subset.map(r => `<th>${Number(r.Hole) || ''}</th>`).join('')}
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="gross-row">
-                <td><strong>Gross</strong></td>
-                ${subset.map(r => {
-                  const score = Number(r.Score) || 0;
-                  const par = Number(r.Par) || 0;
-                  const scoreClass = getScoreClass(score, par);
-                  return `<td><div class="scorecell ${scoreClass}">${score || '—'}</div></td>`;
-                }).join('')}
-              </tr>
-              <tr>
-                <td><strong>Par</strong></td>
-                ${subset.map(r => `<td>${Number(r.Par) || '—'}</td>`).join('')}
-              </tr>
-              <tr class="dist-row">
-                <td><strong>Stableford</strong></td>
-                ${subset.map(r => `<td>${Number(r.Stableford) || '—'}</td>`).join('')}
-              </tr>
-              <tr>
-                <td><strong>Total</strong></td>
-                <td colspan="${subset.length}" style="font-weight:700; text-align:center;">${totalGross} / ${totalPar} / ${totalStableford}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      `;
-    };
+    const front = rowsForRound.filter(r => Number(r.Hole) >= 1  && Number(r.Hole) <= 9);
+    const back  = rowsForRound.filter(r => Number(r.Hole) >= 10 && Number(r.Hole) <= 18);
+    const totalGross = rowsForRound.reduce((s, r) => s + (Number(r.Score) || 0), 0);
+    const totalPar   = rowsForRound.reduce((s, r) => s + (Number(r.Par) || 0), 0);
 
     body.innerHTML = `
-      ${legend}
-      <div class="scorecard-compact">
-        ${buildHalfBoard(1, 9)}
-        ${buildHalfBoard(10, 18)}
+      <div class="sc-legend">
+        <div class="sc-legend-item"><div class="sc-legend-dot eagle"></div> Eagle+</div>
+        <div class="sc-legend-item"><div class="sc-legend-dot birdie"></div> Birdie</div>
+        <div class="sc-legend-item"><div class="sc-legend-dot par"></div> Par</div>
+        <div class="sc-legend-item"><div class="sc-legend-dot bogey"></div> Bogey</div>
+        <div class="sc-legend-item"><div class="sc-legend-dot double"></div> Dbl+</div>
       </div>
-      <div class="scorecard-footer">
-        <span>Stableford total: <strong>${total}</strong></span>
-        <span>Played off ${row && row.Tee ? row.Tee : '—'}</span>
+      ${front.length ? `<div class="sc-section">
+        <div class="sc-section-label">Front 9</div>
+        <div class="sc-holes">${buildHoleCards(front)}</div>
+        ${buildSummary(front)}
+      </div>` : ''}
+      ${back.length ? `<div class="sc-section">
+        <div class="sc-section-label">Back 9</div>
+        <div class="sc-holes">${buildHoleCards(back)}</div>
+        ${buildSummary(back)}
+      </div>` : ''}
+      <div class="sc-totals">
+        <div class="sc-total-item">
+          <div class="sc-total-label">Total gross</div>
+          <div class="sc-total-value">${totalGross || '—'} <span style="font-size:14px;color:var(--text-muted);font-family:var(--font)">/ ${totalPar}</span></div>
+        </div>
+        <div class="sc-total-item">
+          <div class="sc-total-label">Stableford</div>
+          <div class="sc-total-value" style="color:var(--green)">${total}</div>
+        </div>
       </div>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text-faint);">Played off ${row && row.Tee ? row.Tee : '—'}</div>
     `;
   }
 
@@ -832,7 +808,6 @@ function openScorecard(row) {
   document.getElementById('scorecard-sub').textContent = `${headerDate} · ${headerPlayer}`;
   document.getElementById('scorecard-total-score').textContent = headerScore || '—';
   document.getElementById('scorecard-gross-diff').textContent = headerDiff;
-  document.getElementById('scorecard-round-id').textContent = key || '—';
   overlay.classList.add('visible');
 }
 
