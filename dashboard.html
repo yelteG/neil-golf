@@ -765,7 +765,7 @@ function openScorecard(row) {
             <tr>
               <td class="sc-lbl">STROKES</td>
               ${subset.map(r=>{
-                const score = r.Score==='P'?'P':(Number(r.Score)||null);
+                const score = (r.Score==='P'||r.Score==='*')?'P':(Number(r.Score)||null);
                 const cls = getScoreClass(score, Number(r.Par)||0);
                 return `<td><span class="sc-mk ${cls}">${score??'—'}</span></td>`;
               }).join('')}
