@@ -448,8 +448,7 @@ function findSIMap(courseName, tee) {
     const prefixLen = Math.min(minLen, 10);
     const courseMatch = nc.includes(kc) || kc.includes(nc) ||
       (prefixLen >= 6 && nc.substring(0, prefixLen) === kc.substring(0, prefixLen));
-    const teeMatch = !kt || nt.includes(kt) || kt.includes(nt);
-    if (courseMatch && teeMatch) return siMap;
+    if (courseMatch) return siMap;
   }
   return null;
 }
