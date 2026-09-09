@@ -380,6 +380,7 @@ let filteredRows = [];
 let scoreFilter = 'all';
 let allCourseData = [];
 let SCORECARD_BY_ROUND = new Map();
+let COURSE_SI_MAP = new Map(); // key: "normcourse|normtee" → Map<holeNum, {par,si1,si2,si3}>
 
 function normalizeRoundKeyValue(value) {
   return String(value ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -432,6 +433,52 @@ function getDetailRoundKeys(row) {
   }
 
   return [...new Set(entries.map(v => normalizeRoundKeyValue(v)).filter(Boolean))];
+}
+
+function normSIKey(s) {
+  return String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function findSIMap(courseName, tee) {
+  const nc = normSIKey(courseName);
+  const nt = normSIKey(tee);
+  for (const [key, siMap] of COURSE_SI_MAP) {
+    const [kc, kt] = key.split('|');
+    const courseMatch = nc.includes(kc) || kc.includes(nc);
+    const teeMatch = !kt || nt.includes(kt) || kt.includes(nt);
+    if (courseMatch && teeMatch) return siMap;
+  }
+  return null;
+}
+
+async function loadCourseIndex() {
+  try {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('Course Index')}`;
+    const res  = await fetch(url);
+    const text = await res.text();
+    const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+    if (!match) return;
+    const json = JSON.parse(match[1]);
+    const cols = json.table.cols.map(c => c.label);
+    json.table.rows.forEach(r => {
+      if (!r || !r.c) return;
+      const obj = {};
+      cols.forEach((c, i) => { if (c) obj[c] = r.c[i] ? (r.c[i].f ?? r.c[i].v ?? '') : ''; });
+      const course = String(obj.Course || '').trim();
+      const tee    = String(obj.Tee || '').trim();
+      const hole   = parseInt(obj.Hole) || 0;
+      const par    = parseInt(obj.Par)  || 0;
+      const siStr  = String(obj.SI || '').trim();
+      if (!course || !hole || !siStr) return;
+      const parts = siStr.split('/').map(Number);
+      const si1 = parts[0] || 999, si2 = parts[1] || 999, si3 = parts[2] || 999;
+      const key = normSIKey(course) + '|' + normSIKey(tee);
+      if (!COURSE_SI_MAP.has(key)) COURSE_SI_MAP.set(key, new Map());
+      COURSE_SI_MAP.get(key).set(hole, {par, si1, si2, si3});
+    });
+  } catch(e) {
+    console.warn('Could not load Course Index:', e);
+  }
 }
 
 async function loadScorecardData() {
@@ -747,21 +794,33 @@ function openScorecard(row) {
       return 'double';
     }
 
-    function buildNine(subset, label) {
+    function buildNine(subset, label, siMap, hcp) {
       if (!subset.length) return '';
-      const grossTot = subset.reduce((s,r) => s + (Number(r.Score)||0), 0);
+      const grossTot = subset.reduce((s,r) => s + (r.Score==='P'?0:(Number(r.Score)||0)), 0);
       const parTot   = subset.reduce((s,r) => s + (Number(r.Par)||0), 0);
-      // Shots (handicap strokes received per hole) = gross - net, only when net is populated
+      // Shots per hole: use Course Index SI if available, else fallback to Net from sheet
       const holeShots = subset.map(r => {
+        const isPickup = r.Score === 'P' || r.Score === '*';
+        if (siMap) {
+          const si = siMap.get(Number(r.Hole));
+          if (si) {
+            const h = Number(hcp) || 0;
+            return (h >= si.si1 ? 1 : 0) + (h >= si.si2 ? 1 : 0) + (h >= si.si3 ? 1 : 0);
+          }
+        }
+        if (isPickup) return null;
         const net = Number(r.Net);
         return net > 0 ? Math.max(0, (Number(r.Score)||0) - net) : null;
       });
       const shotsTot = holeShots.reduce((s,v) => s + (v !== null ? v : 0), 0);
       const shotsAny = holeShots.some(v => v !== null);
-      // Stableford per hole: use stored value if present, else calculate from net
+      // Stableford per hole: stored value → SI calculation → Net calculation → null
       const holePts = subset.map((r,i) => {
         if (Number(r.Stableford) > 0) return Number(r.Stableford);
-        if (holeShots[i] !== null) return Math.max(0, 2 + (Number(r.Par)||0) - (Number(r.Score)||0) + holeShots[i]);
+        const isPickup = r.Score === 'P' || r.Score === '*';
+        if (isPickup) return 0;
+        const shots = holeShots[i];
+        if (shots !== null) return Math.max(0, 2 + (Number(r.Par)||0) - (Number(r.Score)||0) + shots);
         return null;
       });
       const ptsTot = holePts.reduce((s,v) => s + (v !== null ? v : 0), 0);
@@ -806,9 +865,10 @@ function openScorecard(row) {
 
     const front = rowsForRound.filter(r => Number(r.Hole) >= 1  && Number(r.Hole) <= 9);
     const back  = rowsForRound.filter(r => Number(r.Hole) >= 10 && Number(r.Hole) <= 18);
-    const totalGross = rowsForRound.reduce((s,r) => s + (Number(r.Score)||0), 0);
+    const totalGross = rowsForRound.reduce((s,r) => s + (r.Score==='P'?0:(Number(r.Score)||0)), 0);
     const totalPar   = rowsForRound.reduce((s,r) => s + (Number(r.Par)||0), 0);
     const hcpVal  = Number(row && row['Daily Hcp'] || 0);
+    const siMap   = findSIMap(headerCourse, row && row.Tee ? row.Tee : '');
     const sfVal   = Number(headerScore) || 0;
     const parVal  = totalPar > 0 ? totalPar : 72;
     estGross = sfVal > 0 ? parVal + hcpVal + 36 - sfVal : null;
@@ -821,8 +881,8 @@ function openScorecard(row) {
         <div class="sc-legend-item"><span class="sc-lmk bogey">B</span> Bogey</div>
         <div class="sc-legend-item"><span class="sc-lmk double">D</span> Dbl+</div>
       </div>
-      ${buildNine(front, 'Front 9')}
-      ${buildNine(back,  'Back 9')}
+      ${buildNine(front, 'Front 9', siMap, hcpVal)}
+      ${buildNine(back,  'Back 9',  siMap, hcpVal)}
       <div class="sc-totals" style="grid-template-columns:1fr 1fr 1fr;">
         <div class="sc-total-item">
           <div class="sc-total-label">Total gross</div>
@@ -1138,7 +1198,7 @@ function showTab(id, btn) {
   try {
     ALL_ROWS    = await loadData();
     SCORED_ROWS = ALL_ROWS.filter(r => r._score > 0);
-    await loadScorecardData();
+    await Promise.all([loadScorecardData(), loadCourseIndex()]);
     const stats = buildStats(ALL_ROWS);
     const lastUpdated = ALL_ROWS[ALL_ROWS.length-1]._dateStr;
 
