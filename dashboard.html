@@ -193,27 +193,6 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
   .header{padding:12px 14px;}
   .hcp-value{font-size:20px;}
 
-  /* Rounds table → card rows */
-  #rounds-tbl{display:block;}
-  #rounds-tbl thead{display:none;}
-  #rounds-tbl tbody{display:block;}
-  #rounds-tbl tr.round-row{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:10px 14px;gap:10px;
-  }
-  #rounds-tbl tr.round-row td{padding:0;border:none;}
-  #rounds-tbl tr.round-row td:nth-child(1){display:none;}
-  #rounds-tbl tr.round-row td:nth-child(2){
-    font-size:11px;color:var(--text-faint);white-space:nowrap;flex-shrink:0;
-  }
-  #rounds-tbl tr.round-row td:nth-child(3){
-    flex:1;min-width:0;white-space:normal;max-width:none;
-    font-size:12px;color:var(--text-muted);
-  }
-  #rounds-tbl tr.round-row td:nth-child(4){flex-shrink:0;}
-  #rounds-tbl tr.round-row td:nth-child(5){display:none;}
-  #rounds-tbl tr.round-row td:nth-child(6){display:none;}
-  #rounds-tbl tr.round-row:not(:last-child){border-bottom:1px solid var(--border2);}
 }
 </style>
 </head>
@@ -280,10 +259,12 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
       <button class="filter-btn" onclick="setScoreFilter('bad',this)">Under 28</button>
     </div>
     <div class="card" style="padding:0;overflow:hidden;">
-      <table class="tbl" id="rounds-tbl">
-        <thead><tr><th style="width:32px;text-align:center;">#</th><th>Date</th><th>Course</th><th>Score</th><th>Daily HCP</th><th>Gross Diff</th></tr></thead>
-        <tbody id="rounds-body"></tbody>
-      </table>
+      <div style="overflow-x:auto;">
+        <table class="tbl" id="rounds-tbl" style="min-width:480px;">
+          <thead><tr><th style="width:32px;text-align:center;">#</th><th>Date</th><th>Course</th><th>Score</th><th>Daily HCP</th><th>Gross Diff</th></tr></thead>
+          <tbody id="rounds-body"></tbody>
+        </table>
+      </div>
     </div>
     <div id="rounds-count" style="text-align:center;padding:12px;font-size:12px;color:var(--text-faint);"></div>
   </div>
