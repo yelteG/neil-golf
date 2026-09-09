@@ -819,7 +819,7 @@ function openScorecard(row) {
       // Stableford per hole: stored value → SI calculation → Net calculation → null
       const holePts = subset.map((r,i) => {
         if (Number(r.Stableford) > 0) return Number(r.Stableford);
-        const isPickup = r.Score === 'P' || r.Score === '*';
+        const isPickup = r.Score === 'P' || r.Score === '*' || r.Score === 0;
         if (isPickup) return 0;
         const shots = holeShots[i];
         if (shots !== null) return Math.max(0, 2 + (Number(r.Par)||0) - (Number(r.Score)||0) + shots);
