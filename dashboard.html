@@ -192,6 +192,28 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
   .container{padding:14px;}
   .header{padding:12px 14px;}
   .hcp-value{font-size:20px;}
+
+  /* Rounds table → card rows */
+  #rounds-tbl{display:block;}
+  #rounds-tbl thead{display:none;}
+  #rounds-tbl tbody{display:block;}
+  #rounds-tbl tr.round-row{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 14px;gap:10px;
+  }
+  #rounds-tbl tr.round-row td{padding:0;border:none;}
+  #rounds-tbl tr.round-row td:nth-child(1){display:none;}
+  #rounds-tbl tr.round-row td:nth-child(2){
+    font-size:11px;color:var(--text-faint);white-space:nowrap;flex-shrink:0;
+  }
+  #rounds-tbl tr.round-row td:nth-child(3){
+    flex:1;min-width:0;white-space:normal;max-width:none;
+    font-size:12px;color:var(--text-muted);
+  }
+  #rounds-tbl tr.round-row td:nth-child(4){flex-shrink:0;}
+  #rounds-tbl tr.round-row td:nth-child(5){display:none;}
+  #rounds-tbl tr.round-row td:nth-child(6){display:none;}
+  #rounds-tbl tr.round-row:not(:last-child){border-bottom:1px solid var(--border2);}
 }
 </style>
 </head>
