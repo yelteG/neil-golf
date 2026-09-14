@@ -142,7 +142,8 @@
     -webkit-tap-highlight-color: transparent;
   }
   .hole-pip:active { transform: scale(0.9); }
-  .hole-pip.done { background: #166534; color: #4ade80; }
+  .hole-pip.done    { background: #166534; color: #4ade80; }
+  .hole-pip.partial { background: #7f1d1d; color: #f87171; }
   .hole-pip.current { background: #c8a84b; color: #1a1a1a; }
 
   /* ── TEAM SECTIONS ── */
@@ -1092,9 +1093,10 @@ function renderHoleNav() {
 
   const prog = document.getElementById('hole-progress');
   prog.innerHTML = HOLE_LABELS.map((_,i) => {
-    const hasAny = TEAMS.some((tm,t) => tm.players.some((_,pi) => getScore(t,pi,i) !== null));
-    const cls = i === h ? 'current' : hasAny ? 'done' : '';
-    return `<div class="hole-pip ${cls}" onclick="goHole(${i})" title="Hole ${HOLE_LABELS[i]}">${HOLE_LABELS[i]}</div>`;
+    const totalPlayers = TEAMS.reduce((s, tm) => s + tm.players.length, 0);
+    const enteredCount = TEAMS.reduce((s, tm, t) => s + tm.players.filter((_,pi) => getScore(t,pi,i) !== null).length, 0);
+    const holeCls = i === h ? 'current' : enteredCount === 0 ? '' : enteredCount === totalPlayers ? 'done' : 'partial';
+    return `<div class="hole-pip ${holeCls}" onclick="goHole(${i})" title="Hole ${HOLE_LABELS[i]}">${HOLE_LABELS[i]}</div>`;
   }).join('');
 }
 
