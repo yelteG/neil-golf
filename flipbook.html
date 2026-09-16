@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>FLIPBOOK — search, caption, loop it</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12141c;
+    --surface:#1c1f2b;
+    --surface-2:#242838;
+    --paper:#f1efe6;
+    --pink:#ff4d6d;
+    --yellow:#ffd23f;
+    --muted:#8a8fa3;
+    --line: rgba(241,239,230,0.12);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--paper); font-family:'DM Sans', sans-serif; overscroll-behavior-y:contain;}
+  body{min-height:100vh; padding-bottom:24px;}
+  .sprockets{
+    height:14px;
+    background-image: radial-gradient(circle, var(--bg) 3px, transparent 3.5px);
+    background-color: var(--surface-2);
+    background-size: 20px 14px;
+    background-position: 10px 7px;
+  }
+  header.top{
+    background: var(--surface-2);
+    padding: 18px 20px 22px;
+    text-align:center;
+    border-bottom: 1px solid var(--line);
+  }
+  h1.wordmark{
+    font-family:'Anton', sans-serif;
+    font-size: 38px;
+    letter-spacing: 2px;
+    margin: 4px 0 2px;
+    color: var(--paper);
+    line-height:1;
+  }
+  h1.wordmark span{ color: var(--yellow); }
+  .tagline{ color: var(--muted); font-size: 13px; margin:0; }
+
+  .search-wrap{ padding: 16px 16px 8px; }
+  .search-bar{
+    display:flex; gap:8px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 6px 6px 18px;
+  }
+  .search-bar input{
+    flex:1; background:transparent; border:none; outline:none;
+    color: var(--paper); font-family:'DM Sans'; font-size:15px;
+  }
+  .search-bar input::placeholder{ color: var(--muted); }
+  .search-bar button{
+    background: var(--pink); color: var(--paper); border:none; border-radius:999px;
+    width:38px; height:38px; font-size:16px; cursor:pointer; flex-shrink:0;
+  }
+  .chips{ display:flex; gap:8px; overflow-x:auto; padding: 10px 16px 2px; scrollbar-width:none;}
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex-shrink:0; padding:7px 14px; border-radius:999px; font-size:13px; font-weight:500;
+    background: var(--surface); border:1px solid var(--line); color: var(--paper);
+    cursor:pointer; white-space:nowrap;
+  }
+  .chip.active{ background: var(--yellow); color: #1b1d13; border-color: var(--yellow); font-weight:700;}
+
+  .section-label{
+    padding: 14px 16px 6px; font-family:'Anton'; font-size:15px; letter-spacing:1px; color: var(--muted);
+  }
+
+  .grid{
+    display:grid; grid-template-columns: 1fr 1fr; gap:10px; padding: 0 16px 16px;
+  }
+  .cell{
+    position:relative; border-radius:4px; overflow:hidden; background: var(--surface);
+    border: 2px solid var(--surface-2); aspect-ratio: 1/1; cursor:pointer;
+  }
+  .cell img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .cell .frame-tab{
+    position:absolute; top:0; left:0; right:0; height:6px;
+    background: repeating-linear-gradient(90deg, var(--bg) 0 4px, transparent 4px 8px);
+    opacity:0.6;
+  }
+  .cell .pick-tag{
+    position:absolute; bottom:6px; right:6px; background: rgba(18,20,28,0.75);
+    color: var(--paper); font-size:11px; padding:3px 8px; border-radius:999px; font-weight:600;
+  }
+  .state-msg{ padding: 30px 20px; text-align:center; color: var(--muted); font-size:14px; }
+
+  .key-note{
+    margin: 0 16px 14px; padding: 10px 12px; background: var(--surface); border:1px solid var(--line);
+    border-radius:10px; font-size:12px; color: var(--muted); line-height:1.5;
+  }
+  .key-note a{ color: var(--yellow); }
+  .key-note button{
+    background:none; border:1px solid var(--line); color:var(--paper); border-radius:6px;
+    padding:4px 8px; font-size:11px; margin-top:6px; cursor:pointer;
+  }
+
+  /* ---------- Editor ---------- */
+  .editor{
+    position:fixed; inset:0; background: var(--bg); z-index:50;
+    display:none; flex-direction:column;
+  }
+  .editor.open{ display:flex; }
+  .editor-top{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 14px 14px; background: var(--surface-2); border-bottom:1px solid var(--line);
+  }
+  .icon-btn{
+    background: var(--surface); border:1px solid var(--line); color: var(--paper);
+    border-radius:999px; padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer;
+    display:flex; align-items:center; gap:6px; font-family:'DM Sans';
+  }
+  .icon-btn.primary{ background: var(--pink); border-color: var(--pink); }
+  .icon-btn:disabled{ opacity:0.5; }
+
+  .stage-wrap{
+    flex:1; display:flex; align-items:center; justify-content:center; padding: 14px;
+    min-height:0;
+  }
+  .stage{
+    position:relative; max-width:100%; max-height:100%; touch-action:none;
+    box-shadow: 0 0 0 3px var(--surface-2), 0 10px 30px rgba(0,0,0,0.5);
+    border-radius:6px; overflow:hidden;
+  }
+  .stage img{ display:block; max-width:100%; max-height:70vh; width:auto; height:auto; user-select:none; pointer-events:none;}
+  .el{
+    position:absolute; left:50%; top:10%; cursor:grab; outline:none; touch-action:none;
+  }
+  .el.selected{ box-shadow: 0 0 0 2px var(--yellow); border-radius:4px; }
+  .el:active{ cursor:grabbing; }
+  .el.caption{
+    color:#fff; font-family:'Anton'; text-align:center; white-space:pre-wrap;
+    padding:4px 8px; max-width:92%; line-height:1.05;
+  }
+  .el.sticker-img{ display:block; pointer-events:auto; }
+
+  .toolbar{
+    background: var(--surface-2); border-top:1px solid var(--line); padding: 10px 14px 16px;
+  }
+  .quick-row{ display:flex; gap:8px; margin-bottom:8px; }
+  .quick-row .icon-btn{ flex:1; justify-content:center; background:var(--surface); }
+
+  .style-row{
+    display:flex; align-items:center; gap:10px; padding-top:8px; border-top:1px solid var(--line);
+  }
+  .style-row.hidden{ display:none; }
+  .size-btn{
+    width:32px; height:32px; border-radius:8px; background:var(--surface); border:1px solid var(--line);
+    color:var(--paper); font-size:16px; font-weight:700; cursor:pointer;
+  }
+  .swatch{
+    width:24px; height:24px; border-radius:50%; border:2px solid rgba(241,239,230,0.3); cursor:pointer; flex-shrink:0;
+  }
+  .swatch.on{ border-color: var(--yellow); }
+  .spacer{ flex:1; }
+  .trash-btn{
+    background:none; border:none; color: var(--pink); font-size:18px; cursor:pointer;
+  }
+
+  .export-overlay{
+    position:fixed; inset:0; background:rgba(18,20,28,0.92); z-index:60;
+    display:none; align-items:center; justify-content:center; flex-direction:column; gap:14px;
+  }
+  .export-overlay.open{ display:flex; }
+  .spinner{
+    width:36px; height:36px; border-radius:50%; border:4px solid var(--surface-2);
+    border-top-color: var(--yellow); animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+  .export-overlay p{ color: var(--paper); font-size:14px; text-align:center; padding:0 20px; }
+  .export-overlay .icon-btn{ margin-top:6px; }
+  .export-actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; padding:0 20px; }
+</style>
+</head>
+<body>
+
+  <div class="sprockets"></div>
+  <header class="top">
+    <h1 class="wordmark">FLIP<span>BOOK</span></h1>
+    <p class="tagline">search a gif, caption it, loop it forever</p>
+  </header>
+
+  <div class="search-wrap">
+    <div class="search-bar">
+      <input id="searchInput" type="text" placeholder="search giphy…" enterkeyhint="search">
+      <button id="searchBtn" aria-label="search">🔍</button>
+    </div>
+  </div>
+
+  <div class="chips" id="chips">
+    <div class="chip active" data-q="">Trending</div>
+    <div class="chip" data-q="reaction">Reactions</div>
+    <div class="chip" data-q="cat">Cats</div>
+    <div class="chip" data-q="dance">Dance</div>
+    <div class="chip" data-q="meme">Memes</div>
+    <div class="chip" data-q="sports">Sports</div>
+  </div>
+
+  <div class="key-note" id="keyNote">
+    Running on Giphy's shared public demo key, so results may be slow or rate-limited.
+    Grab a free key at <a href="https://developers.giphy.com/" target="_blank" rel="noopener">developers.giphy.com</a> and drop it in for a smoother ride.
+    <br>
+    <button id="setKeyBtn">Set my own API key</button>
+  </div>
+
+  <div class="section-label" id="sectionLabel">Trending now</div>
+  <div class="grid" id="grid"></div>
+  <div class="state-msg" id="stateMsg" style="display:none;"></div>
+  <div class="sprockets"></div>
+
+  <!-- ===== Editor ===== -->
+  <div class="editor" id="editor">
+    <div class="editor-top">
+      <button class="icon-btn" id="backBtn">← Back</button>
+      <button class="icon-btn primary" id="downloadBtn">⬇ Export GIF</button>
+    </div>
+    <div class="stage-wrap">
+      <div class="stage" id="stage">
+        <img id="stageImg" alt="gif preview">
+      </div>
+    </div>
+    <div class="toolbar">
+      <div class="quick-row">
+        <button class="icon-btn" id="addTopBtn">+ Top text</button>
+        <button class="icon-btn" id="addBottomBtn">+ Bottom text</button>
+        <button class="icon-btn" id="addFreeBtn">+ Free text</button>
+        <button class="icon-btn" id="addPhotoBtn">+ Photo</button>
+        <input type="file" id="photoInput" accept="image/*" style="display:none;">
+      </div>
+      <div class="style-row hidden" id="styleRow">
+        <button class="size-btn" id="sizeDown" title="smaller">A−</button>
+        <button class="size-btn" id="sizeUp" title="bigger">A+</button>
+        <button class="size-btn" id="rotateLeft" title="rotate left">⟲</button>
+        <button class="size-btn" id="rotateRight" title="rotate right">⟳</button>
+        <div class="swatch" style="background:#ffffff" data-color="#ffffff"></div>
+        <div class="swatch" style="background:#12141c" data-color="#12141c"></div>
+        <div class="swatch" style="background:#ffd23f" data-color="#ffd23f"></div>
+        <div class="swatch" style="background:#ff4d6d" data-color="#ff4d6d"></div>
+        <div class="spacer"></div>
+        <button class="trash-btn" id="deleteCaptionBtn">🗑</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="export-overlay" id="exportOverlay">
+    <div class="spinner" id="exportSpinner"></div>
+    <p id="exportMsg">Encoding frame 0/0…</p>
+    <div class="export-actions" id="exportActions" style="display:none;">
+      <button class="icon-btn primary" id="shareGifBtn">📤 Share</button>
+      <button class="icon-btn" id="downloadReadyBtn">⬇ Download</button>
+      <button class="icon-btn" id="closeExportBtn">Close</button>
+    </div>
+  </div>
+
+<script type="module">
+import { parseGIF, decompressFrames } from 'https://cdn.jsdelivr.net/npm/gifuct-js/+esm';
+
+const DEMO_KEY = 'dc6zaTOxFJmzC'; // Giphy's public shared demo key
+let apiKey = localStorage.getItem('flipbook_giphy_key') || DEMO_KEY;
+
+const grid = document.getElementById('grid');
+const stateMsg = document.getElementById('stateMsg');
+const sectionLabel = document.getElementById('sectionLabel');
+const searchInput = document.getElementById('searchInput');
+const keyNote = document.getElementById('keyNote');
+
+document.getElementById('setKeyBtn').addEventListener('click', () => {
+  const val = prompt('Paste your Giphy API key (free at developers.giphy.com):', apiKey === DEMO_KEY ? '' : apiKey);
+  if (val && val.trim()) {
+    apiKey = val.trim();
+    localStorage.setItem('flipbook_giphy_key', apiKey);
+    keyNote.style.display = 'none';
+    loadGifs('');
+  }
+});
+if (apiKey !== DEMO_KEY) keyNote.style.display = 'none';
+
+async function loadGifs(query){
+  grid.innerHTML = '';
+  stateMsg.style.display = 'block';
+  stateMsg.textContent = 'Loading…';
+  const endpoint = query
+    ? `https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(query)}&limit=24&rating=pg-13`
+    : `https://api.giphy.com/v1/gifs/trending?api_key=${apiKey}&limit=24&rating=pg-13`;
+  try{
+    const res = await fetch(endpoint);
+    const json = await res.json();
+    if (json.meta && json.meta.status !== 200) throw new Error(json.meta.msg || 'Giphy error');
+    if (!json.data || !json.data.length){
+      stateMsg.textContent = 'No GIFs found — try another search.';
+      return;
+    }
+    stateMsg.style.display = 'none';
+    renderGrid(json.data);
+  }catch(err){
+    if (err instanceof TypeError){
+      stateMsg.textContent = "Couldn't reach Giphy — check your internet connection, or if you're viewing this inside an app preview, open the downloaded file directly in a browser instead.";
+    } else {
+      stateMsg.textContent = `Giphy error: ${err.message}. Check your API key.`;
+    }
+  }
+}
+
+function renderGrid(gifs){
+  grid.innerHTML = '';
+  gifs.forEach(g => {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    const thumb = g.images.fixed_width_small?.url || g.images.fixed_width.url;
+    cell.innerHTML = `<div class="frame-tab"></div><img loading="lazy" src="${thumb}" alt="${(g.title||'gif').replace(/"/g,'')}"><div class="pick-tag">remix</div>`;
+    cell.addEventListener('click', () => openEditor(g));
+    grid.appendChild(cell);
+  });
+}
+
+// chips
+document.getElementById('chips').addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  const q = chip.dataset.q;
+  sectionLabel.textContent = q ? `Results for "${chip.textContent}"` : 'Trending now';
+  searchInput.value = '';
+  loadGifs(q);
+});
+
+document.getElementById('searchBtn').addEventListener('click', doSearch);
+searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
+function doSearch(){
+  const q = searchInput.value.trim();
+  if (!q) return;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  sectionLabel.textContent = `Results for "${q}"`;
+  loadGifs(q);
+}
+
+loadGifs('');
+
+/* ================= EDITOR ================= */
+const editor = document.getElementById('editor');
+const stage = document.getElementById('stage');
+const stageImg = document.getElementById('stageImg');
+const styleRow = document.getElementById('styleRow');
+
+let currentGif = null;
+// elements: {id, kind:'text'|'image', text?, img?(HTMLImageElement), aspect?, xPct, yPct, sizePct, color, rotation}
+let elements = [];
+let selectedId = null;
+let idCounter = 0;
+
+function openEditor(gifObj){
+  currentGif = gifObj;
+  elements = [];
+  selectedId = null;
+  stageImg.src = gifObj.images.fixed_width.url || gifObj.images.downsized.url;
+  document.querySelectorAll('.el').forEach(c => c.remove());
+  styleRow.classList.add('hidden');
+  editor.classList.add('open');
+}
+document.getElementById('backBtn').addEventListener('click', () => editor.classList.remove('open'));
+
+function addCaption(text, xPct, yPct){
+  const cap = { id: ++idCounter, kind:'text', text, xPct, yPct, sizePct: 11, color: '#ffffff', rotation: 0 };
+  elements.push(cap);
+  renderElement(cap);
+  selectElement(cap.id);
+}
+document.getElementById('addTopBtn').addEventListener('click', () => addCaption('TOP TEXT', 50, 10));
+document.getElementById('addBottomBtn').addEventListener('click', () => addCaption('BOTTOM TEXT', 50, 90));
+document.getElementById('addFreeBtn').addEventListener('click', () => addCaption('your text', 50, 50));
+
+// ---- photo / face sticker upload ----
+const photoInput = document.getElementById('photoInput');
+document.getElementById('addPhotoBtn').addEventListener('click', () => photoInput.click());
+photoInput.addEventListener('change', () => {
+  const file = photoInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const item = {
+        id: ++idCounter, kind:'image', img, aspect: img.naturalHeight / img.naturalWidth,
+        xPct: 50, yPct: 50, sizePct: 28, rotation: 0
+      };
+      elements.push(item);
+      renderElement(item);
+      selectElement(item.id);
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+  photoInput.value = '';
+});
+
+function renderElement(item){
+  let el;
+  if (item.kind === 'text'){
+    el = document.createElement('div');
+    el.className = 'el caption';
+    el.contentEditable = 'true';
+    el.textContent = item.text;
+    el.addEventListener('input', () => { item.text = el.textContent; });
+  } else {
+    el = document.createElement('img');
+    el.className = 'el sticker-img';
+    el.src = item.img.src;
+    el.draggable = false;
+  }
+  el.dataset.id = item.id;
+  applyElementStyle(el, item);
+  stage.appendChild(el);
+  attachDrag(el, item);
+  el.addEventListener('pointerdown', (e) => { e.stopPropagation(); selectElement(item.id); });
+}
+
+function applyElementStyle(el, item){
+  const stageW = stageImg.clientWidth || 300;
+  const stageH = stageImg.clientHeight || 300;
+  const transform = `translate(-50%,-50%) rotate(${item.rotation||0}deg)`;
+  el.style.left = item.xPct + '%';
+  el.style.top = item.yPct + '%';
+  el.style.transform = transform;
+
+  if (item.kind === 'text'){
+    const fontPx = Math.max(12, (item.sizePct/100) * stageH);
+    el.style.fontSize = fontPx + 'px';
+    el.style.color = item.color;
+    const strokeColor = item.color.toLowerCase() === '#12141c' ? '#f1efe6' : '#12141c';
+    const sw = Math.max(1, fontPx * 0.07);
+    el.style.textShadow = [
+      `${sw}px ${sw}px 0 ${strokeColor}`, `-${sw}px ${sw}px 0 ${strokeColor}`,
+      `${sw}px -${sw}px 0 ${strokeColor}`, `-${sw}px -${sw}px 0 ${strokeColor}`,
+      `${sw}px 0 0 ${strokeColor}`, `-${sw}px 0 0 ${strokeColor}`,
+      `0 ${sw}px 0 ${strokeColor}`, `0 -${sw}px 0 ${strokeColor}`
+    ].join(',');
+  } else {
+    const wPx = Math.max(24, (item.sizePct/100) * stageW);
+    el.style.width = wPx + 'px';
+    el.style.height = (wPx * item.aspect) + 'px';
+  }
+}
+
+function refreshElement(id){
+  const item = elements.find(c => c.id === id);
+  const el = stage.querySelector(`.el[data-id="${id}"]`);
+  if (item && el) applyElementStyle(el, item);
+}
+
+function selectElement(id){
+  selectedId = id;
+  document.querySelectorAll('.el').forEach(el => {
+    el.classList.toggle('selected', Number(el.dataset.id) === id);
+  });
+  styleRow.classList.toggle('hidden', !id);
+  const item = elements.find(c => c.id === id);
+  document.querySelectorAll('.swatch').forEach(sw => {
+    sw.style.display = (item && item.kind === 'text') ? '' : 'none';
+  });
+}
+stage.addEventListener('pointerdown', () => selectElement(null));
+
+function attachDrag(el, item){
+  let dragging = false, offX = 0, offY = 0;
+  el.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    el.setPointerCapture(e.pointerId);
+    const rect = stage.getBoundingClientRect();
+    offX = e.clientX - (rect.left + rect.width * item.xPct/100);
+    offY = e.clientY - (rect.top + rect.height * item.yPct/100);
+  });
+  el.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const rect = stage.getBoundingClientRect();
+    let xPct = ((e.clientX - offX - rect.left) / rect.width) * 100;
+    let yPct = ((e.clientY - offY - rect.top) / rect.height) * 100;
+    xPct = Math.min(100, Math.max(0, xPct));
+    yPct = Math.min(100, Math.max(0, yPct));
+    item.xPct = xPct; item.yPct = yPct;
+    el.style.left = xPct + '%';
+    el.style.top = yPct + '%';
+  });
+  el.addEventListener('pointerup', (e) => { dragging = false; try{el.releasePointerCapture(e.pointerId);}catch(_){} });
+}
+
+document.getElementById('sizeUp').addEventListener('click', () => adjustSize(1.15));
+document.getElementById('sizeDown').addEventListener('click', () => adjustSize(0.87));
+function adjustSize(mult){
+  const item = elements.find(c => c.id === selectedId);
+  if (!item) return;
+  const max = item.kind === 'text' ? 30 : 90;
+  item.sizePct = Math.min(max, Math.max(4, item.sizePct * mult));
+  refreshElement(item.id);
+}
+document.getElementById('rotateLeft').addEventListener('click', () => adjustRotation(-15));
+document.getElementById('rotateRight').addEventListener('click', () => adjustRotation(15));
+function adjustRotation(deg){
+  const item = elements.find(c => c.id === selectedId);
+  if (!item) return;
+  item.rotation = ((item.rotation||0) + deg) % 360;
+  refreshElement(item.id);
+}
+document.querySelectorAll('.swatch').forEach(sw => {
+  sw.addEventListener('click', () => {
+    const item = elements.find(c => c.id === selectedId);
+    if (!item || item.kind !== 'text') return;
+    item.color = sw.dataset.color;
+    refreshElement(item.id);
+  });
+});
+document.getElementById('deleteCaptionBtn').addEventListener('click', () => {
+  if (!selectedId) return;
+  elements = elements.filter(c => c.id !== selectedId);
+  const el = stage.querySelector(`.el[data-id="${selectedId}"]`);
+  if (el) el.remove();
+  selectElement(null);
+});
+
+window.addEventListener('resize', () => elements.forEach(c => refreshElement(c.id)));
+
+/* ============ EXPORT ============ */
+const exportOverlay = document.getElementById('exportOverlay');
+const exportMsg = document.getElementById('exportMsg');
+
+document.getElementById('downloadBtn').addEventListener('click', exportGif);
+
+async function exportGif(){
+  if (!currentGif) return;
+  exportOverlay.classList.add('open');
+  document.getElementById('exportSpinner').style.display = '';
+  document.getElementById('exportActions').style.display = 'none';
+  exportMsg.textContent = 'Downloading original gif…';
+  try{
+    const srcUrl = currentGif.images.downsized?.url || currentGif.images.original.url;
+    const buf = await fetch(srcUrl).then(r => r.arrayBuffer());
+
+    exportMsg.textContent = 'Reading frames…';
+    const parsed = parseGIF(buf);
+    const frames = decompressFrames(parsed, true);
+    const w = parsed.lsd.width, h = parsed.lsd.height;
+
+    if (!window.__gifWorkerBlobUrl){
+      const workerSrc = await fetch('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js').then(r => r.text());
+      window.__gifWorkerBlobUrl = URL.createObjectURL(new Blob([workerSrc], { type: 'application/javascript' }));
+    }
+
+    const stageCanvas = document.createElement('canvas');
+    stageCanvas.width = w; stageCanvas.height = h;
+    const stageCtx = stageCanvas.getContext('2d');
+
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = w; exportCanvas.height = h;
+    const exportCtx = exportCanvas.getContext('2d');
+
+    const encoder = new GIF({
+      workers: 2,
+      quality: 10,
+      workerScript: window.__gifWorkerBlobUrl,
+      width: w, height: h
+    });
+
+    let prevDisposal = null;
+    frames.forEach((frame, i) => {
+      exportMsg.textContent = `Compositing frame ${i+1}/${frames.length}…`;
+      if (prevDisposal){
+        if (prevDisposal.type === 2){
+          stageCtx.clearRect(prevDisposal.dims.left, prevDisposal.dims.top, prevDisposal.dims.width, prevDisposal.dims.height);
+        } else if (prevDisposal.type === 3 && prevDisposal.snapshot){
+          stageCtx.putImageData(prevDisposal.snapshot, 0, 0);
+        }
+      }
+      const snapshot = frame.disposalType === 3 ? stageCtx.getImageData(0, 0, w, h) : null;
+
+      const patchCanvas = document.createElement('canvas');
+      patchCanvas.width = frame.dims.width; patchCanvas.height = frame.dims.height;
+      patchCanvas.getContext('2d').putImageData(
+        new ImageData(frame.patch, frame.dims.width, frame.dims.height), 0, 0
+      );
+      stageCtx.drawImage(patchCanvas, frame.dims.left, frame.dims.top);
+
+      exportCtx.clearRect(0, 0, w, h);
+      exportCtx.drawImage(stageCanvas, 0, 0);
+      drawElementsOnCanvas(exportCtx, w, h);
+
+      encoder.addFrame(exportCanvas, { copy: true, delay: Math.max(20, frame.delay) });
+      prevDisposal = { type: frame.disposalType, dims: frame.dims, snapshot };
+    });
+
+    encoder.on('progress', (p) => { exportMsg.textContent = `Encoding gif… ${Math.round(p*100)}%`; });
+    encoder.on('finished', (blob) => { showExportReady(blob); });
+    encoder.render();
+  }catch(err){
+    exportMsg.textContent = `Export failed: ${err.message}`;
+    setTimeout(() => exportOverlay.classList.remove('open'), 2500);
+  }
+}
+
+function showExportReady(blob){
+  const url = URL.createObjectURL(blob);
+  document.getElementById('exportSpinner').style.display = 'none';
+  exportMsg.textContent = "Your GIF is ready 🎉";
+  const actions = document.getElementById('exportActions');
+  actions.style.display = 'flex';
+
+  const shareBtn = document.getElementById('shareGifBtn');
+  const file = new File([blob], 'flipbook.gif', { type: 'image/gif' });
+  const canShareFile = navigator.canShare && navigator.canShare({ files: [file] });
+  shareBtn.style.display = canShareFile ? '' : 'none';
+  shareBtn.onclick = async () => {
+    try{
+      await navigator.share({ files: [file], title: 'Flipbook GIF' });
+    }catch(err){
+      if (err.name !== 'AbortError') exportMsg.textContent = "Couldn't open the share sheet — try Download instead.";
+    }
+  };
+
+  document.getElementById('downloadReadyBtn').onclick = () => {
+    const a = document.createElement('a');
+    a.href = url; a.download = 'flipbook.gif';
+    document.body.appendChild(a); a.click(); a.remove();
+  };
+
+  document.getElementById('closeExportBtn').onclick = () => {
+    exportOverlay.classList.remove('open');
+    URL.revokeObjectURL(url);
+  };
+}
+
+function drawElementsOnCanvas(ctx, w, h){
+  elements.forEach(item => {
+    const x = (item.xPct/100) * w;
+    const y = (item.yPct/100) * h;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate((item.rotation||0) * Math.PI / 180);
+
+    if (item.kind === 'text'){
+      const fontPx = Math.max(12, (item.sizePct/100) * h);
+      ctx.font = `${fontPx}px Anton, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const strokeColor = item.color.toLowerCase() === '#12141c' ? '#f1efe6' : '#12141c';
+      ctx.lineWidth = Math.max(2, fontPx * 0.14);
+      ctx.strokeStyle = strokeColor;
+      ctx.lineJoin = 'round';
+      const lines = item.text.split('\n');
+      const lineHeight = fontPx * 1.05;
+      const totalH = lines.length * lineHeight;
+      lines.forEach((line, idx) => {
+        const ly = -totalH/2 + lineHeight*idx + lineHeight/2;
+        ctx.strokeText(line, 0, ly);
+        ctx.fillStyle = item.color;
+        ctx.fillText(line, 0, ly);
+      });
+    } else {
+      const wPx = (item.sizePct/100) * w;
+      const hPx = wPx * item.aspect;
+      ctx.drawImage(item.img, -wPx/2, -hPx/2, wPx, hPx);
+    }
+    ctx.restore();
+  });
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+</body>
+</html>
