@@ -133,11 +133,19 @@
   }
   .el.selected{ box-shadow: 0 0 0 2px var(--yellow); border-radius:4px; }
   .el:active{ cursor:grabbing; }
-  .el.caption{
+  .el.caption{ display:inline-block; }
+  .caption-text{
     color:#fff; font-family:'Anton'; text-align:center; white-space:pre-wrap;
-    padding:4px 8px; max-width:92%; line-height:1.05;
+    padding:4px 8px; line-height:1.05;
+    overflow-wrap:anywhere; word-break:break-word; outline:none;
   }
   .el.sticker-img{ display:block; pointer-events:auto; }
+  .resize-handle{
+    display:none; position:absolute; right:-10px; bottom:-10px; width:20px; height:20px;
+    border-radius:50%; background:var(--yellow); border:2px solid var(--bg);
+    cursor:nwse-resize; touch-action:none;
+  }
+  .el.selected .resize-handle{ display:block; }
 
   .toolbar{
     background: var(--surface-2); border-top:1px solid var(--line); padding: 10px 14px 16px;
@@ -400,23 +408,36 @@ photoInput.addEventListener('change', () => {
 });
 
 function renderElement(item){
-  let el;
-  if (item.kind === 'text'){
-    el = document.createElement('div');
-    el.className = 'el caption';
-    el.contentEditable = 'true';
-    el.textContent = item.text;
-    el.addEventListener('input', () => { item.text = el.textContent; });
-  } else {
-    el = document.createElement('img');
-    el.className = 'el sticker-img';
-    el.src = item.img.src;
-    el.draggable = false;
-  }
+  const el = document.createElement('div');
+  el.className = item.kind === 'text' ? 'el caption' : 'el sticker-img';
   el.dataset.id = item.id;
+
+  if (item.kind === 'text'){
+    const textEl = document.createElement('div');
+    textEl.className = 'caption-text';
+    textEl.contentEditable = 'true';
+    textEl.textContent = item.text;
+    textEl.addEventListener('input', () => { item.text = textEl.textContent; });
+    el.appendChild(textEl);
+  } else {
+    const img = document.createElement('img');
+    img.src = item.img.src;
+    img.draggable = false;
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.pointerEvents = 'none';
+    img.style.display = 'block';
+    el.appendChild(img);
+  }
+
+  const handle = document.createElement('div');
+  handle.className = 'resize-handle';
+  el.appendChild(handle);
+
   applyElementStyle(el, item);
   stage.appendChild(el);
   attachDrag(el, item);
+  attachResize(handle, item);
   el.addEventListener('pointerdown', (e) => { e.stopPropagation(); selectElement(item.id); });
 }
 
@@ -429,12 +450,14 @@ function applyElementStyle(el, item){
   el.style.transform = transform;
 
   if (item.kind === 'text'){
+    const textEl = el.querySelector('.caption-text');
     const fontPx = Math.max(12, (item.sizePct/100) * stageH);
-    el.style.fontSize = fontPx + 'px';
-    el.style.color = item.color;
+    textEl.style.fontSize = fontPx + 'px';
+    textEl.style.color = item.color;
+    textEl.style.maxWidth = (stageW * 0.9) + 'px';
     const strokeColor = item.color.toLowerCase() === '#12141c' ? '#f1efe6' : '#12141c';
     const sw = Math.max(1, fontPx * 0.07);
-    el.style.textShadow = [
+    textEl.style.textShadow = [
       `${sw}px ${sw}px 0 ${strokeColor}`, `-${sw}px ${sw}px 0 ${strokeColor}`,
       `${sw}px -${sw}px 0 ${strokeColor}`, `-${sw}px -${sw}px 0 ${strokeColor}`,
       `${sw}px 0 0 ${strokeColor}`, `-${sw}px 0 0 ${strokeColor}`,
@@ -445,6 +468,27 @@ function applyElementStyle(el, item){
     el.style.width = wPx + 'px';
     el.style.height = (wPx * item.aspect) + 'px';
   }
+}
+
+function attachResize(handle, item){
+  let active = false, startX = 0, startY = 0, startSize = 0;
+  handle.addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    selectElement(item.id);
+    active = true;
+    handle.setPointerCapture(e.pointerId);
+    startX = e.clientX; startY = e.clientY; startSize = item.sizePct;
+  });
+  handle.addEventListener('pointermove', (e) => {
+    if (!active) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    const delta = (dx + dy) / 2;
+    const max = item.kind === 'text' ? 30 : 90;
+    item.sizePct = Math.min(max, Math.max(4, startSize + delta / 4));
+    refreshElement(item.id);
+  });
+  handle.addEventListener('pointerup', (e) => { active = false; try{handle.releasePointerCapture(e.pointerId);}catch(_){} });
 }
 
 function refreshElement(id){
@@ -632,6 +676,23 @@ function showExportReady(blob){
   };
 }
 
+function wrapLine(ctx, text, maxWidth){
+  const words = text.split(' ');
+  const lines = [];
+  let current = '';
+  words.forEach(word => {
+    const test = current ? current + ' ' + word : word;
+    if (ctx.measureText(test).width > maxWidth && current){
+      lines.push(current);
+      current = word;
+    } else {
+      current = test;
+    }
+  });
+  if (current) lines.push(current);
+  return lines.length ? lines : [''];
+}
+
 function drawElementsOnCanvas(ctx, w, h){
   elements.forEach(item => {
     const x = (item.xPct/100) * w;
@@ -649,7 +710,9 @@ function drawElementsOnCanvas(ctx, w, h){
       ctx.lineWidth = Math.max(2, fontPx * 0.14);
       ctx.strokeStyle = strokeColor;
       ctx.lineJoin = 'round';
-      const lines = item.text.split('\n');
+      const maxWidth = w * 0.9;
+      let lines = [];
+      item.text.split('\n').forEach(raw => { lines = lines.concat(wrapLine(ctx, raw, maxWidth)); });
       const lineHeight = fontPx * 1.05;
       const totalH = lines.length * lineHeight;
       lines.forEach((line, idx) => {
