@@ -788,7 +788,9 @@ function openScorecard(row) {
   if (!rowsForRound.length) {
     body.innerHTML = `<div class="scorecard-empty">No hole-by-hole data yet for this round.</div>`;
   } else {
-    rowsForRound.sort((a, b) => (a.Hole || 0) - (b.Hole || 0));
+    // Only sort numerically for standard rounds; temp holes (>18) break numeric order
+    const hasTempHoles = rowsForRound.some(r => Number(r.Hole) > 18);
+    if (!hasTempHoles) rowsForRound.sort((a, b) => (a.Hole || 0) - (b.Hole || 0));
     const total = Number(rowsForRound[0]?.['Stableford Total']) || Number(headerScore) || rowsForRound.reduce((sum, r) => sum + (Number(r.Stableford) || 0), 0);
 
     function getScoreClass(score, par) {
