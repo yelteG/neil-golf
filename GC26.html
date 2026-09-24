@@ -134,12 +134,15 @@ input:disabled,select:disabled{opacity:.6}
 // ===== SETUP: paste your Apps Script web app URL between the quotes =====
 const API_URL = "https://script.google.com/macros/s/AKfycbzbUiM4JtzrHpWOS9kgJjWnH1o4B0DoPdluZBb-NvYGMup7rmMNJiRTebh9kh9mlpxtrw/exec";
 // ========================================================================
-const DEMO_DATA = {"config": {"players": [{"id": "Neil H", "name": "Neil H", "hcp": 12, "team": "Team 1", "group": "Group 1"}, {"id": "Anthony W", "name": "Anthony W", "hcp": 17, "team": "Team 4", "group": "Group 1"}, {"id": "Carlos W", "name": "Carlos W", "hcp": 14, "team": "Team 3", "group": "Group 1"}, {"id": "Dilan P", "name": "Dilan P", "hcp": 27, "team": "Team 3", "group": "Group 2"}, {"id": "Ayman H", "name": "Ayman H", "hcp": 35, "team": "Team 1", "group": "Group 2"}, {"id": "Will R", "name": "Will R", "hcp": 12, "team": "Team 1", "group": "Group 3"}, {"id": "Gavin I", "name": "Gavin I", "hcp": 22, "team": "Team 1", "group": "Group 4"}, {"id": "Rohan", "name": "Rohan", "hcp": 25, "team": "Team 4", "group": "Group 2"}, {"id": "Daniel B", "name": "Daniel B", "hcp": 22, "team": "Team 4", "group": "Group 3"}, {"id": "Kent H", "name": "Kent H", "hcp": 35, "team": "Team 2", "group": "Group 1"}, {"id": "Akila G", "name": "Akila G", "hcp": 19, "team": "Team 3", "group": "Group 4"}, {"id": "Garrett", "name": "Garrett", "hcp": 33, "team": "Team 2", "group": "Group 3"}, {"id": "Daniel R", "name": "Daniel R", "hcp": 33, "team": "Team 2", "group": "Group 4"}]}, "d1": {"teams": {"Team 1": {"f9": 36, "b9": 36}, "Team 2": {"f9": 35, "b9": 40}, "Team 3": {"f9": 34, "b9": 38}, "Team 4": {"f9": 33, "b9": 39}}}, "d2": {"players": {"Neil H": {"f9": 30, "b9": 20}, "Anthony W": {"f9": 25, "b9": 25}, "Carlos W": {"f9": 26, "b9": 27}, "Dilan P": {"f9": 33, "b9": 28}, "Ayman H": {"f9": 34, "b9": 29}, "Will R": {"f9": 36, "b9": 33}, "Gavin I": {"f9": 25, "b9": 36}, "Rohan": {"f9": 32, "b9": 35}, "Daniel B": {"f9": 30, "b9": 34}, "Kent H": {"f9": 27, "b9": 27}, "Akila G": {"f9": 25, "b9": 29}, "Garrett": {"f9": 26, "b9": 30}, "Daniel R": {"f9": 32, "b9": 40}}}, "bonus": {"awards": {"d1-ctp-f9-1": {"w": "Anthony W", "hole": ""}, "d1-ctp-f9-2": {"w": "Ayman H", "hole": ""}, "d1-ctp-b9-1": {"w": "Will R", "hole": ""}, "d1-ctp-b9-2": {"w": "Gavin I", "hole": ""}, "d1-ld-f9-1": {"w": "Gavin I", "hole": ""}, "d1-ld-f9-2": {"w": "Rohan", "hole": ""}, "d1-ld-b9-1": {"w": "Daniel B", "hole": ""}, "d1-ld-b9-2": {"w": "Akila G", "hole": ""}, "d2-ctp-f9-1": {"w": "Daniel R", "hole": ""}, "d2-ctp-f9-2": {"w": "Dilan P", "hole": ""}, "d2-ctp-b9-1": {"w": "Akila G", "hole": ""}, "d2-ctp-b9-2": {"w": "Neil H", "hole": ""}, "d2-ld-f9-1": {"w": "Rohan", "hole": ""}, "d2-ld-f9-2": {"w": "Kent H", "hole": ""}, "d2-ld-b9-1": {"w": "Ayman H", "hole": ""}, "d2-ld-b9-2": {"w": "Neil H", "hole": ""}}}};
+const DEMO_DATA = {"config": {"players": [{"id": "Neil H", "name": "Neil H", "hcp": 12, "team": "Team 1", "group": "Group 1"}, {"id": "Anthony W", "name": "Anthony W", "hcp": 17, "team": "Team 4", "group": "Group 1"}, {"id": "Carlos W", "name": "Carlos W", "hcp": 14, "team": "Team 3", "group": "Group 1"}, {"id": "Dilan P", "name": "Dilan P", "hcp": 27, "team": "Team 3", "group": "Group 2"}, {"id": "Ayman H", "name": "Ayman H", "hcp": 35, "team": "Team 1", "group": "Group 2"}, {"id": "Will R", "name": "Will R", "hcp": 12, "team": "Team 1", "group": "Group 3"}, {"id": "Gavin I", "name": "Gavin I", "hcp": 22, "team": "Team 1", "group": "Group 4"}, {"id": "Rohan", "name": "Rohan", "hcp": 25, "team": "Team 4", "group": "Group 2"}, {"id": "Daniel B", "name": "Daniel B", "hcp": 22, "team": "Team 4", "group": "Group 3"}, {"id": "Kent H", "name": "Kent H", "hcp": 33, "team": "Team 2", "group": "Group 1"}, {"id": "Akila G", "name": "Akila G", "hcp": 19, "team": "Team 3", "group": "Group 4"}, {"id": "Garrett", "name": "Garrett", "hcp": 33, "team": "Team 2", "group": "Group 3"}, {"id": "Daniel R", "name": "Daniel R", "hcp": 33, "team": "Team 2", "group": "Group 4"}]}, "d1": {"teams": {"Team 1": {"f9": 36, "b9": 36}, "Team 2": {"f9": 35, "b9": 40}, "Team 3": {"f9": 34, "b9": 38}, "Team 4": {"f9": 33, "b9": 39}}}, "d2": {"players": {"Neil H": {"f9": 30, "b9": 20}, "Anthony W": {"f9": 25, "b9": 25}, "Carlos W": {"f9": 26, "b9": 27}, "Dilan P": {"f9": 33, "b9": 28}, "Ayman H": {"f9": 34, "b9": 29}, "Will R": {"f9": 36, "b9": 33}, "Gavin I": {"f9": 25, "b9": 36}, "Rohan": {"f9": 32, "b9": 35}, "Daniel B": {"f9": 30, "b9": 34}, "Kent H": {"f9": 27, "b9": 27}, "Akila G": {"f9": 25, "b9": 29}, "Garrett": {"f9": 26, "b9": 30}, "Daniel R": {"f9": 32, "b9": 40}}}, "bonus": {"awards": {"d1-ctp-f9-1": {"w": "Anthony W", "hole": ""}, "d1-ctp-f9-2": {"w": "Ayman H", "hole": ""}, "d1-ctp-b9-1": {"w": "Will R", "hole": ""}, "d1-ctp-b9-2": {"w": "Gavin I", "hole": ""}, "d1-ld-f9-1": {"w": "Gavin I", "hole": ""}, "d1-ld-f9-2": {"w": "Rohan", "hole": ""}, "d1-ld-b9-1": {"w": "Daniel B", "hole": ""}, "d1-ld-b9-2": {"w": "Akila G", "hole": ""}, "d2-ctp-f9-1": {"w": "Daniel R", "hole": ""}, "d2-ctp-f9-2": {"w": "Dilan P", "hole": ""}, "d2-ctp-b9-1": {"w": "Akila G", "hole": ""}, "d2-ctp-b9-2": {"w": "Neil H", "hole": ""}, "d2-ld-f9-1": {"w": "Rohan", "hole": ""}, "d2-ld-f9-2": {"w": "Kent H", "hole": ""}, "d2-ld-b9-1": {"w": "Ayman H", "hole": ""}, "d2-ld-b9-2": {"w": "Neil H", "hole": ""}}}};
 </script>
 <script>
 // Pure scoring logic for GC26 — shared by the page and a one-off node check.
 const D1_SCALE = [8, 6, 4, 2];
-const D2_SCALE = [6, 4, 2];
+const D2_SCALE = [6, 4, 2];        // groups of 3 (or fewer)
+const D2_SCALE_4 = [6, 5, 3, 2];   // groups of 4+ — same average points per player as a group of 3
+// Group size = players in the group who have a score for that segment (a no-show doesn't count).
+const d2Scale = n => n >= 4 ? D2_SCALE_4 : D2_SCALE;
 const AWARDS = [];
 for (const day of [1, 2]) for (const kind of ["CTP", "LD"]) for (const nine of ["Front 9", "Back 9"]) for (const n of [1, 2])
   AWARDS.push({ id: `d${day}-${kind.toLowerCase()}-${nine === "Front 9" ? "f9" : "b9"}-${n}`, day, kind, nine });
@@ -202,7 +205,8 @@ function compute(config, d1, d2, bonus) {
   for (const gr of groups) {
     const mem = players.filter(p => p.group === gr);
     for (const seg of ["f9", "b9", "t18"]) {
-      const pts = rankPoints(mem.map(p => ({ id: p.id, v: pl[p.id][seg] })), true, D2_SCALE);
+      const entries = mem.map(p => ({ id: p.id, v: pl[p.id][seg] }));
+      const pts = rankPoints(entries, true, d2Scale(entries.filter(e => e.v !== null).length));
       for (const p of mem) pl[p.id]["p" + seg] = pts[p.id];
     }
   }
@@ -295,16 +299,16 @@ function vDay1(R){
   return`<h2>Day 1 · Sat 24 Oct</h2><p class="lede">13th Beach Golf Links (Creek), 2:30 pm, Ambrose. Enter each team's gross score for each nine. Scores save when you leave the box.</p><div class="grid">${cards}</div>${statusLine()}`;
 }
 function vDay2(R){
-  const s=[6,4,2];
   const blocks=R.groups.map(g=>{
     const mem=R.players.filter(p=>p.group===g).sort((a,b)=>a.name.localeCompare(b.name));
-    return`<div class="gh">${esc(g)}</div><div class="prow hd"><span>Player</span><span>F9 pts</span><span>B9 pts</span><span style="text-align:right">F9 · B9 · 18</span></div>`+
+    const s=d2Scale(mem.length);
+    return`<div class="gh">${esc(g)} <span class="muted" style="font-size:13px;letter-spacing:0">· ${s.join(" / ")}</span></div><div class="prow hd"><span>Player</span><span>F9 pts</span><span>B9 pts</span><span style="text-align:right">F9 · B9 · 18</span></div>`+
     mem.map(p=>`<div class="prow"><div><b>${esc(p.name)}</b> <span class="muted" style="font-size:12px">${esc(p.team)} · ${p.t18??"–"} total</span></div>
       ${inp("d2-"+p.id+"-f9","d2",["players",p.id,"f9"],p.f9,p.name+" front 9 stableford")}
       ${inp("d2-"+p.id+"-b9","d2",["players",p.id,"b9"],p.b9,p.name+" back 9 stableford")}
       <div class="res num">${pts(p.pf9,s)}${pts(p.pb9,s)}${pts(p.pt18,s)}</div></div>`).join("");
   }).join("");
-  return`<h2>Day 2 · Sun 25 Oct</h2><p class="lede">Lonsdale Links, 12:12 pm, Stableford. Enter each player's Stableford points for each nine. Points are ranked within the group: 6 / 4 / 2.</p><div class="card plist">${blocks}</div>${statusLine()}`;
+  return`<h2>Day 2 · Sun 25 Oct</h2><p class="lede">Lonsdale Links, 12:12 pm, Stableford. Enter each player's Stableford points for each nine. Points are ranked within the group: 6 / 4 / 2 in a group of 3, 6 / 5 / 3 / 2 in a group of 4.</p><div class="card plist">${blocks}</div>${statusLine()}`;
 }
 function vBonus(R){
   const opts=sel=>`<option value="">No winner yet</option>`+R.players.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${esc(p.id)}" ${p.id===sel?"selected":""}>${esc(p.name)}</option>`).join("");
@@ -322,7 +326,7 @@ function vBonus(R){
 function vRules(){
   return`<h2>How scoring works</h2><div class="card rules"><dl>
   <dt>Day 1: Ambrose (team)</dt><dd>Team handicap = combined handicap ÷ (2 × players). Net per nine = gross − half the team handicap. Front 9, Back 9 and 18 are each ranked on net: 8 / 6 / 4 / 2 (up to 24 per team).</dd>
-  <dt>Day 2: Stableford (individual)</dt><dd>Front 9, Back 9 and 18 are each ranked within your group: 6 / 4 / 2 for 3rd or lower (up to 18).</dd>
+  <dt>Day 2: Stableford (individual)</dt><dd>Front 9, Back 9 and 18 are each ranked within your group (up to 18). Group of 3: 6 / 4 / 2. Group of 4: 6 / 5 / 3 / 2, so every player averages the same points whatever size group they're in. Only players with a score count towards the group size.</dd>
   <dt>Bonus</dt><dd>1 point per closest-to-pin or longest-drive win. 4 per nine, 16 in total.</dd>
   <dt>MVP</dt><dd>Day 2 points + bonuses + half your team's Day 1 points (Day 1 is worth up to 12). Ties share the higher placing.</dd>
   <dt>Team winner</dt><dd>Day 1 team points + the team's combined Day 2 Stableford.</dd>
