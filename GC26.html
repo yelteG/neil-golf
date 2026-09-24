@@ -221,14 +221,29 @@ function compute(config, d1, d2, bonus) {
   for (const P of list) P.rank = 1 + list.filter(o => o.mvp > P.mvp).length;
   list.sort((a, b) => b.mvp - a.mvp || a.name.localeCompare(b.name));
 
-  // Team winner — Day 1 points + combined Day 2 Stableford
+  // Team winner — Day 1 points + Day 2 team points.
+  // Day 2: each team's AVERAGE Stableford (players with a score) is ranked for F9, B9 and 18: 8 / 6 / 4 / 2.
+  // 18 counts a player as soon as either nine is in (same as the sheet's D2 Total column).
+  const avg = xs => xs.length ? xs.reduce((s, v) => s + v, 0) / xs.length : null;
+  for (const t of teams) {
+    const T = team[t], m = T.members.map(p => pl[p.id]);
+    T.a9f = avg(m.map(p => p.f9).filter(v => v !== null));
+    T.a9b = avg(m.map(p => p.b9).filter(v => v !== null));
+    T.a18 = avg(m.filter(p => p.f9 !== null || p.b9 !== null).map(p => (p.f9 || 0) + (p.b9 || 0)));
+  }
+  for (const [seg, key] of [["f9", "a9f"], ["b9", "a9b"], ["18", "a18"]]) {
+    const pts = rankPoints(teams.map(t => ({ id: t, v: team[t][key] })), true, D1_SCALE);
+    for (const t of teams) team[t]["q" + seg] = pts[t];
+  }
   for (const t of teams) {
     const T = team[t];
-    T.d2comb = T.members.reduce((s, p) => s + (pl[p.id].t18 || 0), 0);
-    T.d2avg = T.members.length ? T.d2comb / T.members.length : 0;
-    T.total = T.d1pts + T.d2comb;
+    T.d2pts = (T.qf9 || 0) + (T.qb9 || 0) + (T.q18 || 0);
+    T.total = T.d1pts + T.d2pts;
   }
-  for (const t of teams) team[t].rank = 1 + teams.filter(o => team[o].total > team[t].total).length;
+  // Ties on total are split by the higher Day 2 18-hole average; still level = shared placing.
+  const a18 = T => T.a18 === null ? -Infinity : T.a18;
+  for (const t of teams) { const T = team[t];
+    T.rank = 1 + teams.filter(o => team[o].total > T.total || (team[o].total === T.total && a18(team[o]) > a18(T))).length; }
 
   return { players: list, byId: pl, teams: teams.map(t => team[t]), groups };
 }
@@ -273,17 +288,23 @@ function vMVP(R){
 }
 function vTeams(R){
   const T=R.teams,col=k=>T.map(t=>t[k]);
-  const w=T.slice().sort((a,b)=>a.rank-b.rank).map(t=>`<tr><td><b>${esc(t.id)}</b></td>
-    <td class="num ${tone(col("d1pts"),t.d1pts,true)}">${t.d1pts}</td><td class="num ${tone(col("d2comb"),t.d2comb,true)}">${t.d2comb}</td>
-    <td class="num ${tone(col("total"),t.total,true)}">${t.total}</td><td class="num ${tone(col("rank"),t.rank,false)}">${t.rank}</td>
-    <td class="num ${tone(col("d2avg"),t.d2avg,true)}">${t.d2avg.toFixed(1)}</td></tr>`).join("");
+  const a1=v=>v===null||v===undefined?"–":v.toFixed(1);
+  const w=T.slice().sort((a,b)=>a.rank-b.rank||a.id.localeCompare(b.id)).map(t=>`<tr><td><b>${esc(t.id)}</b></td>
+    <td class="num ${tone(col("rank"),t.rank,false)}">${t.rank}</td><td class="num ${tone(col("total"),t.total,true)}"><b>${t.total}</b></td>
+    <td class="num ${tone(col("d1pts"),t.d1pts,true)}">${t.d1pts}</td><td class="num ${tone(col("d2pts"),t.d2pts,true)}">${t.d2pts}</td></tr>`).join("");
+  const d2=T.map(t=>`<tr><td><b>${esc(t.id)}</b><div class="muted" style="font-size:12px">${t.members.length} players</div></td>
+    <td class="num ${tone(col("a9f"),t.a9f,true)}">${a1(t.a9f)}</td><td class="num ${tone(col("a9b"),t.a9b,true)}">${a1(t.a9b)}</td><td class="num ${tone(col("a18"),t.a18,true)}">${a1(t.a18)}</td>
+    <td class="num ${tone(col("qf9"),t.qf9,true)}">${t.qf9??"–"}</td><td class="num ${tone(col("qb9"),t.qb9,true)}">${t.qb9??"–"}</td><td class="num ${tone(col("q18"),t.q18,true)}">${t.q18??"–"}</td>
+    <td class="num ${tone(col("d2pts"),t.d2pts,true)}"><b>${t.d2pts}</b></td></tr>`).join("");
   const d1=T.map(t=>`<tr><td><b>${esc(t.id)}</b><div class="muted" style="font-size:12px">HCP ${f2(t.hcp)}</div></td>
     <td class="num ${tone(col("f9"),t.f9,false)}">${fmt(t.f9)}</td><td class="num ${tone(col("b9"),t.b9,false)}">${fmt(t.b9)}</td><td class="num ${tone(col("g18"),t.g18,false)}">${fmt(t.g18)}</td>
     <td class="num ${tone(col("nf9"),t.nf9,false)}">${f2(t.nf9)}</td><td class="num ${tone(col("nb9"),t.nb9,false)}">${f2(t.nb9)}</td><td class="num ${tone(col("n18"),t.n18,false)}">${f2(t.n18)}</td>
     <td class="num ${tone(col("pf9"),t.pf9,true)}">${t.pf9??"–"}</td><td class="num ${tone(col("pb9"),t.pb9,true)}">${t.pb9??"–"}</td><td class="num ${tone(col("p18"),t.p18,true)}">${t.p18??"–"}</td>
     <td class="num ${tone(col("d1pts"),t.d1pts,true)}"><b>${t.d1pts}</b></td></tr>`).join("");
-  return`<h2>Team winner</h2><p class="lede">Day 1 Ambrose points + the team's combined Day 2 Stableford.</p>
-  <div class="card tbl"><table><thead><tr><th>Team</th><th>D1 pts</th><th>D2 Stableford</th><th>Total</th><th>Rank</th><th>Avg D2</th></tr></thead><tbody>${w}</tbody></table></div>
+  return`<h2>Team winner</h2><p class="lede">Day 1 Ambrose points + Day 2 team points, up to 24 each (48 total). Level on total? Higher Day 2 18-hole average wins.</p>
+  <div class="card tbl"><table><thead><tr><th>Team</th><th>Rank</th><th>Total</th><th>D1 pts</th><th>D2 pts</th></tr></thead><tbody>${w}</tbody></table></div>
+  <h2>Day 2 · Team Stableford</h2><p class="lede">Lonsdale Links. Each team's average Stableford (players with a score) is ranked for Front 9, Back 9 and 18: 8 / 6 / 4 / 2. Teams of 3 and 4 compete evenly.</p>
+  <div class="card tbl"><table><thead><tr><th>Team</th><th>F9 avg</th><th>B9 avg</th><th>18 avg</th><th>F9 pts</th><th>B9 pts</th><th>18 pts</th><th>Total</th></tr></thead><tbody>${d2}</tbody></table></div>
   <h2>Day 1 · Ambrose</h2><p class="lede">13th Beach (Creek). Net = gross − half the team handicap per nine. Lowest net wins each segment: 8 / 6 / 4 / 2.</p>
   <div class="card tbl"><table><thead><tr><th>Team</th><th>F9 gross</th><th>B9 gross</th><th>18 gross</th><th>F9 net</th><th>B9 net</th><th>18 net</th><th>F9 pts</th><th>B9 pts</th><th>18 pts</th><th>Total</th></tr></thead><tbody>${d1}</tbody></table></div>`;
 }
@@ -329,7 +350,7 @@ function vRules(){
   <dt>Day 2: Stableford (individual)</dt><dd>Front 9, Back 9 and 18 are each ranked within your group (up to 18). Group of 3: 6 / 4 / 2. Group of 4: 6 / 5 / 3 / 2, so every player averages the same points whatever size group they're in. Only players with a score count towards the group size.</dd>
   <dt>Bonus</dt><dd>1 point per closest-to-pin or longest-drive win. 4 per nine, 16 in total.</dd>
   <dt>MVP</dt><dd>Day 2 points + bonuses + half your team's Day 1 points (Day 1 is worth up to 12). Ties share the higher placing.</dd>
-  <dt>Team winner</dt><dd>Day 1 team points + the team's combined Day 2 Stableford.</dd>
+  <dt>Team winner</dt><dd>Day 1 teams stay together for the whole trip. Team total = Day 1 Ambrose points + Day 2 team points (up to 24 each, 48 in total). Day 2 team points: each team's average Stableford is ranked for Front 9, Back 9 and 18: 8 / 6 / 4 / 2. Using the average keeps teams of 3 and 4 even. Level on total: the higher Day 2 18-hole average wins.</dd>
   <dt>Players, handicaps, teams and groups</dt><dd>These come from the GC26 Google Sheet. Change them there and the app picks them up within a few seconds.</dd></dl></div>`;
 }
 function statusLine(){return`<div class="status" id="status">${DEMO?"Demo mode: scores stay on this phone until the Google Sheet is connected.":""}</div>`}
