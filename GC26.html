@@ -202,9 +202,7 @@ function rankPoints(entries, higherBetter, scale) {
 function compute(config, d1, d2, bonus) {
   const players = config.players || [];
   const teams = [...new Set(players.map(p => p.team))].sort();
-  // Day 2 order: groups of 3 first, the group of 4 last (it plays slower, so it goes out last).
-  const gsize = g => players.filter(p => p.group === g).length;
-  const groups = [...new Set(players.map(p => p.group))].sort((a, b) => gsize(a) - gsize(b) || a.localeCompare(b, undefined, { numeric: true }));
+  const groups = [...new Set(players.map(p => p.group))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   const d1t = (d1 && d1.teams) || {};
   const d2p = (d2 && d2.players) || {};
   const aw = (bonus && bonus.awards) || {};
