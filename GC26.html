@@ -540,6 +540,7 @@ function vCard(R){
 }
 $main.addEventListener("click",e=>{
   const b=e.target.closest("button[data-act]");if(!b||!$main.contains(b))return;
+  if(b.dataset.act==="clearall"){clearAll(b);return}
   if(b.dataset.act==="tab"){S.tab=b.dataset.v;try{localStorage.setItem("gc26tab",S.tab);history.replaceState(null,"","#"+S.tab)}catch(e){}render(true);window.scrollTo({top:0});return}
   initSc();const sc=S.sc,a=b.dataset.act,day=sc.day;
   if(a==="day"){sc.day=+b.dataset.v;sc.grp=null;sc.hole=1;saveSc();render(true);return}
@@ -557,6 +558,18 @@ $main.addEventListener("click",e=>{
   setHole(day,key,sc.hole||1,v);
 });
 
+async function clearAll(btn){
+  const out=document.getElementById("clrmsg"),say=t=>{if(out)out.textContent=t};
+  const pin=prompt("Organiser PIN:");if(pin===null||!pin.trim())return;
+  const typed=prompt("This wipes ALL scores for both days, every hole score and all CTP / LD winners.\n\nType CLEAR to confirm.");
+  if(!typed||typed.trim().toUpperCase()!=="CLEAR"){say("Nothing was cleared.");return}
+  btn.disabled=true;say("Clearing…");
+  try{const r=await fetch(API_URL,{method:"POST",body:JSON.stringify({kind:"clearAll",pin:pin.trim()})});const d=await r.json();
+    if(!d.ok)throw new Error(d.error||"Rejected");
+    S.q=[];saveQ();apply(d.data);render(true);
+    const m=document.getElementById("clrmsg");if(m)m.textContent="All scores cleared. Other phones show it within 10 seconds.";
+  }catch(e){say("Not cleared: "+(e.message||"check your signal"));btn.disabled=false}
+}
 function vRules(){
   return`<h2>How scoring works</h2><div class="card rules"><dl>
   <dt>Day 1: Ambrose (team)</dt><dd>Team handicap = combined handicap ÷ (2 × players). Net per nine = gross − half the team handicap. Front 9, Back 9 and 18 are each ranked on net: 8 / 6 / 4 / 2 (up to 24 per team).</dd>
@@ -565,7 +578,9 @@ function vRules(){
   <dt>MVP</dt><dd>Day 2 points + bonuses + half your team's Day 1 points (Day 1 is worth up to 12). Ties share the higher placing.</dd>
   <dt>Team winner</dt><dd>Day 1 teams stay together for the whole trip. Team total = Day 1 Ambrose points + Day 2 team points (up to 24 each, 48 in total). Day 2 team points: each team's average Stableford is ranked for Front 9, Back 9 and 18: 8 / 6 / 4 / 2. Using the average keeps teams of 3 and 4 even. Level on total: the higher Day 2 18-hole average wins.</dd>
   <dt>Handicaps</dt><dd>Each player has a handicap for each course: GA handicap × slope ÷ 113 + (scratch rating − par), rounded, max 36. Day 1 team handicaps use the 13th Beach numbers; Day 2 Stableford shots use the Lonsdale numbers.</dd>
-  <dt>Players, handicaps, teams and groups</dt><dd>These come from the GC26 Google Sheet. Change them there and the app picks them up within a few seconds.</dd></dl></div>`;
+  <dt>Players, handicaps, teams and groups</dt><dd>These come from the GC26 Google Sheet. Change them there and the app picks them up within a few seconds.</dd></dl></div>
+  <h2>Organiser</h2><div class="card note org"><p style="margin:0 0 10px">Wipes every score, hole score and CTP / LD winner. Players, handicaps, teams and the draw are kept. Needs the organiser PIN.</p>
+  <button class="btn danger" data-act="clearall" ${DEMO?"disabled":""}>Clear all scores…</button><div class="status" id="clrmsg"></div></div>`;
 }
 function statusLine(){return`<div class="status" id="status">${DEMO?"Demo mode: scores stay on this phone until the Google Sheet is connected.":""}</div>`}
 
