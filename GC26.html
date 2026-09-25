@@ -335,7 +335,7 @@ function vMVP(R){
   if(!R.players.length)return`<div class="empty">No players yet.</div>`;
   const rows=R.players.map(p=>`<div class="row ${p.rank===1&&p.mvp>0?"p1":""}">
     <div class="pos num">${p.rank}</div>
-    <div class="who"><div class="n">${esc(p.name)}</div><div class="m">${esc(p.team)} · ${esc(p.group)} · HCP ${esc(p.hcp)}${thruTxt(R,"d2|"+p.id)}</div>
+    <div class="who"><div class="n">${esc(p.name)}</div><div class="m">${esc(p.team)} · ${esc(p.group)} · HCP ${esc(p.hcp)} / ${esc(hcp2(p))}${thruTxt(R,"d2|"+p.id)}</div>
       <div class="chips num"><span class="chip">D1 ½ <b>${fmt(p.d1/2)}</b></span><span class="chip">F9 <b>${p.pf9??"–"}</b></span><span class="chip">B9 <b>${p.pb9??"–"}</b></span><span class="chip">18 <b>${p.pt18??"–"}</b></span><span class="chip">Bonus <b>${p.bonus}</b></span></div></div>
     <div class="tot num">${fmt(p.mvp)}</div></div>`).join("");
   return`<h2>MVP leaderboard</h2><p class="lede">Day 2 points (Front 9, Back 9, 18) + CTP/LD bonuses + half your team's Day 1 points.</p><div class="card lb">${rows}</div>`;
@@ -378,7 +378,7 @@ function vDay2(R){
     const mem=R.players.filter(p=>p.group===g).sort((a,b)=>a.name.localeCompare(b.name));
     const s=d2Scale(mem.length);
     return`<div class="gh">${esc(g)} <span class="muted" style="font-size:13px;letter-spacing:0">· ${s.join(" / ")}</span></div><div class="prow hd"><span>Player</span><span>F9 pts</span><span>B9 pts</span><span style="text-align:right">F9 · B9 · 18</span></div>`+
-    mem.map(p=>`<div class="prow"><div><b>${esc(p.name)}</b> <span class="muted" style="font-size:12px">${esc(p.team)} · ${p.t18??"–"} total</span></div>
+    mem.map(p=>`<div class="prow"><div><b>${esc(p.name)}</b> <span class="muted" style="font-size:12px">${esc(p.team)} · HCP ${esc(hcp2(p))} · ${p.t18??"–"} total</span></div>
       ${inp("d2-"+p.id+"-f9","d2",["players",p.id,"f9"],p.f9,p.name+" front 9 stableford",R.thru["d2|"+p.id])}
       ${inp("d2-"+p.id+"-b9","d2",["players",p.id,"b9"],p.b9,p.name+" back 9 stableford",R.thru["d2|"+p.id])}
       <div class="res num">${pts(p.pf9,s)}${pts(p.pb9,s)}${pts(p.pt18,s)}</div></div>`).join("");
@@ -399,6 +399,7 @@ function vBonus(R){
 
 
 // ---------- scorecard (hole by hole) ----------
+const hcp2=p=>p.hcp2!==undefined&&p.hcp2!==null&&p.hcp2!==""?p.hcp2:p.hcp; // Day 2 (Lonsdale) handicap; falls back to Day 1 for an old script
 const thruTxt=(R,k)=>{const n=R.thru&&R.thru[k];return n&&n<18?` · <b style="color:var(--sea)">thru ${n}</b>`:""};
 // Nine totals worked out from hole scores override the typed-in totals (the script writes the same numbers to the sheet).
 function withHoles(){
@@ -407,7 +408,7 @@ function withHoles(){
   const d2=JSON.parse(JSON.stringify(S.d2||{}));d2.players=d2.players||{};
   const thru={};
   if(C.d1&&C.d1.par)for(const [k,arr] of Object.entries(H.d1||{})){const s=holeNines(arr,C.d1,0,1);if(s.thru){d1.teams[k]={f9:s.f9,b9:s.b9};thru["d1|"+k]=s.thru}}
-  if(C.d2&&C.d2.par)for(const [k,arr] of Object.entries(H.d2||{})){const p=pl.find(x=>x.id===k);if(!p)continue;const s=holeNines(arr,C.d2,p.hcp,2);if(s.thru){d2.players[k]={f9:s.f9,b9:s.b9};thru["d2|"+k]=s.thru}}
+  if(C.d2&&C.d2.par)for(const [k,arr] of Object.entries(H.d2||{})){const p=pl.find(x=>x.id===k);if(!p)continue;const s=holeNines(arr,C.d2,hcp2(p),2);if(s.thru){d2.players[k]={f9:s.f9,b9:s.b9};thru["d2|"+k]=s.thru}}
   return{d1,d2,thru};
 }
 function putHole(day,key,hole,value){
@@ -466,7 +467,7 @@ function vCard(R){
   const H=(S.holes&&S.holes["d"+day])||{};
   const team=day===1?R.teams.find(t=>t.id===sc.grp):null;
   const rows=day===1?[{key:sc.grp,name:sc.grp,hcp:team?team.hcp:0,sub:team?team.members.map(m=>m.name).join(", "):""}]
-    :R.players.filter(p=>p.group===sc.grp).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>({key:p.id,name:p.name,hcp:p.hcp,sub:p.team}));
+    :R.players.filter(p=>p.group===sc.grp).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>({key:p.id,name:p.name,hcp:hcp2(p),sub:p.team}));
   const h=Math.min(18,Math.max(1,sc.hole||1)),i=h-1,par=C.par[i],idx=C.idx[i];
   const done=n=>rows.every(r=>hasScore((H[r.key]||[])[n-1]));
   const strip=`<div class="strip" role="group" aria-label="Hole">${Array.from({length:18},(_,k)=>k+1).map(n=>`<button data-act="hole" data-v="${n}" class="${n===h?"cur":""} ${done(n)?"done":""}" aria-label="Hole ${n}${done(n)?", done":""}">${n}</button>`).join("")}</div>`;
@@ -520,6 +521,7 @@ function vRules(){
   <dt>Bonus</dt><dd>1 point per closest-to-pin or longest-drive win. 4 per nine, 16 in total.</dd>
   <dt>MVP</dt><dd>Day 2 points + bonuses + half your team's Day 1 points (Day 1 is worth up to 12). Ties share the higher placing.</dd>
   <dt>Team winner</dt><dd>Day 1 teams stay together for the whole trip. Team total = Day 1 Ambrose points + Day 2 team points (up to 24 each, 48 in total). Day 2 team points: each team's average Stableford is ranked for Front 9, Back 9 and 18: 8 / 6 / 4 / 2. Using the average keeps teams of 3 and 4 even. Level on total: the higher Day 2 18-hole average wins.</dd>
+  <dt>Handicaps</dt><dd>Each player has a handicap for each course: GA handicap × slope ÷ 113 + (scratch rating − par), rounded, max 36. Day 1 team handicaps use the 13th Beach numbers; Day 2 Stableford shots use the Lonsdale numbers.</dd>
   <dt>Players, handicaps, teams and groups</dt><dd>These come from the GC26 Google Sheet. Change them there and the app picks them up within a few seconds.</dd></dl></div>`;
 }
 function statusLine(){return`<div class="status" id="status">${DEMO?"Demo mode: scores stay on this phone until the Google Sheet is connected.":""}</div>`}
