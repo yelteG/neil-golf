@@ -104,6 +104,33 @@ input:disabled,select:disabled{opacity:.6}
 .rules dt{font-weight:600;margin-top:10px}
 .rules dd{margin:2px 0 0;color:var(--muted)}
 .empty{padding:28px 16px;text-align:center;color:var(--muted)}
+/* scorecard */
+.seg{display:flex;gap:6px;margin:0 0 10px}
+.seg.wrapx{flex-wrap:wrap}
+.seg .btn{flex:1 1 auto;padding:9px 10px;font-size:14px}
+.seg .btn.on{background:var(--fair);border-color:var(--fair);color:var(--fair-ink)}
+.strip{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin:4px 0 12px}
+.strip button{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:7px 0;font:600 15px/1 var(--display);cursor:pointer}
+.strip button.done{background:var(--good-bg);border-color:transparent;color:var(--good)}
+.strip button.cur{border-color:var(--fair);background:var(--fair);color:var(--fair-ink)}
+.hole{overflow:hidden}
+.hnav{display:grid;grid-template-columns:56px 1fr 56px;align-items:center;gap:8px;padding:10px 12px;background:var(--sunk)}
+.hnav .btn{font-size:24px;padding:6px 0}
+.hnav .btn:disabled{opacity:.35}
+.hmid{text-align:center}
+.hn{font:700 28px/1 var(--display);letter-spacing:.03em;text-transform:uppercase}
+.hm{font-size:13.5px;color:var(--muted);margin-top:3px}
+.hp{display:grid;grid-template-columns:1fr auto;grid-template-areas:"who step" "who res";gap:4px 12px;align-items:center;padding:12px;border-top:1px solid var(--line)}
+.hp .who{grid-area:who} .hp .step{grid-area:step} .hp .hpr{grid-area:res;display:flex;gap:10px;justify-content:flex-end;align-items:center}
+.hp .n{font-weight:600;font-size:16px}
+.hp .m{font-size:12.5px;color:var(--muted)}
+.dots{color:var(--sea);font-size:11px;letter-spacing:1px;vertical-align:2px}
+.step{display:flex;align-items:center;gap:6px}
+.step .btn{width:48px;height:48px;padding:0;font-size:26px;line-height:1}
+.g{min-width:44px;text-align:center;font:700 32px/1 var(--display)}
+.g.eagle,.g.birdie{color:var(--good)} .g.bogey{color:var(--muted)} .g.dbl{color:var(--bad)}
+.lnk{border:0;background:none;color:var(--sea);font:500 13px/1 var(--body);padding:6px 0;cursor:pointer;text-decoration:underline}
+.btn.wide{width:100%;margin-top:12px;padding:14px;font-size:16px}
 @media (max-width:480px){
   .prow{grid-template-columns:1fr 62px 62px;} .prow .res{grid-column:1/-1;justify-content:flex-start}
   .prow.hd>span:last-child{display:none}
@@ -120,6 +147,7 @@ input:disabled,select:disabled{opacity:.6}
   <div class="brand"><h1>GC<b>26</b></h1><span class="sub">Bellarine · 24–25 Oct</span><span class="live off" id="live"><i></i><span id="liveTxt">Connecting</span></span></div>
   <nav class="tabs" role="tablist" id="tabs">
     <button role="tab" data-tab="mvp">MVP</button>
+    <button role="tab" data-tab="card">Scorecard</button>
     <button role="tab" data-tab="teams">Teams</button>
     <button role="tab" data-tab="day1">Day 1 scores</button>
     <button role="tab" data-tab="day2">Day 2 scores</button>
@@ -135,6 +163,13 @@ input:disabled,select:disabled{opacity:.6}
 const API_URL = "https://script.google.com/macros/s/AKfycbzbUiM4JtzrHpWOS9kgJjWnH1o4B0DoPdluZBb-NvYGMup7rmMNJiRTebh9kh9mlpxtrw/exec";
 // ========================================================================
 const DEMO_DATA = {"config": {"players": [{"id": "Neil H", "name": "Neil H", "hcp": 12, "team": "Team 1", "group": "Group 1"}, {"id": "Anthony W", "name": "Anthony W", "hcp": 17, "team": "Team 4", "group": "Group 1"}, {"id": "Carlos W", "name": "Carlos W", "hcp": 14, "team": "Team 3", "group": "Group 1"}, {"id": "Dilan P", "name": "Dilan P", "hcp": 27, "team": "Team 3", "group": "Group 2"}, {"id": "Ayman H", "name": "Ayman H", "hcp": 35, "team": "Team 1", "group": "Group 2"}, {"id": "Will R", "name": "Will R", "hcp": 12, "team": "Team 1", "group": "Group 3"}, {"id": "Gavin I", "name": "Gavin I", "hcp": 22, "team": "Team 1", "group": "Group 4"}, {"id": "Rohan", "name": "Rohan", "hcp": 25, "team": "Team 4", "group": "Group 2"}, {"id": "Daniel B", "name": "Daniel B", "hcp": 22, "team": "Team 4", "group": "Group 3"}, {"id": "Kent H", "name": "Kent H", "hcp": 33, "team": "Team 2", "group": "Group 1"}, {"id": "Akila G", "name": "Akila G", "hcp": 19, "team": "Team 3", "group": "Group 4"}, {"id": "Garrett", "name": "Garrett", "hcp": 33, "team": "Team 2", "group": "Group 3"}, {"id": "Daniel R", "name": "Daniel R", "hcp": 33, "team": "Team 2", "group": "Group 4"}]}, "d1": {"teams": {"Team 1": {"f9": 36, "b9": 36}, "Team 2": {"f9": 35, "b9": 40}, "Team 3": {"f9": 34, "b9": 38}, "Team 4": {"f9": 33, "b9": 39}}}, "d2": {"players": {"Neil H": {"f9": 30, "b9": 20}, "Anthony W": {"f9": 25, "b9": 25}, "Carlos W": {"f9": 26, "b9": 27}, "Dilan P": {"f9": 33, "b9": 28}, "Ayman H": {"f9": 34, "b9": 29}, "Will R": {"f9": 36, "b9": 33}, "Gavin I": {"f9": 25, "b9": 36}, "Rohan": {"f9": 32, "b9": 35}, "Daniel B": {"f9": 30, "b9": 34}, "Kent H": {"f9": 27, "b9": 27}, "Akila G": {"f9": 25, "b9": 29}, "Garrett": {"f9": 26, "b9": 30}, "Daniel R": {"f9": 32, "b9": 40}}}, "bonus": {"awards": {"d1-ctp-f9-1": {"w": "Anthony W", "hole": ""}, "d1-ctp-f9-2": {"w": "Ayman H", "hole": ""}, "d1-ctp-b9-1": {"w": "Will R", "hole": ""}, "d1-ctp-b9-2": {"w": "Gavin I", "hole": ""}, "d1-ld-f9-1": {"w": "Gavin I", "hole": ""}, "d1-ld-f9-2": {"w": "Rohan", "hole": ""}, "d1-ld-b9-1": {"w": "Daniel B", "hole": ""}, "d1-ld-b9-2": {"w": "Akila G", "hole": ""}, "d2-ctp-f9-1": {"w": "Daniel R", "hole": ""}, "d2-ctp-f9-2": {"w": "Dilan P", "hole": ""}, "d2-ctp-b9-1": {"w": "Akila G", "hole": ""}, "d2-ctp-b9-2": {"w": "Neil H", "hole": ""}, "d2-ld-f9-1": {"w": "Rohan", "hole": ""}, "d2-ld-f9-2": {"w": "Kent H", "hole": ""}, "d2-ld-b9-1": {"w": "Ayman H", "hole": ""}, "d2-ld-b9-2": {"w": "Neil H", "hole": ""}}}};
+// Demo only: the live app reads these from the Courses tab.
+DEMO_DATA.courses = {
+  d1: { name: "13th Beach (Creek)", m: [332,468,157,386,401,121,463,350,290,508,393,140,329,283,160,375,478,397],
+        par: [4,5,3,4,4,3,5,4,4,5,4,3,4,4,3,4,5,4], idx: [7,17,10,4,5,16,18,6,13,12,1,14,9,11,8,2,15,3] },
+  d2: { name: "Lonsdale Links", m: [260,120,405,205,295,115,100,320,245,280,415,140,445,105,300,215,330,320],
+        par: [4,3,4,4,4,3,3,4,4,4,5,3,5,3,4,4,4,4], idx: [12,9,1,16,7,14,17,4,11,10,13,8,6,18,5,15,2,3] } };
+DEMO_DATA.holes = { d1: {}, d2: {} };
 </script>
 <script>
 // Pure scoring logic for GC26 — shared by the page and a one-off node check.
@@ -248,19 +283,38 @@ function compute(config, d1, d2, bonus) {
   return { players: list, byId: pl, teams: teams.map(t => team[t]), groups };
 }
 
+// ---------- hole-by-hole scoring (must match holeNines_ in Code.gs) ----------
+// Strokes received on a hole: one per full 18 of handicap, plus one more where the hole's index <= the remainder.
+const strokesOn = (hcp, idx) => { const h = Math.max(0, Math.round(+hcp || 0)); return Math.floor(h / 18) + (idx <= h % 18 ? 1 : 0); };
+const isPick = g => String(g).toUpperCase() === "X";
+const hasScore = g => g !== null && g !== undefined && g !== "";
+// Stableford points: 2 for a net par, one more per shot better, never below 0. "X" = picked up = 0.
+const stbl = (par, strokes, g) => !hasScore(g) ? null : isPick(g) ? 0 : Math.max(0, 2 + par + strokes - (+g));
+// Nine totals from 18 hole scores. Day 1 = team gross, Day 2 = player Stableford points.
+function holeNines(arr, course, hcp, day) {
+  let f9 = null, b9 = null, thru = 0;
+  (arr || []).forEach((g, i) => {
+    if (!hasScore(g) || i > 17) return;
+    thru++;
+    const v = day === 1 ? +g : stbl(course.par[i], strokesOn(hcp, course.idx[i]), g);
+    if (i < 9) f9 = (f9 || 0) + v; else b9 = (b9 || 0) + v;
+  });
+  return { f9, b9, thru };
+}
+
 
 
 </script>
 <script>
 (function(){
 const $main=document.getElementById("main");
-const S={config:null,d1:null,d2:null,bonus:null,canWrite:true,tab:"mvp",pending:false,inflight:0,lastSync:null};
+const S={config:null,d1:null,d2:null,bonus:null,holes:{d1:{},d2:{}},courses:{},q:[],sc:null,canWrite:true,tab:"mvp",pending:false,inflight:0,lastSync:null};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt=v=>v===null||v===undefined?"–":(Math.round(v*100)/100).toString();
 const f2=v=>v===null||v===undefined?"–":v.toFixed(2);
 const DEMO=!API_URL;
 
-const TABS=["mvp","teams","day1","day2","bonus","rules"];
+const TABS=["mvp","card","teams","day1","day2","bonus","rules"];
 try{const h=location.hash.slice(1);if(TABS.includes(h))S.tab=h;else{const t=localStorage.getItem("gc26tab");if(TABS.includes(t))S.tab=t;}}catch(e){}
 document.getElementById("tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-tab]");if(!b)return;S.tab=b.dataset.tab;try{localStorage.setItem("gc26tab",S.tab);history.replaceState(null,"","#"+S.tab)}catch(e){}render(true);window.scrollTo({top:0});});
 
@@ -281,7 +335,7 @@ function vMVP(R){
   if(!R.players.length)return`<div class="empty">No players yet.</div>`;
   const rows=R.players.map(p=>`<div class="row ${p.rank===1&&p.mvp>0?"p1":""}">
     <div class="pos num">${p.rank}</div>
-    <div class="who"><div class="n">${esc(p.name)}</div><div class="m">${esc(p.team)} · ${esc(p.group)} · HCP ${esc(p.hcp)}</div>
+    <div class="who"><div class="n">${esc(p.name)}</div><div class="m">${esc(p.team)} · ${esc(p.group)} · HCP ${esc(p.hcp)}${thruTxt(R,"d2|"+p.id)}</div>
       <div class="chips num"><span class="chip">D1 ½ <b>${fmt(p.d1/2)}</b></span><span class="chip">F9 <b>${p.pf9??"–"}</b></span><span class="chip">B9 <b>${p.pb9??"–"}</b></span><span class="chip">18 <b>${p.pt18??"–"}</b></span><span class="chip">Bonus <b>${p.bonus}</b></span></div></div>
     <div class="tot num">${fmt(p.mvp)}</div></div>`).join("");
   return`<h2>MVP leaderboard</h2><p class="lede">Day 2 points (Front 9, Back 9, 18) + CTP/LD bonuses + half your team's Day 1 points.</p><div class="card lb">${rows}</div>`;
@@ -296,7 +350,7 @@ function vTeams(R){
     <td class="num ${tone(col("a9f"),t.a9f,true)}">${a1(t.a9f)}</td><td class="num ${tone(col("a9b"),t.a9b,true)}">${a1(t.a9b)}</td><td class="num ${tone(col("a18"),t.a18,true)}">${a1(t.a18)}</td>
     <td class="num ${tone(col("qf9"),t.qf9,true)}">${t.qf9??"–"}</td><td class="num ${tone(col("qb9"),t.qb9,true)}">${t.qb9??"–"}</td><td class="num ${tone(col("q18"),t.q18,true)}">${t.q18??"–"}</td>
     <td class="num ${tone(col("d2pts"),t.d2pts,true)}"><b>${t.d2pts}</b></td></tr>`).join("");
-  const d1=T.map(t=>`<tr><td><b>${esc(t.id)}</b><div class="muted" style="font-size:12px">HCP ${f2(t.hcp)}</div></td>
+  const d1=T.map(t=>`<tr><td><b>${esc(t.id)}</b><div class="muted" style="font-size:12px">HCP ${f2(t.hcp)}${thruTxt(R,"d1|"+t.id)}</div></td>
     <td class="num ${tone(col("f9"),t.f9,false)}">${fmt(t.f9)}</td><td class="num ${tone(col("b9"),t.b9,false)}">${fmt(t.b9)}</td><td class="num ${tone(col("g18"),t.g18,false)}">${fmt(t.g18)}</td>
     <td class="num ${tone(col("nf9"),t.nf9,false)}">${f2(t.nf9)}</td><td class="num ${tone(col("nb9"),t.nb9,false)}">${f2(t.nb9)}</td><td class="num ${tone(col("n18"),t.n18,false)}">${f2(t.n18)}</td>
     <td class="num ${tone(col("pf9"),t.pf9,true)}">${t.pf9??"–"}</td><td class="num ${tone(col("pb9"),t.pb9,true)}">${t.pb9??"–"}</td><td class="num ${tone(col("p18"),t.p18,true)}">${t.p18??"–"}</td>
@@ -309,15 +363,15 @@ function vTeams(R){
   <div class="card tbl"><table><thead><tr><th>Team</th><th>F9 gross</th><th>B9 gross</th><th>18 gross</th><th>F9 net</th><th>B9 net</th><th>18 net</th><th>F9 pts</th><th>B9 pts</th><th>18 pts</th><th>Total</th></tr></thead><tbody>${d1}</tbody></table></div>`;
 }
 const dis=()=>S.canWrite?"":"disabled";
-function inp(id,doc,path,val,label){id=id.replace(/[^A-Za-z0-9-]/g,"_");return`<input id="${id}" type="number" inputmode="numeric" min="0" max="99" ${dis()} data-doc="${doc}" data-path="${esc(path.join("|"))}" value="${val??""}" aria-label="${esc(label)}">`}
+function inp(id,doc,path,val,label,lock){id=id.replace(/[^A-Za-z0-9-]/g,"_");const lk=lock?`readonly title="Filled in from the Scorecard tab"`:"";return`<input id="${id}" type="number" inputmode="numeric" min="0" max="99" ${dis()} ${lk} data-doc="${doc}" data-path="${esc(path.join("|"))}" value="${val??""}" aria-label="${esc(label)}">`}
 function vDay1(R){
   const s=[8,6,4,2];
   const cards=R.teams.map(t=>`<div class="card ent"><h3><span>${esc(t.id)}</span><span class="muted num" style="font-size:15px">HCP ${f2(t.hcp)}</span></h3>
     <div class="mem">${t.members.map(m=>esc(m.name)).join(", ")}</div>
-    <div class="fields"><label class="f">Front 9 gross${inp("d1-"+t.id+"-f9","d1",["teams",t.id,"f9"],t.f9,t.id+" front 9 gross")}</label>
-    <label class="f">Back 9 gross${inp("d1-"+t.id+"-b9","d1",["teams",t.id,"b9"],t.b9,t.id+" back 9 gross")}</label></div>
+    <div class="fields"><label class="f">Front 9 gross${inp("d1-"+t.id+"-f9","d1",["teams",t.id,"f9"],t.f9,t.id+" front 9 gross",R.thru["d1|"+t.id])}</label>
+    <label class="f">Back 9 gross${inp("d1-"+t.id+"-b9","d1",["teams",t.id,"b9"],t.b9,t.id+" back 9 gross",R.thru["d1|"+t.id])}</label></div>
     <div class="out num">Net ${f2(t.nf9)} / ${f2(t.nb9)} · 18 ${f2(t.n18)} <span style="margin-left:auto">Pts ${pts(t.pf9,s)} ${pts(t.pb9,s)} ${pts(t.p18,s)} = <b style="color:var(--ink)">${t.d1pts}</b></span></div></div>`).join("");
-  return`<h2>Day 1 · Sat 24 Oct</h2><p class="lede">13th Beach Golf Links (Creek), 2:30 pm, Ambrose. Enter each team's gross score for each nine. Scores save when you leave the box.</p><div class="grid">${cards}</div>${statusLine()}`;
+  return`<h2>Day 1 · Sat 24 Oct</h2><p class="lede">13th Beach Golf Links (Creek), 2:30 pm, Ambrose. Best way: enter scores hole by hole on the Scorecard tab and the nine totals fill in here. You can still type a nine total below if a card was kept on paper.</p><div class="grid">${cards}</div>${statusLine()}`;
 }
 function vDay2(R){
   const blocks=R.groups.map(g=>{
@@ -325,11 +379,11 @@ function vDay2(R){
     const s=d2Scale(mem.length);
     return`<div class="gh">${esc(g)} <span class="muted" style="font-size:13px;letter-spacing:0">· ${s.join(" / ")}</span></div><div class="prow hd"><span>Player</span><span>F9 pts</span><span>B9 pts</span><span style="text-align:right">F9 · B9 · 18</span></div>`+
     mem.map(p=>`<div class="prow"><div><b>${esc(p.name)}</b> <span class="muted" style="font-size:12px">${esc(p.team)} · ${p.t18??"–"} total</span></div>
-      ${inp("d2-"+p.id+"-f9","d2",["players",p.id,"f9"],p.f9,p.name+" front 9 stableford")}
-      ${inp("d2-"+p.id+"-b9","d2",["players",p.id,"b9"],p.b9,p.name+" back 9 stableford")}
+      ${inp("d2-"+p.id+"-f9","d2",["players",p.id,"f9"],p.f9,p.name+" front 9 stableford",R.thru["d2|"+p.id])}
+      ${inp("d2-"+p.id+"-b9","d2",["players",p.id,"b9"],p.b9,p.name+" back 9 stableford",R.thru["d2|"+p.id])}
       <div class="res num">${pts(p.pf9,s)}${pts(p.pb9,s)}${pts(p.pt18,s)}</div></div>`).join("");
   }).join("");
-  return`<h2>Day 2 · Sun 25 Oct</h2><p class="lede">Lonsdale Links, 12:12 pm, Stableford. Enter each player's Stableford points for each nine. Points are ranked within the group: 6 / 4 / 2 in a group of 3, 6 / 5 / 3 / 2 in a group of 4.</p><div class="card plist">${blocks}</div>${statusLine()}`;
+  return`<h2>Day 2 · Sun 25 Oct</h2><p class="lede">Lonsdale Links, 12:12 pm, Stableford. Best way: enter gross scores hole by hole on the Scorecard tab and the Stableford points are worked out for you. You can still type nine totals below if a card was kept on paper. Points are ranked within the group: 6 / 4 / 2 in a group of 3, 6 / 5 / 3 / 2 in a group of 4.</p><div class="card plist">${blocks}</div>${statusLine()}`;
 }
 function vBonus(R){
   const opts=sel=>`<option value="">No winner yet</option>`+R.players.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${esc(p.id)}" ${p.id===sel?"selected":""}>${esc(p.name)}</option>`).join("");
@@ -343,6 +397,121 @@ function vBonus(R){
   <div class="gh" style="padding-left:0">Day 1</div><div class="card">${day(1)}</div><div class="gh" style="padding-left:0">Day 2</div><div class="card">${day(2)}</div>${statusLine()}`;
 }
 
+
+// ---------- scorecard (hole by hole) ----------
+const thruTxt=(R,k)=>{const n=R.thru&&R.thru[k];return n&&n<18?` · <b style="color:var(--sea)">thru ${n}</b>`:""};
+// Nine totals worked out from hole scores override the typed-in totals (the script writes the same numbers to the sheet).
+function withHoles(){
+  const H=S.holes||{},C=S.courses||{},pl=(S.config&&S.config.players)||[];
+  const d1=JSON.parse(JSON.stringify(S.d1||{}));d1.teams=d1.teams||{};
+  const d2=JSON.parse(JSON.stringify(S.d2||{}));d2.players=d2.players||{};
+  const thru={};
+  if(C.d1&&C.d1.par)for(const [k,arr] of Object.entries(H.d1||{})){const s=holeNines(arr,C.d1,0,1);if(s.thru){d1.teams[k]={f9:s.f9,b9:s.b9};thru["d1|"+k]=s.thru}}
+  if(C.d2&&C.d2.par)for(const [k,arr] of Object.entries(H.d2||{})){const p=pl.find(x=>x.id===k);if(!p)continue;const s=holeNines(arr,C.d2,p.hcp,2);if(s.thru){d2.players[k]={f9:s.f9,b9:s.b9};thru["d2|"+k]=s.thru}}
+  return{d1,d2,thru};
+}
+function putHole(day,key,hole,value){
+  const d="d"+day;S.holes=S.holes||{};S.holes[d]=S.holes[d]||{};
+  const row=(S.holes[d][key]||Array(18).fill(null)).slice();row[hole-1]=value;S.holes[d][key]=row;
+}
+// Unsent hole scores wait in a queue on the phone (survives closing the page) and go to the sheet in order.
+const Q_KEY="gc26queue";
+try{const q=JSON.parse(localStorage.getItem(Q_KEY));if(Array.isArray(q))S.q=q.map(e=>({...e,sending:false}))}catch(e){}
+const saveQ=()=>{try{localStorage.setItem(Q_KEY,JSON.stringify(S.q))}catch(e){}};
+let qTimer=null,flushing=false;
+function setHole(day,key,hole,value){
+  putHole(day,key,hole,value);
+  if(DEMO){try{localStorage.setItem("gc26demo",JSON.stringify({config:S.config,d1:S.d1,d2:S.d2,bonus:S.bonus,holes:S.holes,courses:S.courses}))}catch(e){}render(true);return}
+  S.q=S.q.filter(e=>e.sending||!(e.day===day&&e.key===key&&e.hole===hole));
+  S.q.push({day,key,hole,value});saveQ();render(true);
+  clearTimeout(qTimer);qTimer=setTimeout(flush,700);
+}
+function qMsg(){const n=S.q.length;return n?`${n} score${n>1?"s":""} saved on this phone, sending when there's signal…`:""}
+async function flush(){
+  if(DEMO||flushing||!S.q.length)return;flushing=true;
+  try{
+    while(S.q.length){
+      const e=S.q[0];e.sending=true;setStatus("Sending "+qMsg().replace(/ saved.*/,"")+"…");
+      const r=await fetch(API_URL,{method:"POST",body:JSON.stringify({kind:"hole",day:e.day,key:e.key,hole:e.hole,value:e.value??""})});
+      const d=await r.json();
+      S.q.shift();saveQ();
+      if(!d.ok){setStatus(`Hole ${e.hole} for ${e.key} wasn't saved: ${d.error||"rejected"}`);S.lastErr=true;continue}
+      if(!S.q.length){apply(d.data);if(!S.lastErr)setStatus("All scores saved to the GC26 sheet");S.lastErr=false}
+    }
+  }catch(err){
+    if(S.q[0])S.q[0].sending=false;saveQ();setStatus(qMsg());setTimeout(flush,5000);
+  }finally{flushing=false;if(S.tab==="card")render()}
+}
+window.addEventListener("online",()=>flush());
+
+function initSc(){
+  if(S.sc)return;
+  let v=null;try{v=JSON.parse(localStorage.getItem("gc26sc"))}catch(e){}
+  const today=new Date().toISOString().slice(0,10);
+  S.sc=v&&v.day?v:{day:today>="2026-10-25"?2:1,grp:null,hole:1};
+}
+const saveSc=()=>{try{localStorage.setItem("gc26sc",JSON.stringify(S.sc))}catch(e){}};
+const shots=n=>n===0?"no shot":n===1?"1 shot":n+" shots";
+const vsPar=(g,par)=>{if(!hasScore(g)||isPick(g))return"";const d=g-par;return d<=-2?"eagle":d===-1?"birdie":d===0?"par":d===1?"bogey":"dbl"};
+
+function vCard(R){
+  initSc();const sc=S.sc,day=sc.day,C=(S.courses||{})["d"+day];
+  const opts=day===1?R.teams.map(t=>t.id):R.groups;
+  if(!opts.includes(sc.grp))sc.grp=opts[0]||null;
+  const top=`<h2>Scorecard</h2><p class="lede">One scorer per ${day===1?"team":"group"}. Tap + / − for each gross score; it saves by itself, even with no signal.</p>
+  <div class="seg" role="group" aria-label="Day"><button class="btn ${day===1?"on":""}" data-act="day" data-v="1">Day 1 · Ambrose</button><button class="btn ${day===2?"on":""}" data-act="day" data-v="2">Day 2 · Stableford</button></div>
+  <div class="seg wrapx" role="group" aria-label="${day===1?"Team":"Group"}">${opts.map(o=>`<button class="btn ${o===sc.grp?"on":""}" data-act="grp" data-v="${esc(o)}">${esc(o)}</button>`).join("")}</div>`;
+  if(!C||!C.par||C.par.length<18)return top+`<div class="card note">Can't find the course for Day ${day} on the Courses tab of the sheet (looking for "${day===1?"13th Beach (Creek)":"Lonsdale Links"}").</div>`;
+  if(!sc.grp)return top+`<div class="empty">No ${day===1?"teams":"groups"} yet.</div>`;
+  const H=(S.holes&&S.holes["d"+day])||{};
+  const team=day===1?R.teams.find(t=>t.id===sc.grp):null;
+  const rows=day===1?[{key:sc.grp,name:sc.grp,hcp:team?team.hcp:0,sub:team?team.members.map(m=>m.name).join(", "):""}]
+    :R.players.filter(p=>p.group===sc.grp).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>({key:p.id,name:p.name,hcp:p.hcp,sub:p.team}));
+  const h=Math.min(18,Math.max(1,sc.hole||1)),i=h-1,par=C.par[i],idx=C.idx[i];
+  const done=n=>rows.every(r=>hasScore((H[r.key]||[])[n-1]));
+  const strip=`<div class="strip" role="group" aria-label="Hole">${Array.from({length:18},(_,k)=>k+1).map(n=>`<button data-act="hole" data-v="${n}" class="${n===h?"cur":""} ${done(n)?"done":""}" aria-label="Hole ${n}${done(n)?", done":""}">${n}</button>`).join("")}</div>`;
+  const head=`<div class="card hole"><div class="hnav"><button class="btn" data-act="hole" data-v="${h-1}" ${h===1?"disabled":""} aria-label="Previous hole">‹</button>
+    <div class="hmid"><div class="hn">Hole ${h}</div><div class="hm num">Par ${par} · Index ${idx}${C.m&&C.m[i]?` · ${C.m[i]} m`:""}</div></div>
+    <button class="btn" data-act="hole" data-v="${h+1}" ${h===18?"disabled":""} aria-label="Next hole">›</button></div>`;
+  const body=rows.map(r=>{
+    const arr=H[r.key]||[],g=arr[i],st=day===2?strokesOn(r.hcp,idx):0,pt=day===2?stbl(par,st,g):null;
+    const tot=holeNines(arr,C,r.hcp,day);const sum=(tot.f9||0)+(tot.b9||0);
+    const meta=day===2?`HCP ${esc(r.hcp)} · <b>${shots(st)}</b> here · ${tot.thru?`${sum} pts thru ${tot.thru}`:"no scores yet"}`
+      :`Team HCP ${f2(r.hcp)} · ${tot.thru?`${sum} gross thru ${tot.thru}`:"no scores yet"}`;
+    const k=esc(r.key);
+    return`<div class="hp"><div class="who"><div class="n">${esc(r.name)}${day===2&&st?` <span class="dots" aria-hidden="true">${"●".repeat(Math.min(st,3))}</span>`:""}</div><div class="m">${meta}</div>${day===1?`<div class="m">${esc(r.sub)}</div>`:""}</div>
+      <div class="step"><button class="btn" data-act="dec" data-k="${k}" aria-label="${esc(r.name)} one less">−</button>
+      <output class="g num ${vsPar(g,par)}" aria-live="polite">${!hasScore(g)?"–":isPick(g)?"P":g}</output>
+      <button class="btn" data-act="inc" data-k="${k}" aria-label="${esc(r.name)} one more">+</button></div>
+      <div class="hpr">${day===2?`<span class="pts ${pt===null?"":pt>=3?"hi":pt===0?"lo":"md"}">${pt===null?"–":pt} pts</span>
+        <button class="lnk" data-act="${isPick(g)?"clr":"pick"}" data-k="${k}">${isPick(g)?"Undo pick-up":"Picked up"}</button>`
+        :(hasScore(g)?`<button class="lnk" data-act="clr" data-k="${k}">Clear</button>`:"")}</div></div>`}).join("");
+  // running card for the group
+  const nx=v=>v===null?"–":v;
+  const sumRows=rows.map(r=>{const t=holeNines(H[r.key],C,r.hcp,day);const all=t.f9===null&&t.b9===null?null:(t.f9||0)+(t.b9||0);
+    const net=day===1&&all!==null?` <span class="muted">(net ${f2(all-(t.f9!==null?r.hcp/2:0)-(t.b9!==null?r.hcp/2:0))})</span>`:"";
+    return`<tr><td><b>${esc(r.name)}</b></td><td class="num">${nx(t.f9)}</td><td class="num">${nx(t.b9)}</td><td class="num"><b>${nx(all)}</b>${net}</td><td class="num">${t.thru||"–"}</td></tr>`}).join("");
+  const summary=`<div class="card tbl" style="margin-top:12px"><table><thead><tr><th>${day===1?"Team":"Player"}</th><th>Out</th><th>In</th><th>${day===1?"Gross":"Pts"}</th><th>Holes</th></tr></thead><tbody>${sumRows}</tbody></table></div>`;
+  const nextBtn=h<18?`<button class="btn primary wide" data-act="hole" data-v="${h+1}">Next: hole ${h+1} ›</button>`:"";
+  return top+strip+head+body+`</div>`+nextBtn+summary+`<div class="status" id="status">${DEMO?"Demo mode: scores stay on this phone.":(qMsg()||S.msg||"")}</div>`;
+}
+$main.addEventListener("click",e=>{
+  const b=e.target.closest("button[data-act]");if(!b||!$main.contains(b))return;
+  initSc();const sc=S.sc,a=b.dataset.act,day=sc.day;
+  if(a==="day"){sc.day=+b.dataset.v;sc.grp=null;sc.hole=1;saveSc();render(true);return}
+  if(a==="grp"){sc.grp=b.dataset.v;saveSc();render(true);return}
+  if(a==="hole"){const n=+b.dataset.v;if(n>=1&&n<=18){sc.hole=n;saveSc();render(true);const el=document.querySelector(".hole");if(el)el.scrollIntoView({block:"nearest"})}return}
+  const key=b.dataset.k;if(!key||!S.canWrite)return;
+  const C=S.courses["d"+day],i=(sc.hole||1)-1,par=C.par[i];
+  const cur=((S.holes["d"+day]||{})[key]||[])[i];
+  let v;
+  if(a==="inc")v=!hasScore(cur)||isPick(cur)?par:Math.min(20,+cur+1);
+  else if(a==="dec")v=!hasScore(cur)||isPick(cur)?Math.max(1,par-1):(+cur<=1?null:+cur-1);
+  else if(a==="pick")v="X";
+  else if(a==="clr")v=null;
+  else return;
+  setHole(day,key,sc.hole||1,v);
+});
 
 function vRules(){
   return`<h2>How scoring works</h2><div class="card rules"><dl>
@@ -361,24 +530,30 @@ function render(force){
   const a=document.activeElement;
   if(!force&&a&&$main.contains(a)&&/INPUT|SELECT/.test(a.tagName)){S.pending=true;return}
   S.pending=false;
-  const R=compute(S.config,S.d1,S.d2,S.bonus);
-  $main.innerHTML={mvp:vMVP,teams:vTeams,day1:vDay1,day2:vDay2,bonus:vBonus,rules:vRules}[S.tab](R);
+  const M=withHoles();
+  const R=compute(S.config,M.d1,M.d2,S.bonus);R.thru=M.thru;
+  $main.innerHTML={mvp:vMVP,card:vCard,teams:vTeams,day1:vDay1,day2:vDay2,bonus:vBonus,rules:vRules}[S.tab](R);
 }
 $main.addEventListener("focusout",()=>setTimeout(()=>{if(S.pending)render()},0));
 
 // ---------- sync with the Google Sheet ----------
 const live=document.getElementById("live"),lt=document.getElementById("liveTxt");
 function setLive(ok,txt){live.classList.toggle("off",!ok);lt.textContent=txt}
-function setStatus(t){const el=document.getElementById("status");if(el)el.textContent=t}
+function setStatus(t){S.msg=t;const el=document.getElementById("status");if(el)el.textContent=t}
 function apply(data){
   if(!data||!data.config)return;
   S.config=data.config;S.d1=data.d1;S.d2=data.d2;S.bonus=data.bonus;S.lastSync=new Date();
+  if(data.courses)S.courses=data.courses;
+  S.holes=data.holes?JSON.parse(JSON.stringify(data.holes)):(S.holes||{d1:{},d2:{}});
+  S.holes.d1=S.holes.d1||{};S.holes.d2=S.holes.d2||{};
+  for(const e of S.q)putHole(e.day,e.key,e.hole,e.value);
+  if(DEMO&&!(S.courses&&S.courses.d1))S.courses=DEMO_DATA.courses;
   setLive(true,"Live · "+S.lastSync.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}));
   render();
 }
 async function pull(){
   if(DEMO||S.inflight)return;
-  try{const r=await fetch(API_URL+(API_URL.includes("?")?"&":"?")+"t="+Date.now());const d=await r.json();if(!S.inflight)apply(d)}
+  try{const r=await fetch(API_URL+(API_URL.includes("?")?"&":"?")+"t="+Date.now());const d=await r.json();if(!S.inflight&&!flushing)apply(d)}
   catch(e){setLive(false,"Offline · retrying")}
 }
 let chain=Promise.resolve();
@@ -386,7 +561,7 @@ function save(doc,pathArr,value){
   // optimistic local update
   const cur=S[doc]=JSON.parse(JSON.stringify(S[doc]||{}));let c=cur;
   pathArr.forEach((k,i)=>{if(i===pathArr.length-1)c[k]=value;else c=c[k]=(c[k]&&typeof c[k]==="object")?c[k]:{}});
-  if(DEMO){try{localStorage.setItem("gc26demo",JSON.stringify({config:S.config,d1:S.d1,d2:S.d2,bonus:S.bonus}))}catch(e){}setStatus("Saved on this phone (demo mode)");return}
+  if(DEMO){try{localStorage.setItem("gc26demo",JSON.stringify({config:S.config,d1:S.d1,d2:S.d2,bonus:S.bonus,holes:S.holes,courses:S.courses}))}catch(e){}setStatus("Saved on this phone (demo mode)");return}
   S.inflight++;setStatus("Saving…");
   const body=JSON.stringify({kind:doc,key:pathArr[1],field:pathArr[2],value});
   chain=chain.then(async()=>{
@@ -411,7 +586,8 @@ if(DEMO){
   let d=null;try{d=JSON.parse(localStorage.getItem("gc26demo"))}catch(e){}
   apply(d||DEMO_DATA);setLive(false,"Demo");
 }else{
-  pull();
+  pull().then(()=>flush());
+  setInterval(()=>flush(),15000);
   setInterval(()=>{if(document.visibilityState==="visible")pull()},10000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")pull()});
 }
