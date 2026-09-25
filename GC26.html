@@ -116,7 +116,20 @@ input:disabled,select:disabled{opacity:.6}
 .strip button{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);border-radius:6px;padding:7px 0;font:600 15px/1 var(--display);cursor:pointer}
 .strip button.done{background:var(--good-bg);border-color:transparent;color:var(--good)}
 .strip button.cur{border-color:var(--fair);background:var(--fair);color:var(--fair-ink)}
+.strip button{position:relative}
+.strip button small{display:block;width:max-content;margin:3px auto 0;font:700 9px/1 var(--body);letter-spacing:.03em;background:var(--flag);color:#2A1F00;border-radius:3px;padding:2px 3px}
+.strip button.bn{border-color:var(--flag);box-shadow:inset 0 0 0 1.5px var(--flag);padding-bottom:4px}
 .hole{overflow:hidden}
+.bbar{display:flex;gap:12px;align-items:center;padding:12px 14px;background:var(--flag);color:#2A1F00;border-top:1px solid color-mix(in srgb,#000 12%,var(--flag))}
+.bbar+.bbar{border-top:1px dashed color-mix(in srgb,#000 25%,var(--flag))}
+.bbar .bi{flex:0 0 auto;width:40px;height:40px;border-radius:50%;background:#2A1F00;color:var(--flag);display:grid;place-items:center}
+.bbar .bi svg{width:22px;height:22px}
+.bbar .bt{flex:1 1 auto;min-width:0}
+.bbar .bk{font:700 11px/1 var(--body);letter-spacing:.12em;text-transform:uppercase;opacity:.8}
+.bbar .bh{font:700 21px/1.1 var(--display);letter-spacing:.03em;text-transform:uppercase;margin-top:2px}
+.bbar .bs{font-size:13px;margin-top:2px}
+.bbar .lnk{color:#2A1F00;font-weight:600;white-space:nowrap}
+.hn .htag{display:inline-block;vertical-align:4px;margin-left:8px;font:700 12px/1 var(--body);letter-spacing:.08em;background:var(--flag);color:#2A1F00;border-radius:4px;padding:4px 6px}
 .hnav{display:grid;grid-template-columns:56px 1fr 56px;align-items:center;gap:8px;padding:10px 12px;background:var(--sunk)}
 .hnav .btn{font-size:24px;padding:6px 0}
 .hnav .btn:disabled{opacity:.35}
@@ -312,6 +325,8 @@ function holeNines(arr, course, hcp, day) {
 (function(){
 const $main=document.getElementById("main");
 const S={config:null,d1:null,d2:null,bonus:null,holes:{d1:{},d2:{}},courses:{},q:[],sc:null,canWrite:true,tab:"mvp",pending:false,inflight:0,lastSync:null};
+// Bonus holes: the Hole # entered for each CTP / LD award (sheet column D36:D43).
+const bonusOn = (day, n) => AWARDS.filter(a => a.day === day && parseInt(((((S.bonus || {}).awards) || {})[a.id] || {}).hole, 10) === n);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt=v=>v===null||v===undefined?"–":(Math.round(v*100)/100).toString();
 const f2=v=>v===null||v===undefined?"–":v.toFixed(2);
@@ -458,6 +473,18 @@ const saveSc=()=>{try{localStorage.setItem("gc26sc",JSON.stringify(S.sc))}catch(
 const shots=n=>n===0?"no shot":n===1?"1 shot":n+" shots";
 const vsPar=(g,par)=>{if(!hasScore(g)||isPick(g))return"";const d=g-par;return d<=-2?"eagle":d===-1?"birdie":d===0?"par":d===1?"bogey":"dbl"};
 
+const ICON_CTP=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V3l11 4-11 4"/><ellipse cx="12" cy="20" rx="7" ry="1.8"/></svg>`;
+const ICON_LD=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h15"/><path d="M13 6l6 6-6 6"/><circle cx="4" cy="12" r="1.5" fill="currentColor"/></svg>`;
+function bonusBar(day,h,R){
+  const aw=(S.bonus&&S.bonus.awards)||{};
+  return bonusOn(day,h).map(a=>{
+    const w=(aw[a.id]||{}).w,p=w&&R.players.find(x=>x.id===w);
+    const title=a.kind==="CTP"?"Closest to the pin":"Longest drive";
+    return`<div class="bbar" role="note"><div class="bi">${a.kind==="CTP"?ICON_CTP:ICON_LD}</div>
+      <div class="bt"><div class="bk">Bonus hole · 1 MVP point</div><div class="bh">${title}</div>
+      <div class="bs">${a.nine} ${a.kind} prize · ${p?`Winner so far: <b>${esc(p.name)}</b>`:"No winner recorded yet"}</div></div>
+      <button class="lnk" data-act="tab" data-v="bonus">Record ›</button></div>`}).join("");
+}
 function vCard(R){
   initSc();const sc=S.sc,day=sc.day,C=(S.courses||{})["d"+day];
   const opts=day===1?R.teams.map(t=>t.id):R.groups;
@@ -473,10 +500,10 @@ function vCard(R){
     :R.players.filter(p=>p.group===sc.grp).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>({key:p.id,name:p.name,hcp:hcp2(p),sub:p.team}));
   const h=Math.min(18,Math.max(1,sc.hole||1)),i=h-1,par=C.par[i],idx=C.idx[i];
   const done=n=>rows.every(r=>hasScore((H[r.key]||[])[n-1]));
-  const strip=`<div class="strip" role="group" aria-label="Hole">${Array.from({length:18},(_,k)=>k+1).map(n=>`<button data-act="hole" data-v="${n}" class="${n===h?"cur":""} ${done(n)?"done":""}" aria-label="Hole ${n}${done(n)?", done":""}">${n}</button>`).join("")}</div>`;
+  const strip=`<div class="strip" role="group" aria-label="Hole">${Array.from({length:18},(_,k)=>k+1).map(n=>{const bn=bonusOn(day,n).map(a=>a.kind);return`<button data-act="hole" data-v="${n}" class="${n===h?"cur":""} ${done(n)?"done":""} ${bn.length?"bn":""}" aria-label="Hole ${n}${bn.length?", "+bn.join(" and ")+" bonus hole":""}${done(n)?", done":""}">${n}${bn.length?`<small>${bn.join("+")}</small>`:""}</button>`}).join("")}</div>`;
   const head=`<div class="card hole"><div class="hnav"><button class="btn" data-act="hole" data-v="${h-1}" ${h===1?"disabled":""} aria-label="Previous hole">‹</button>
-    <div class="hmid"><div class="hn">Hole ${h}</div><div class="hm num">Par ${par} · Index ${idx}${C.m&&C.m[i]?` · ${C.m[i]} m`:""}</div></div>
-    <button class="btn" data-act="hole" data-v="${h+1}" ${h===18?"disabled":""} aria-label="Next hole">›</button></div>`;
+    <div class="hmid"><div class="hn">Hole ${h}${bonusOn(day,h).map(a=>`<span class="htag">${a.kind}</span>`).join("")}</div><div class="hm num">Par ${par} · Index ${idx}${C.m&&C.m[i]?` · ${C.m[i]} m`:""}</div></div>
+    <button class="btn" data-act="hole" data-v="${h+1}" ${h===18?"disabled":""} aria-label="Next hole">›</button></div>${bonusBar(day,h,R)}`;
   const body=rows.map(r=>{
     const arr=H[r.key]||[],g=arr[i],st=day===2?strokesOn(r.hcp,idx):0,pt=day===2?stbl(par,st,g):null;
     const tot=holeNines(arr,C,r.hcp,day);const sum=(tot.f9||0)+(tot.b9||0);
@@ -496,11 +523,13 @@ function vCard(R){
     const net=day===1&&all!==null?` <span class="muted">(net ${f2(all-(t.f9!==null?r.hcp/2:0)-(t.b9!==null?r.hcp/2:0))})</span>`:"";
     return`<tr><td><b>${esc(r.name)}</b></td><td class="num">${nx(t.f9)}</td><td class="num">${nx(t.b9)}</td><td class="num"><b>${nx(all)}</b>${net}</td><td class="num">${t.thru||"–"}</td></tr>`}).join("");
   const summary=`<div class="card tbl" style="margin-top:12px"><table><thead><tr><th>${day===1?"Team":"Player"}</th><th>Out</th><th>In</th><th>${day===1?"Gross":"Pts"}</th><th>Holes</th></tr></thead><tbody>${sumRows}</tbody></table></div>`;
-  const nextBtn=h<18?`<button class="btn primary wide" data-act="hole" data-v="${h+1}">Next: hole ${h+1} ›</button>`:"";
+  const nb=h<18?bonusOn(day,h+1).map(a=>a.kind).join(" + "):"";
+  const nextBtn=h<18?`<button class="btn primary wide" data-act="hole" data-v="${h+1}">Next: hole ${h+1}${nb?` · ${nb} bonus hole`:""} ›</button>`:"";
   return top+strip+head+body+`</div>`+nextBtn+summary+`<div class="status" id="status">${DEMO?"Demo mode: scores stay on this phone.":(qMsg()||S.msg||"")}</div>`;
 }
 $main.addEventListener("click",e=>{
   const b=e.target.closest("button[data-act]");if(!b||!$main.contains(b))return;
+  if(b.dataset.act==="tab"){S.tab=b.dataset.v;try{localStorage.setItem("gc26tab",S.tab);history.replaceState(null,"","#"+S.tab)}catch(e){}render(true);window.scrollTo({top:0});return}
   initSc();const sc=S.sc,a=b.dataset.act,day=sc.day;
   if(a==="day"){sc.day=+b.dataset.v;sc.grp=null;sc.hole=1;saveSc();render(true);return}
   if(a==="grp"){sc.grp=b.dataset.v;saveSc();render(true);return}
