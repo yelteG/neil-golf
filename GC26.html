@@ -686,7 +686,7 @@ function drawCard(){
     <div class="tiles"><div class="tile"><span>Stableford</span><b class="gd">${played.length?pts:"–"}</b></div><div class="tile"><span>Gross</span><b>${played.length?est:"–"}</b></div><div class="tile"><span>Lonsdale HCP</span><b>${hc}</b></div></div>
     <div class="leg"><span><i class="sk eagle">E</i>Eagle+</span><span><i class="sk birdie">B</i>Birdie</span><span><b>4</b> Par</span><span><i class="sk bogey">B</i>Bogey</span><span><i class="sk dbl">D</i>Dbl+</span><span><i class="sk pu">P</i>Picked up</span>${AWARDS.some(a=>a.day===2&&bon2(a))?`<span><i class="dot"></i>CTP / LD hole</span>`:""}</div>
     ${nine(0,9,"Out")}${nine(9,18,"In")}
-    <div class="ft"><div><span>Total gross</span><b>${real.length?gross:"–"}${real.length?` <small>/ ${parReal}</small>`:""}</b></div><div><span>Stableford</span><b class="gd">${played.length?pts:"–"}</b></div><div><span>Est. gross</span><b>${played.length?est:"–"}</b></div></div>
+    <div class="ft"><div><span>Total gross</span><b>${real.length?gross:"–"}${real.length?` <small>/ ${sum(H,h=>h.par)}</small>`:""}</b></div><div><span>Stableford</span><b class="gd">${played.length?pts:"–"}</b></div><div><span>Est. gross</span><b>${played.length?est:"–"}</b></div></div>
     <div class="note2">${played.length?`Thru ${played.length}`:"No scores yet"}${picks?` · ${picks} pick-up${picks>1?"s":""} counted as net double bogey in est. gross`:""} · Played off ${hc} · Group points ${rp.pf9??"–"} / ${rp.pb9??"–"} / ${rp.pt18??"–"} (F9 / B9 / 18)</div></div>`;
   mountCard(html);
 }
