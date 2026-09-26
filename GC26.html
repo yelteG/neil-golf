@@ -120,6 +120,51 @@ input:disabled,select:disabled{opacity:.6}
 .strip button small{display:block;width:max-content;margin:3px auto 0;font:700 9px/1 var(--body);letter-spacing:.03em;background:var(--flag);color:#2A1F00;border-radius:3px;padding:2px 3px}
 .strip button.bn{border-color:var(--flag);box-shadow:inset 0 0 0 1.5px var(--flag);padding-bottom:4px}
 .hole{overflow:hidden}
+/* player scorecard popup (Day 2) */
+button.pn{all:unset;cursor:pointer;font-weight:inherit;text-decoration:underline;text-decoration-color:color-mix(in srgb,currentColor 35%,transparent);text-underline-offset:3px}
+button.pn:focus-visible{outline:2px solid var(--sea);outline-offset:2px;border-radius:3px}
+.pcm{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 10px 16px;overflow-y:auto}
+.pcm .box{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:14px;width:100%;max-width:640px;padding:16px 14px 14px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.pcm .hd{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.pcm h3{margin:0;font:700 24px/1.1 var(--display);letter-spacing:.02em}
+.pcm .sub{font-size:13px;color:var(--muted);margin-top:3px}
+.pcm .x{flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-size:18px;cursor:pointer}
+.pcm .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 10px}
+.pcm .tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.pcm .tile span{display:block;font:600 11px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pcm .tile b{display:block;font:700 28px/1.1 var(--display);margin-top:5px}
+.pcm .tile b.gd{color:var(--good)}
+.pcm .leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted);margin:0 0 10px;align-items:center}
+.pcm .leg span{display:inline-flex;gap:5px;align-items:center}
+.pcm .sct{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.pcm table{width:100%;border-collapse:collapse;table-layout:fixed;font-variant-numeric:tabular-nums}
+.pcm th,.pcm td{text-align:center;vertical-align:middle;padding:6px 0;font-size:13px;border:0;line-height:22px}
+.pcm thead th{background:var(--fair);color:var(--fair-ink);font:700 13px/1 var(--display);letter-spacing:.04em;padding:8px 0}
+.pcm tbody tr+tr td{border-top:1px solid var(--line)}
+.pcm col.lbc{width:74px}.pcm col.sumc{width:42px}
+.pcm td.lb,.pcm th.lb{text-align:left;padding-left:9px;font:600 10.5px/1 var(--body);letter-spacing:.06em;white-space:nowrap;text-transform:uppercase;color:var(--muted)}
+.pcm thead th.lb{color:var(--fair-ink)}
+.pcm td.sum,.pcm th.sum{background:var(--sunk);font-weight:700}
+.pcm thead th.sum{background:color-mix(in srgb,#000 18%,var(--fair))}
+.pcm tr.pt td{color:var(--good);font-weight:700}
+.pcm tr.pt td.lb{color:var(--good)}
+.pcm .sk{display:inline-grid;place-items:center;min-width:22px;height:22px;box-sizing:border-box;font-weight:700;font-size:13px}
+.pcm .sk.eagle{border:2px solid var(--good);border-radius:50%;color:var(--good)}
+.pcm .sk.birdie{border:2px solid var(--flag);border-radius:50%}
+.pcm .sk.bogey{border:2px solid var(--flag);border-radius:4px}
+.pcm .sk.dbl{border:2px solid var(--bad);border-radius:4px;color:var(--bad)}
+.pcm .sk.pu{color:var(--muted);font-size:12px}
+.pcm th.bnh{position:relative}
+.pcm th.bnh::after,.pcm .leg .dot{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--flag)}
+.pcm th.bnh::after{position:absolute;top:2px;right:calc(50% - 12px)}
+.pcm .leg i{font-style:normal}
+.pcm .ft{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
+.pcm .ft span{display:block;font:600 11px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pcm .ft b{display:block;font:700 30px/1.1 var(--display);margin-top:4px}
+.pcm .ft b small{font-size:16px;color:var(--muted);font-weight:600}
+.pcm .ft b.gd{color:var(--good)}
+.pcm .note2{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}
+@media (max-width:480px){.pcm col.lbc{width:52px}.pcm col.sumc{width:32px}.pcm td.lb,.pcm th.lb{font-size:8.5px;letter-spacing:0;padding-left:6px}.pcm th,.pcm td{font-size:12px}.pcm .sk{min-width:20px;height:20px;font-size:12px}.pcm .tile b{font-size:24px}}
 .daywarn{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:12px 14px;margin:0 0 10px;background:var(--bad-bg);border-color:var(--bad);color:var(--ink);font-size:14px}
 .daywarn .btn{margin-left:auto;padding:8px 12px;font-size:14px}
 .res .cl{display:none}
@@ -359,7 +404,7 @@ function vMVP(R){
   if(!R.players.length)return`<div class="empty">No players yet.</div>`;
   const rows=R.players.map(p=>`<div class="row ${p.rank===1&&p.mvp>0?"p1":""}">
     <div class="pos num">${p.rank}</div>
-    <div class="who"><div class="n">${esc(p.name)}</div><div class="m">${esc(p.team)} · ${esc(p.group)} · HCP ${esc(p.hcp)} / ${esc(hcp2(p))}${thruTxt(R,"d2|"+p.id)}</div>
+    <div class="who"><div class="n">${pnBtn(p)}</div><div class="m">${esc(p.team)} · ${esc(p.group)} · HCP ${esc(p.hcp)} / ${esc(hcp2(p))}${thruTxt(R,"d2|"+p.id)}</div>
       <div class="chips num"><span class="chip">D1 ½ <b>${fmt(p.d1/2)}</b></span><span class="chip">F9 <b>${p.pf9??"–"}</b></span><span class="chip">B9 <b>${p.pb9??"–"}</b></span><span class="chip">18 <b>${p.pt18??"–"}</b></span><span class="chip">Bonus <b>${p.bonus}</b></span></div></div>
     <div class="tot num">${fmt(p.mvp)}</div></div>`).join("");
   return`<h2>MVP leaderboard</h2><p class="lede">Day 2 points (Front 9, Back 9, 18) + CTP/LD bonuses + half your team's Day 1 points.</p><div class="card lb">${rows}</div>`;
@@ -403,7 +448,7 @@ function vDay2(R){
     const played=mem.filter(p=>p.f9!=null||p.b9!=null).length,s=d2Scale(played||mem.length);
     const note=played&&played<mem.length?` (${played} of ${mem.length} have scores)`:"";
     return`<div class="gh">${esc(g)} <span class="muted" style="font-size:13px;letter-spacing:0">· ${s.join(" / ")}${note}</span></div><div class="prow hd"><span>Player</span><span>F9 pts</span><span>B9 pts</span><span style="text-align:right">F9 · B9 · 18</span></div>`+
-    mem.map(p=>`<div class="prow"><div><b>${esc(p.name)}</b> <span class="muted" style="font-size:12px">${esc(p.team)} · HCP ${esc(hcp2(p))} · ${p.t18??"–"} total</span></div>
+    mem.map(p=>`<div class="prow"><div><b>${pnBtn(p)}</b> <span class="muted" style="font-size:12px">${esc(p.team)} · HCP ${esc(hcp2(p))} · ${p.t18??"–"} total</span></div>
       ${inp("d2-"+p.id+"-f9","d2",["players",p.id,"f9"],p.f9,p.name+" front 9 stableford",R.thru["d2|"+p.id])}
       ${inp("d2-"+p.id+"-b9","d2",["players",p.id,"b9"],p.b9,p.name+" back 9 stableford",R.thru["d2|"+p.id])}
       <div class="res num"><span class="cl">F9</span>${pts(p.pf9,s)}<span class="cl">B9</span>${pts(p.pb9,s)}<span class="cl">18</span>${pts(p.pt18,s)}</div></div>`).join("");
@@ -521,7 +566,7 @@ function vCard(R){
     const meta=day===2?`HCP ${esc(r.hcp)} · <b>${shots(st)}</b> here · ${tot.thru?`${sum} pts thru ${tot.thru}`:"no scores yet"}`
       :`Team HCP ${f2(r.hcp)} · ${tot.thru?`${sum} gross thru ${tot.thru}`:"no scores yet"}`;
     const k=esc(r.key);
-    return`<div class="hp"><div class="who"><div class="n">${esc(r.name)}${day===2&&st?` <span class="dots" aria-hidden="true">${"●".repeat(Math.min(st,3))}</span>`:""}</div><div class="m">${meta}</div>${day===1?`<div class="m">${esc(r.sub)}</div>`:""}</div>
+    return`<div class="hp"><div class="who"><div class="n">${day===2?pnBtn({id:r.key,name:r.name}):esc(r.name)}${day===2&&st?` <span class="dots" aria-hidden="true">${"●".repeat(Math.min(st,3))}</span>`:""}</div><div class="m">${meta}</div>${day===1?`<div class="m">${esc(r.sub)}</div>`:""}</div>
       <div class="step"><button class="btn" data-act="dec" data-k="${k}" aria-label="${esc(r.name)} one less">−</button>
       <output class="g num ${vsPar(g,par)}" aria-live="polite">${!hasScore(g)?"–":isPick(g)?"P":g}</output>
       <button class="btn" data-act="inc" data-k="${k}" aria-label="${esc(r.name)} one more">+</button></div>
@@ -541,6 +586,7 @@ function vCard(R){
 $main.addEventListener("click",e=>{
   const b=e.target.closest("button[data-act]");if(!b||!$main.contains(b))return;
   if(b.dataset.act==="clearall"){clearAll(b);return}
+  if(b.dataset.act==="pcard"){openCard(b.dataset.v);return}
   if(b.dataset.act==="tab"){S.tab=b.dataset.v;try{localStorage.setItem("gc26tab",S.tab);history.replaceState(null,"","#"+S.tab)}catch(e){}render(true);window.scrollTo({top:0});return}
   initSc();const sc=S.sc,a=b.dataset.act,day=sc.day;
   if(a==="day"){sc.day=+b.dataset.v;sc.grp=null;sc.hole=1;saveSc();render(true);return}
@@ -570,6 +616,46 @@ async function clearAll(btn){
     const m=document.getElementById("clrmsg");if(m)m.textContent="All scores cleared. Other phones show it within 10 seconds.";
   }catch(e){say("Not cleared: "+(e.message||"check your signal"));btn.disabled=false}
 }
+// ---------- Day 2 player scorecard popup ----------
+const pnBtn=p=>`<button class="pn" data-act="pcard" data-v="${esc(p.id)}" aria-label="Show ${esc(p.name)}'s Day 2 scorecard">${esc(p.name)}</button>`;
+let cardReturn=null;
+function openCard(id){cardReturn=document.activeElement;S.cardFor=id;drawCard();const x=document.querySelector(".pcm .x");if(x)x.focus()}
+function closeCard(){S.cardFor=null;const m=document.querySelector(".pcm");if(m)m.remove();document.body.style.overflow="";if(cardReturn&&document.contains(cardReturn))cardReturn.focus()}
+function drawCard(){
+  const p=(S.config&&S.config.players||[]).find(x=>x.id===S.cardFor),C=(S.courses||{}).d2;
+  if(!p||!C||!C.par){closeCard();return}
+  const hc=Math.round(+hcp2(p)||0),arr=((S.holes&&S.holes.d2)||{})[p.id]||[];
+  const bon=n=>bonusOn(2,n).map(a=>a.kind).join(" + ");
+  const bon2=a=>parseInt(((((S.bonus||{}).awards)||{})[a.id]||{}).hole,10)>0;
+  const H=Array.from({length:18},(_,i)=>{const g=arr[i],par=C.par[i],st=strokesOn(hc,C.idx[i]);
+    return{n:i+1,par,st,g,pts:stbl(par,st,g),pick:hasScore(g)&&isPick(g),played:hasScore(g)}});
+  const sum=(xs,f)=>xs.reduce((t,h)=>t+(f(h)||0),0);
+  const played=H.filter(h=>h.played),real=played.filter(h=>!h.pick);
+  const cls=h=>{if(h.pick)return"pu";const d=+h.g-h.par;return d<=-2?"eagle":d===-1?"birdie":d===0?"":d===1?"bogey":"dbl"};
+  const nine=(a,b,lab)=>{const hs=H.slice(a,b),pl=hs.filter(h=>h.played);
+    const cell=(h,v)=>`<td>${v}</td>`;
+    return`<div class="sct"><table><colgroup><col class="lbc">${hs.map(()=>"<col>").join("")}<col class="sumc"></colgroup><thead><tr><th class="lb">Hole</th>${hs.map(h=>bon(h.n)?`<th class="bnh" title="${bon(h.n)} bonus hole">${h.n}</th>`:`<th>${h.n}</th>`).join("")}<th class="sum">${lab}</th></tr></thead><tbody>
+    <tr><td class="lb">Par</td>${hs.map(h=>cell(h,h.par)).join("")}<td class="sum">${sum(hs,h=>h.par)}</td></tr>
+    <tr><td class="lb">Strokes</td>${hs.map(h=>`<td>${h.played?`<span class="sk ${cls(h)}">${h.pick?"P":h.g}</span>`:""}</td>`).join("")}<td class="sum">${pl.some(h=>!h.pick)?sum(pl,h=>h.pick?0:+h.g):"–"}</td></tr>
+    <tr><td class="lb">Shots</td>${hs.map(h=>cell(h,h.st)).join("")}<td class="sum">${sum(hs,h=>h.st)}</td></tr>
+    <tr class="pt"><td class="lb">Score</td>${hs.map(h=>cell(h,h.played?h.pts:"")).join("")}<td class="sum">${pl.length?sum(pl,h=>h.pts):"–"}</td></tr>
+    </tbody></table></div>`};
+  const pts=sum(played,h=>h.pts),gross=sum(real,h=>+h.g),parReal=sum(real,h=>h.par);
+  const est=sum(played,h=>h.pick?h.par+h.st+2:+h.g),picks=played.length-real.length;
+  const WH=withHoles(),R=compute(S.config,WH.d1,WH.d2,S.bonus),rp=R.players.find(x=>x.id===p.id)||{};
+  const html=`<div class="box" role="dialog" aria-modal="true" aria-labelledby="pcmt">
+    <div class="hd"><div><h3 id="pcmt">${esc(p.name)} · Day 2</h3><div class="sub">Lonsdale Links · Sun 25 Oct 2026 · ${esc(p.team)} · ${esc(p.group)}</div></div><button class="x" data-close aria-label="Close">✕</button></div>
+    <div class="tiles"><div class="tile"><span>Stableford</span><b class="gd">${played.length?pts:"–"}</b></div><div class="tile"><span>Gross</span><b>${played.length?est:"–"}</b></div><div class="tile"><span>Lonsdale HCP</span><b>${hc}</b></div></div>
+    <div class="leg"><span><i class="sk eagle">E</i>Eagle+</span><span><i class="sk birdie">B</i>Birdie</span><span><b>4</b> Par</span><span><i class="sk bogey">B</i>Bogey</span><span><i class="sk dbl">D</i>Dbl+</span><span><i class="sk pu">P</i>Picked up</span>${AWARDS.some(a=>a.day===2&&bon2(a))?`<span><i class="dot"></i>CTP / LD hole</span>`:""}</div>
+    ${nine(0,9,"Out")}${nine(9,18,"In")}
+    <div class="ft"><div><span>Total gross</span><b>${real.length?gross:"–"}${real.length?` <small>/ ${parReal}</small>`:""}</b></div><div><span>Stableford</span><b class="gd">${played.length?pts:"–"}</b></div><div><span>Est. gross</span><b>${played.length?est:"–"}</b></div></div>
+    <div class="note2">${played.length?`Thru ${played.length}`:"No scores yet"}${picks?` · ${picks} pick-up${picks>1?"s":""} counted as net double bogey in est. gross`:""} · Played off ${hc} · Group points ${rp.pf9??"–"} / ${rp.pb9??"–"} / ${rp.pt18??"–"} (F9 / B9 / 18)</div></div>`;
+  let m=document.querySelector(".pcm");
+  if(!m){m=document.createElement("div");m.className="pcm";document.body.appendChild(m);document.body.style.overflow="hidden";
+    m.addEventListener("click",e=>{if(e.target===m||e.target.closest("[data-close]"))closeCard()});}
+  const y=m.scrollTop;m.innerHTML=html;m.scrollTop=y;
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&S.cardFor)closeCard()});
 function vRules(){
   return`<h2>How scoring works</h2><div class="card rules"><dl>
   <dt>Day 1: Ambrose (team)</dt><dd>Team handicap = combined handicap ÷ (2 × players). Net per nine = gross − half the team handicap. Front 9, Back 9 and 18 are each ranked on net: 8 / 6 / 4 / 2 (up to 24 per team).</dd>
@@ -579,7 +665,7 @@ function vRules(){
   <dt>Team winner</dt><dd>Day 1 teams stay together for the whole trip. Team total = Day 1 Ambrose points + Day 2 team points (up to 24 each, 48 in total). Day 2 team points: each team's average Stableford is ranked for Front 9, Back 9 and 18: 8 / 6 / 4 / 2. Using the average keeps teams of 3 and 4 even. Level on total: the higher Day 2 18-hole average wins.</dd>
   <dt>Handicaps</dt><dd>Each player has a handicap for each course: GA handicap × slope ÷ 113 + (scratch rating − par), rounded, max 36. Day 1 team handicaps use the 13th Beach numbers; Day 2 Stableford shots use the Lonsdale numbers.</dd>
   <dt>Players, handicaps, teams and groups</dt><dd>These come from the GC26 Google Sheet. Change them there and the app picks them up within a few seconds.</dd></dl></div>
-  <h2>Organiser</h2><div class="card note org"><p style="margin:0 0 10px">Wipes every score, hole score and CTP / LD winner. Players, handicaps, teams and the draw are kept. Needs the organiser PIN.</p>
+  <h2>Organiser</h2><div class="card note org"><p style="margin:0 0 10px">Wipes every score, hole score and CTP / LD winner. Players, handicaps, teams, the draw and the CTP / LD hole numbers are kept. Needs the organiser PIN.</p>
   <button class="btn danger" data-act="clearall" ${DEMO?"disabled":""}>Clear all scores…</button><div class="status" id="clrmsg"></div></div>`;
 }
 function statusLine(){return`<div class="status" id="status">${DEMO?"Demo mode: scores stay on this phone until the Google Sheet is connected.":""}</div>`}
@@ -592,6 +678,7 @@ function render(force){
   S.pending=false;
   const M=withHoles();
   const R=compute(S.config,M.d1,M.d2,S.bonus);R.thru=M.thru;
+  if(S.cardFor)drawCard();
   $main.innerHTML={mvp:vMVP,card:vCard,teams:vTeams,day1:vDay1,day2:vDay2,bonus:vBonus,rules:vRules}[S.tab](R);
 }
 $main.addEventListener("focusout",()=>setTimeout(()=>{if(S.pending)render()},0));
