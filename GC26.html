@@ -205,6 +205,16 @@ button.pn:focus-visible{outline:2px solid var(--sea);outline-offset:2px;border-r
   .srow{grid-template-columns:1fr 56px;} .srow select{grid-column:span 1}
 }
 @media (prefers-reduced-motion:no-preference){.flash{animation:fl .9s ease-out}@keyframes fl{from{background:color-mix(in srgb,var(--flag) 35%,transparent)}}}
+.fmtp{padding:4px 12px 10px}
+.fmtp .fmtt{overflow-x:auto;margin-top:6px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.fmtp table{font-size:12.5px;table-layout:auto}
+.fmtp th,.fmtp td{padding:5px 2px;text-align:center;min-width:20px}
+.fmtp th:first-child,.fmtp td:first-child{text-align:left;padding-left:8px;white-space:nowrap;min-width:0}
+.fmtp td.tt,.fmtp th.tt{background:var(--sunk);font-weight:700;padding-right:8px}
+.fmtp .tm{font-size:12.5px;margin-top:6px}
+.fmtp .tm b{color:var(--ink)}
+.fmtp td.st{font:700 11.5px/1 var(--display);letter-spacing:0}
+.fmtp td:first-child b{display:inline-block;max-width:9.5em;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom}
 </style>
 
 </head>
@@ -317,15 +327,15 @@ function compute(config, d1, d2, bonus, hx) {
 const gfmt = {};
 for (const gr of groups) {
 const mem = players.filter(p => p.group === gr), f = groupFormat(config, mem.length);
-const G = gfmt[gr] = { fmt: f };
+const G = gfmt[gr] = { fmt: f, ids: mem.map(p => p.id), names: Object.fromEntries(mem.map(p => [p.id, p.name])) };
 if (f === "stableford") continue;
 for (const [seg, a] of [["f9", 0], ["b9", 9]]) {
-if (f === "match") G[seg + "pairs"] = matchPairs(mem, a === 9).map(pairName).join(" v ");
+if (f === "match") { const sd = matchPairs(mem, a === 9); G[seg + "pairs"] = sd.map(pairName).join(" v "); G[seg + "sides"] = sd.map(s => s.map(p => p.id)); }
 const rows = nineHoles(mem, hx, a);
 if (!rows.length) { if (mem.some(p => pl[p.id][seg] !== null)) G[seg] = { k: 0 }; continue; }
 const r = f === "sixes" ? sixesNine(mem, rows) : f === "wolf" ? wolfNine(mem, rows) : matchNine(mem, rows, a === 9);
 for (const p of mem) pl[p.id]["p" + seg] = r.pts[p.id];
-G[seg] = { k: rows.length, note: r.note };
+G[seg] = { k: rows.length, note: r.note, holes: r.holes, stb: rows.map(x => Object.fromEntries(mem.map(p => [p.id, x[p.id].pts]))) };
 }
 }
 for (const a of AWARDS) { const w = aw[a.id] && aw[a.id].w; if (w && pl[w]) pl[w].bonus++; }
@@ -411,41 +421,48 @@ const stblSum = (mem, rows) => { const t = {}; for (const p of mem) t[p.id] = ro
 const byStbl = (mem, rows, scale) => { const t = stblSum(mem, rows); return rankPoints(mem.map(p => ({ id: p.id, v: t[p.id] })), true, scale); };
 // Split Sixes: 6 points a hole shared on Stableford: 4/2/0, 4/1/1 (two tie behind), 3/3/0 (two tie best), 2/2/2 (all tie).
 function sixesNine(mem, rows) {
-const tot = {};
+const tot = {}, holes = [];
 for (const p of mem) tot[p.id] = 0;
 for (const r of rows) {
-const s = mem.map(p => r[p.id].pts).sort((x, y) => y - x);
+const s = mem.map(p => r[p.id].pts).sort((x, y) => y - x), h = {};
 for (const p of mem) {
 const x = r[p.id].pts;
-tot[p.id] += s[0] === s[2] ? 2 : s[0] === s[1] ? (x === s[0] ? 3 : 0) : s[1] === s[2] ? (x === s[0] ? 4 : 1) : (x === s[0] ? 4 : x === s[1] ? 2 : 0);
+h[p.id] = s[0] === s[2] ? 2 : s[0] === s[1] ? (x === s[0] ? 3 : 0) : s[1] === s[2] ? (x === s[0] ? 4 : 1) : (x === s[0] ? 4 : x === s[1] ? 2 : 0);
+tot[p.id] += h[p.id];
 }
+holes.push(h);
 }
-return { pts: rankPoints(mem.map(p => ({ id: p.id, v: tot[p.id] })), true, D2_SCALE), note: mem.map(p => p.name + " " + tot[p.id]).join(", ") };
+return { pts: rankPoints(mem.map(p => ({ id: p.id, v: tot[p.id] })), true, D2_SCALE), note: mem.map(p => p.name + " " + tot[p.id]).join(", "), holes, tot };
 }
-// Wolf Pack: one running lead per nine, starting all square.
+// Wolf Pack: one running lead per nine, starting all square. holes[i] = { top: [ids with the best score], lead, m } after hole i.
 function wolfNine(mem, rows) {
 let lead = null, m = 0;
+const holes = [];
 for (const r of rows) {
 const best = Math.max(...mem.map(p => r[p.id].pts)), top = mem.filter(p => r[p.id].pts === best).map(p => p.id);
 if (lead === null) { if (top.length === 1) { lead = top[0]; m = 1; } }
 else if (top.length === 1 && top[0] === lead) m++;
 else if (!top.includes(lead)) { m--; if (m === 0) lead = null; }
+holes.push({ top, lead, m });
 }
-if (lead === null) return { pts: byStbl(mem, rows, D2_SCALE), note: "All square (placed on Stableford)" };
+if (lead === null) return { pts: byStbl(mem, rows, D2_SCALE), note: "All square (placed on Stableford)", holes };
 const pts = byStbl(mem.filter(p => p.id !== lead), rows, [4, 2]);
 pts[lead] = 6;
-return { pts, note: mem.find(p => p.id === lead).name + " " + m + " up" };
+return { pts, note: mem.find(p => p.id === lead).name + " " + m + " up", holes };
 }
 // 2v2 Match Play (better-ball net). Pairs from the group's order on the sheet: front 9 1st+4th v 2nd+3rd, back 9 1st+3rd v 2nd+4th.
 function matchPairs(mem, back) { const [a, b, c, d] = mem; return back ? [[a, c], [b, d]] : [[a, d], [b, c]]; }
 const pairName = s => s.map(p => p.name).join(" & ");
+// holes[i] = { n: [best net side A, side B], w: 0 | 1 | -1 (halved), up: running holes A minus B }
 function matchNine(mem, rows, back) {
-const sides = matchPairs(mem, back), w = [0, 0];
+const sides = matchPairs(mem, back), w = [0, 0], holes = [];
 for (const r of rows) {
 const n = sides.map(s => Math.min(...s.map(p => r[p.id].net)));
-if (n[0] < n[1]) w[0]++; else if (n[1] < n[0]) w[1]++;
+const hw = n[0] < n[1] ? 0 : n[1] < n[0] ? 1 : -1;
+if (hw >= 0) w[hw]++;
+holes.push({ n, w: hw, up: w[0] - w[1] });
 }
-if (w[0] === w[1]) return { pts: byStbl(mem, rows, D2_SCALE_4), note: pairName(sides[0]) + " v " + pairName(sides[1]) + " halved " + w[0] + "–" + w[1] + " (placed on Stableford)" };
+if (w[0] === w[1]) return { pts: byStbl(mem, rows, D2_SCALE_4), note: pairName(sides[0]) + " v " + pairName(sides[1]) + " halved " + w[0] + "–" + w[1] + " (placed on Stableford)", holes };
 const win = w[0] > w[1] ? 0 : 1, t = stblSum(mem, rows), pts = {};
 const place = (pair, at) => {
 const [x, y] = pair;
@@ -454,7 +471,7 @@ const hi = t[x.id] > t[y.id] ? x : y, lo = hi === x ? y : x;
 pts[hi.id] = D2_SCALE_4[at]; pts[lo.id] = D2_SCALE_4[at + 1];
 };
 place(sides[win], 0); place(sides[1 - win], 2);
-return { pts, note: pairName(sides[win]) + " won " + Math.max(...w) + "–" + Math.min(...w) + " (holes) v " + pairName(sides[1 - win]) };
+return { pts, note: pairName(sides[win]) + " won " + Math.max(...w) + "–" + Math.min(...w) + " (holes) v " + pairName(sides[1 - win]), holes };
 }
 
 
@@ -476,6 +493,37 @@ const hx=()=>({holes:(S.holes||{}).d2||{},course:(S.courses||{}).d2});
 const d2Started=()=>Object.values((S.holes||{}).d2||{}).some(a=>(a||[]).some(hasScore));
 const fmtName=f=>FORMATS.g3[f]||FORMATS.g4[f]||"Stableford";
 const LOCK_MSG="Locked: Day 2 hole scores have been entered. Switching format mid-round can’t be scored fairly (Wolf Pack and match play need every hole from the start of the nine). Clear all scores first if it really has to change.";
+// ---------- Day 2 format panel: teams + hole-by-hole result for the format in play ----------
+const ini=n=>String(n).split(/\s+/).filter(Boolean).map(w=>w[0]).join("").toUpperCase();
+function fmtPanel(R,g){
+const G=R.gfmt&&R.gfmt[g];if(!G||G.fmt==="stableford")return"";
+const nm=id=>esc(G.names[id]);
+const nine=(seg,a)=>{
+const x=G[seg]||{},H=x.holes||[],P=x.stb||[];
+if(x.k===0)return`<div class="tm muted">${a?"Back 9":"Front 9"}: no hole-by-hole scores, placed on plain Stableford.</div>`;
+const cells=f=>Array.from({length:9},(_,i)=>{const c=i<H.length?f(i):null;return`<td class="${c&&c.cls?c.cls:""}">${c?c.v:""}</td>`}).join("");
+const head=`<tr><th>${a?"Back 9":"Front 9"}</th>${Array.from({length:9},(_,i)=>`<th>${a+i+1}</th>`).join("")}<th class="tt">${G.fmt==="match"?"Won":"Tot"}</th></tr>`;
+let rows="",teams="";
+if(G.fmt==="match"){
+const sd=G[seg+"sides"]||[[],[]],lab=["A","B"];
+teams=`<div class="tm"><b>A</b> ${sd[0].map(nm).join(" &amp; ")} <span class="muted">v</span> <b>B</b> ${sd[1].map(nm).join(" &amp; ")}</div>`;
+rows=sd.map((s,j)=>`<tr><td><b>${lab[j]}</b> <span class="muted">${s.map(id=>esc(ini(G.names[id]))).join("+")}</span></td>${cells(i=>{const h=H[i],v=h.n[j];return{v:v===Infinity?"P":v,cls:h.w===j?"hi":h.w===-1?"md":""}})}<td class="tt">${H.filter(h=>h.w===j).length}</td></tr>`).join("")+
+`<tr><td class="muted">Match</td>${cells(i=>{const u=H[i].up;return{v:u===0?"AS":(u>0?"A":"B")+Math.abs(u),cls:"st"}})}<td class="tt st">${!H.length?"":H[H.length-1].up===0?"AS":(H[H.length-1].up>0?"A ":"B ")+Math.abs(H[H.length-1].up)+" up"}</td></tr>`;
+
+}else if(G.fmt==="sixes"){
+rows=G.ids.map(id=>`<tr><td><b>${nm(id)}</b></td>${cells(i=>{const v=H[i][id];return{v,cls:v>=3?"hi":v===0?"lo":""}})}<td class="tt">${H.reduce((s,h)=>s+h[id],0)}</td></tr>`).join("");
+
+}else{
+rows=G.ids.map(id=>`<tr><td><b>${nm(id)}</b></td>${cells(i=>{const h=H[i];return{v:P[i][id],cls:h.top.length===1&&h.top[0]===id?"hi":""}})}<td class="tt">${P.reduce((s,r)=>s+r[id],0)}</td></tr>`).join("")+
+`<tr><td class="muted">Lead</td>${cells(i=>{const h=H[i];return{v:h.lead?esc(ini(G.names[h.lead]))+h.m:"AS",cls:"st"}})}<td class="tt st">${!H.length?"":H[H.length-1].lead?esc(ini(G.names[H[H.length-1].lead]))+" "+H[H.length-1].m+" up":"AS"}</td></tr>`;
+
+}
+const res=x.note?`<div class="tm"><b>${esc(x.note)}</b>${x.k<9?` <span class="muted">· thru ${a+x.k}</span>`:""}</div>`:"";
+return teams+res+`<div class="fmtt"><table><thead>${head}</thead><tbody>${rows}</tbody></table></div>`;
+};
+const hint={match:"Best net score per pair on each hole (green = hole won). Match row = who’s up.",sixes:"Split Sixes points per hole: 6 shared on every hole.",wolf:"Stableford points per hole (green = outright best). Lead row = who’s up after each hole."}[G.fmt];
+return`<div class="fmtp"><div class="tm"><b>${fmtName(G.fmt)}</b></div><div class="muted" style="font-size:11.5px;margin-top:2px">${hint}</div>${nine("f9",0)}${nine("b9",9)}</div>`;
+}
 function fmtLine(R,g){
 const G=R.gfmt&&R.gfmt[g];if(!G||G.fmt==="stableford")return"";
 const seg=(lab,k)=>{const x=G[k];if(x&&x.k===0)return lab+": plain Stableford (no hole-by-hole scores)";if(x)return lab+": "+esc(x.note)+(x.k<9?" (thru "+x.k+")":"");return G[k+"pairs"]?lab+": "+esc(G[k+"pairs"]):""};
@@ -576,11 +624,11 @@ function vDay2(R){
     const mem=R.players.filter(p=>p.group===g).sort((a,b)=>a.name.localeCompare(b.name));
     const played=mem.filter(p=>p.f9!=null||p.b9!=null).length,s=d2Scale(played||mem.length);
     const note=played&&played<mem.length?` (${played} of ${mem.length} have scores)`:"";
-    return`<div class="gh">${esc(g)} <span class="muted" style="font-size:13px;letter-spacing:0">· ${s.join(" / ")}${note}</span></div>${fmtLine(R,g)}<div class="prow hd"><span>Player</span><span>F9 pts</span><span>B9 pts</span><span style="text-align:right">F9 · B9 · 18</span></div>`+
+    return`<div class="gh">${esc(g)} <span class="muted" style="font-size:13px;letter-spacing:0">· ${s.join(" / ")}${note}</span></div><div class="prow hd"><span>Player</span><span>F9 pts</span><span>B9 pts</span><span style="text-align:right">F9 · B9 · 18</span></div>`+
     mem.map(p=>`<div class="prow"><div><b>${pnBtn(p)}</b> <span class="muted" style="font-size:12px">${esc(p.team)} · HCP ${esc(hcp2(p))} · ${p.t18??"–"} total</span></div>
       ${inp("d2-"+p.id+"-f9","d2",["players",p.id,"f9"],p.f9,p.name+" front 9 stableford",R.thru["d2|"+p.id])}
       ${inp("d2-"+p.id+"-b9","d2",["players",p.id,"b9"],p.b9,p.name+" back 9 stableford",R.thru["d2|"+p.id])}
-      <div class="res num"><span class="cl">F9</span>${pts(p.pf9,s)}<span class="cl">B9</span>${pts(p.pb9,s)}<span class="cl">18</span>${pts(p.pt18,s)}</div></div>`).join("");
+      <div class="res num"><span class="cl">F9</span>${pts(p.pf9,s)}<span class="cl">B9</span>${pts(p.pb9,s)}<span class="cl">18</span>${pts(p.pt18,s)}</div></div>`).join("")+fmtPanel(R,g);
   }).join("");
   return`<h2>Day 2 · Sun 25 Oct</h2><p class="lede">Lonsdale Links, 12:12 pm, Stableford. Best way: enter gross scores hole by hole on the Scorecard tab and the Stableford points are worked out for you. You can still type nine totals below if a card was kept on paper. Points are ranked within the group: 6 / 4 / 2 in a group of 3, 6 / 5 / 3 / 2 in a group of 4.</p><div class="card plist">${blocks}</div>${statusLine()}`;
 }
@@ -710,7 +758,7 @@ function vCard(R){
   const summary=`<div class="card tbl" style="margin-top:12px"><table><thead><tr><th>${day===1?"Team":"Player"}</th><th>Out</th><th>In</th><th>${day===1?"Gross":"Pts"}</th><th>Holes</th></tr></thead><tbody>${sumRows}</tbody></table></div>`;
   const nb=h<18?bonusOn(day,h+1).map(a=>a.kind).join(" + "):"";
   const nextBtn=h<18?`<button class="btn primary wide" data-act="hole" data-v="${h+1}">Next: hole ${h+1}${nb?` · ${nb} bonus hole`:""} ›</button>`:"";
-  return top+strip+head+body+`</div>`+nextBtn+summary+`<div class="status" id="status">${DEMO?"Demo mode: scores stay on this phone.":(qMsg()||S.msg||"")}</div>`;
+  return top+strip+head+body+`</div>`+nextBtn+summary+(day===2?`<div class="card" style="margin-top:12px">${fmtPanel(R,sc.grp)}</div>`:"")+`<div class="status" id="status">${DEMO?"Demo mode: scores stay on this phone.":(qMsg()||S.msg||"")}</div>`;
 }
 $main.addEventListener("click",e=>{
   const b=e.target.closest("button[data-act]");if(!b||!$main.contains(b))return;
