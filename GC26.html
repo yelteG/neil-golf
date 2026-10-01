@@ -263,7 +263,7 @@ function rankPoints(entries, higherBetter, scale) {
   return out;
 }
 
-function compute(config, d1, d2, bonus) {
+function compute(config, d1, d2, bonus, hx) {
   const players = config.players || [];
   const teams = [...new Set(players.map(p => p.team))].sort();
   const groups = [...new Set(players.map(p => p.group))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
@@ -312,7 +312,23 @@ function compute(config, d1, d2, bonus) {
       for (const p of mem) pl[p.id]["p" + seg] = pts[p.id];
     }
   }
-  for (const a of AWARDS) { const w = aw[a.id] && aw[a.id].w; if (w && pl[w]) pl[w].bonus++; }
+  // Day 2 formats: an alternate format (needs hole-by-hole scores) replaces the F9 / B9 placings in its group.
+// 18-hole placings stay plain Stableford. A nine with no hole-by-hole scores (paper card) stays plain Stableford.
+const gfmt = {};
+for (const gr of groups) {
+const mem = players.filter(p => p.group === gr), f = groupFormat(config, mem.length);
+const G = gfmt[gr] = { fmt: f };
+if (f === "stableford") continue;
+for (const [seg, a] of [["f9", 0], ["b9", 9]]) {
+if (f === "match") G[seg + "pairs"] = matchPairs(mem, a === 9).map(pairName).join(" v ");
+const rows = nineHoles(mem, hx, a);
+if (!rows.length) { if (mem.some(p => pl[p.id][seg] !== null)) G[seg] = { k: 0 }; continue; }
+const r = f === "sixes" ? sixesNine(mem, rows) : f === "wolf" ? wolfNine(mem, rows) : matchNine(mem, rows, a === 9);
+for (const p of mem) pl[p.id]["p" + seg] = r.pts[p.id];
+G[seg] = { k: rows.length, note: r.note };
+}
+}
+for (const a of AWARDS) { const w = aw[a.id] && aw[a.id].w; if (w && pl[w]) pl[w].bonus++; }
   for (const id in pl) {
     const P = pl[id];
     P.d1 = team[P.team] ? team[P.team].d1pts : 0;
@@ -347,7 +363,7 @@ function compute(config, d1, d2, bonus) {
   for (const t of teams) { const T = team[t];
     T.rank = 1 + teams.filter(o => team[o].total > T.total || (team[o].total === T.total && a18(team[o]) > a18(T))).length; }
 
-  return { players: list, byId: pl, teams: teams.map(t => team[t]), groups };
+  return { players: list, byId: pl, teams: teams.map(t => team[t]), groups, gfmt };
 }
 
 // ---------- hole-by-hole scoring (must match holeNines_ in Code.gs) ----------
@@ -369,6 +385,78 @@ function holeNines(arr, course, hcp, day) {
   return { f9, b9, thru };
 }
 
+// ---------- Day 2 group formats (picked by the organiser on the Rules tab) ----------
+// A format only changes how the Front 9 / Back 9 placings inside a group are decided; the points scale is unchanged.
+const FORMATS = { g3: { stableford: "Stableford", sixes: "Split Sixes", wolf: "Wolf Pack" }, g4: { stableford: "Stableford", match: "2v2 Match Play" } };
+function groupFormat(config, size) {
+const f = (config && config.formats) || {};
+if (size === 3 && (f.g3 === "sixes" || f.g3 === "wolf")) return f.g3;
+if (size === 4 && f.g4 === "match") return "match";
+return "stableford";
+}
+const hcpD2 = p => p.hcp2 !== undefined && p.hcp2 !== null && p.hcp2 !== "" ? p.hcp2 : p.hcp;
+// Holes of one nine that every member has a score for, from the first hole of the nine up to the first gap.
+function nineHoles(mem, hx, a) {
+const C = hx && hx.course, H = (hx && hx.holes) || {}, rows = [];
+if (!C || !C.par) return rows;
+for (let i = a; i < a + 9; i++) {
+if (!mem.every(p => hasScore((H[p.id] || [])[i]))) break;
+const r = {};
+for (const p of mem) { const g = H[p.id][i], st = strokesOn(hcpD2(p), C.idx[i]); r[p.id] = { pts: stbl(C.par[i], st, g), net: isPick(g) ? Infinity : +g - st }; }
+rows.push(r);
+}
+return rows;
+}
+const stblSum = (mem, rows) => { const t = {}; for (const p of mem) t[p.id] = rows.reduce((s, r) => s + r[p.id].pts, 0); return t; };
+const byStbl = (mem, rows, scale) => { const t = stblSum(mem, rows); return rankPoints(mem.map(p => ({ id: p.id, v: t[p.id] })), true, scale); };
+// Split Sixes: 6 points a hole shared on Stableford: 4/2/0, 4/1/1 (two tie behind), 3/3/0 (two tie best), 2/2/2 (all tie).
+function sixesNine(mem, rows) {
+const tot = {};
+for (const p of mem) tot[p.id] = 0;
+for (const r of rows) {
+const s = mem.map(p => r[p.id].pts).sort((x, y) => y - x);
+for (const p of mem) {
+const x = r[p.id].pts;
+tot[p.id] += s[0] === s[2] ? 2 : s[0] === s[1] ? (x === s[0] ? 3 : 0) : s[1] === s[2] ? (x === s[0] ? 4 : 1) : (x === s[0] ? 4 : x === s[1] ? 2 : 0);
+}
+}
+return { pts: rankPoints(mem.map(p => ({ id: p.id, v: tot[p.id] })), true, D2_SCALE), note: mem.map(p => p.name + " " + tot[p.id]).join(", ") };
+}
+// Wolf Pack: one running lead per nine, starting all square.
+function wolfNine(mem, rows) {
+let lead = null, m = 0;
+for (const r of rows) {
+const best = Math.max(...mem.map(p => r[p.id].pts)), top = mem.filter(p => r[p.id].pts === best).map(p => p.id);
+if (lead === null) { if (top.length === 1) { lead = top[0]; m = 1; } }
+else if (top.length === 1 && top[0] === lead) m++;
+else if (!top.includes(lead)) { m--; if (m === 0) lead = null; }
+}
+if (lead === null) return { pts: byStbl(mem, rows, D2_SCALE), note: "All square (placed on Stableford)" };
+const pts = byStbl(mem.filter(p => p.id !== lead), rows, [4, 2]);
+pts[lead] = 6;
+return { pts, note: mem.find(p => p.id === lead).name + " " + m + " up" };
+}
+// 2v2 Match Play (better-ball net). Pairs from the group's order on the sheet: front 9 1st+4th v 2nd+3rd, back 9 1st+3rd v 2nd+4th.
+function matchPairs(mem, back) { const [a, b, c, d] = mem; return back ? [[a, c], [b, d]] : [[a, d], [b, c]]; }
+const pairName = s => s.map(p => p.name).join(" & ");
+function matchNine(mem, rows, back) {
+const sides = matchPairs(mem, back), w = [0, 0];
+for (const r of rows) {
+const n = sides.map(s => Math.min(...s.map(p => r[p.id].net)));
+if (n[0] < n[1]) w[0]++; else if (n[1] < n[0]) w[1]++;
+}
+if (w[0] === w[1]) return { pts: byStbl(mem, rows, D2_SCALE_4), note: pairName(sides[0]) + " v " + pairName(sides[1]) + " halved " + w[0] + "–" + w[1] + " (placed on Stableford)" };
+const win = w[0] > w[1] ? 0 : 1, t = stblSum(mem, rows), pts = {};
+const place = (pair, at) => {
+const [x, y] = pair;
+if (t[x.id] === t[y.id]) { pts[x.id] = pts[y.id] = D2_SCALE_4[at]; return; }
+const hi = t[x.id] > t[y.id] ? x : y, lo = hi === x ? y : x;
+pts[hi.id] = D2_SCALE_4[at]; pts[lo.id] = D2_SCALE_4[at + 1];
+};
+place(sides[win], 0); place(sides[1 - win], 2);
+return { pts, note: pairName(sides[win]) + " won " + Math.max(...w) + "–" + Math.min(...w) + " (holes) v " + pairName(sides[1 - win]) };
+}
+
 
 
 </script>
@@ -382,6 +470,46 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const fmt=v=>v===null||v===undefined?"–":(Math.round(v*100)/100).toString();
 const f2=v=>v===null||v===undefined?"–":v.toFixed(2);
 const DEMO=!API_URL;
+
+const hx=()=>({holes:(S.holes||{}).d2||{},course:(S.courses||{}).d2});
+// Day 2 format is locked once any Day 2 hole score exists (including ones still queued on this phone).
+const d2Started=()=>Object.values((S.holes||{}).d2||{}).some(a=>(a||[]).some(hasScore));
+const fmtName=f=>FORMATS.g3[f]||FORMATS.g4[f]||"Stableford";
+const LOCK_MSG="Locked: Day 2 hole scores have been entered. Switching format mid-round can’t be scored fairly (Wolf Pack and match play need every hole from the start of the nine). Clear all scores first if it really has to change.";
+function fmtLine(R,g){
+const G=R.gfmt&&R.gfmt[g];if(!G||G.fmt==="stableford")return"";
+const seg=(lab,k)=>{const x=G[k];if(x&&x.k===0)return lab+": plain Stableford (no hole-by-hole scores)";if(x)return lab+": "+esc(x.note)+(x.k<9?" (thru "+x.k+")":"");return G[k+"pairs"]?lab+": "+esc(G[k+"pairs"]):""};
+const parts=[seg("F9","f9"),seg("B9","b9")].filter(Boolean);
+return'<div class="muted" style="font-size:12.5px;padding:2px 12px 4px"><b style="color:var(--ink)">'+fmtName(G.fmt)+"</b>"+(parts.length?" · "+parts.join(" · "):"")+"</div>";
+}
+function fmtRules(){
+const f=(S.config&&S.config.formats)||{};
+return'<dt>Day 2 group format</dt><dd>This trip: groups of 3 play <b>'+fmtName(f.g3||"stableford")+'</b>; the group of 4 plays <b>'+fmtName(f.g4||"stableford")+'</b>. The format only decides who finishes 1st, 2nd, 3rd (and 4th) in your group for each nine; the points don’t change. 18-hole placings are always plain Stableford. Formats use the hole-by-hole scores from the Scorecard tab, so a nine kept on a paper card is placed on plain Stableford.</dd>'+
+'<dt>Split Sixes (groups of 3)</dt><dd>6 points are shared on every hole by Stableford score: 4 / 2 / 0 if all different, 4 / 1 / 1 if one is best and two tie, 3 / 3 / 0 if two tie for best, 2 / 2 / 2 if all tie. Most points over the nine finishes 1st.</dd>'+
+'<dt>Wolf Pack (groups of 3)</dt><dd>Each nine starts all square. The outright best Stableford score on a hole takes the lead (1 up) or adds to it. If a chaser beats the leader outright, or both chasers tie with a better score than the leader, the lead drops by 1; at 0 it’s back to all square. Still leading after the nine: 6 points, and the other two take 4 / 2 on Stableford. All square at the end: placed on plain Stableford.</dd>'+
+'<dt>2v2 Match Play (group of 4)</dt><dd>Better-ball net. Pairs come from the group’s order on the sheet: front 9 is 1st &amp; 4th v 2nd &amp; 3rd, back 9 is 1st &amp; 3rd v 2nd &amp; 4th. Each hole goes to the pair with the best single net score; most holes won takes the nine. Winning pair: more Stableford points finishes 1st, the other 2nd; the losing pair are 3rd and 4th the same way. Halved: placed on plain Stableford.</dd>';
+}
+function fmtControls(){
+const f=(S.config&&S.config.formats)||{},dr=S.fmtDraft||{},lock=DEMO||d2Started(),dis=lock?" disabled":"";
+const opt=(map,cur)=>Object.keys(map).map(k=>'<option value="'+k+'"'+(k===(cur||"stableford")?" selected":"")+">"+map[k]+"</option>").join("");
+return'<p style="margin:0 0 10px"><b>Day 2 format.</b> How Front 9 / Back 9 placings are decided inside each group. Needs the organiser PIN, and locks as soon as any Day 2 hole score is in.</p>'+
+'<div class="fields" style="margin-bottom:10px"><label class="f">Groups of 3<select id="fmt3"'+dis+">"+opt(FORMATS.g3,dr.fmt3||f.g3)+'</select></label><label class="f">Group of 4<select id="fmt4"'+dis+">"+opt(FORMATS.g4,dr.fmt4||f.g4)+"</select></label></div>"+
+'<button class="btn primary" data-act="savefmt"'+(DEMO?" disabled":"")+">Save Day 2 format…</button>"+
+'<div class="status" id="fmtmsg">'+(!DEMO&&d2Started()?LOCK_MSG:"")+"</div>"+
+'<hr style="border:0;border-top:1px solid var(--line);margin:14px 0">';
+}
+async function saveFmt(btn){
+const out=document.getElementById("fmtmsg"),say=t=>{if(out)out.textContent=t};
+if(d2Started()){say(LOCK_MSG);return}
+const g3=document.getElementById("fmt3").value,g4=document.getElementById("fmt4").value;
+const pin=prompt("Organiser PIN:");if(pin===null||!pin.trim())return;
+btn.disabled=true;say("Saving…");
+try{const r=await fetch(API_URL,{method:"POST",body:JSON.stringify({kind:"config",pin:pin.trim(),g3,g4})});const d=await r.json();
+if(!d.ok)throw new Error(d.error||"Rejected");
+S.fmtDraft=null;apply(d.data);render(true);
+const m=document.getElementById("fmtmsg");if(m)m.textContent="Saved: groups of 3 play "+fmtName(g3)+", the group of 4 plays "+fmtName(g4)+". Other phones show it within 10 seconds.";
+}catch(e){say("Not saved: "+(e.message||"check your signal"));btn.disabled=false}
+}
 
 const TABS=["mvp","card","teams","day1","day2","bonus","rules"];
 try{const h=location.hash.slice(1);if(TABS.includes(h))S.tab=h;else{const t=localStorage.getItem("gc26tab");if(TABS.includes(t))S.tab=t;}}catch(e){}
@@ -447,7 +575,7 @@ function vDay2(R){
     const mem=R.players.filter(p=>p.group===g).sort((a,b)=>a.name.localeCompare(b.name));
     const played=mem.filter(p=>p.f9!=null||p.b9!=null).length,s=d2Scale(played||mem.length);
     const note=played&&played<mem.length?` (${played} of ${mem.length} have scores)`:"";
-    return`<div class="gh">${esc(g)} <span class="muted" style="font-size:13px;letter-spacing:0">· ${s.join(" / ")}${note}</span></div><div class="prow hd"><span>Player</span><span>F9 pts</span><span>B9 pts</span><span style="text-align:right">F9 · B9 · 18</span></div>`+
+    return`<div class="gh">${esc(g)} <span class="muted" style="font-size:13px;letter-spacing:0">· ${s.join(" / ")}${note}</span></div>${fmtLine(R,g)}<div class="prow hd"><span>Player</span><span>F9 pts</span><span>B9 pts</span><span style="text-align:right">F9 · B9 · 18</span></div>`+
     mem.map(p=>`<div class="prow"><div><b>${pnBtn(p)}</b> <span class="muted" style="font-size:12px">${esc(p.team)} · HCP ${esc(hcp2(p))} · ${p.t18??"–"} total</span></div>
       ${inp("d2-"+p.id+"-f9","d2",["players",p.id,"f9"],p.f9,p.name+" front 9 stableford",R.thru["d2|"+p.id])}
       ${inp("d2-"+p.id+"-b9","d2",["players",p.id,"b9"],p.b9,p.name+" back 9 stableford",R.thru["d2|"+p.id])}
@@ -586,6 +714,7 @@ function vCard(R){
 $main.addEventListener("click",e=>{
   const b=e.target.closest("button[data-act]");if(!b||!$main.contains(b))return;
   if(b.dataset.act==="clearall"){clearAll(b);return}
+if(b.dataset.act==="savefmt"){saveFmt(b);return}
   if(b.dataset.act==="pcard"){openCard(b.dataset.v,+b.dataset.d||2);return}
   if(b.dataset.act==="tab"){S.tab=b.dataset.v;try{localStorage.setItem("gc26tab",S.tab);history.replaceState(null,"","#"+S.tab)}catch(e){}render(true);window.scrollTo({top:0});return}
   initSc();const sc=S.sc,a=b.dataset.act,day=sc.day;
@@ -632,7 +761,7 @@ const skCls=(g,par)=>{if(isPick(g))return"pu";const d=+g-par;return d<=-2?"eagle
 const toPar=v=>v===0?"E":v>0?"+"+v:String(v);
 // Day 1: Ambrose team card
 function drawCard1(){
-  const C=(S.courses||{}).d1,WH=withHoles(),R=compute(S.config,WH.d1,WH.d2,S.bonus),t=R.teams.find(x=>x.id===S.cardFor);
+  const C=(S.courses||{}).d1,WH=withHoles(),R=compute(S.config,WH.d1,WH.d2,S.bonus,hx()),t=R.teams.find(x=>x.id===S.cardFor);
   if(!t||!C||!C.par){closeCard();return}
   const arr=((S.holes&&S.holes.d1)||{})[t.id]||[];
   const bon=n=>bonusOn(1,n).map(a=>a.kind).join(" + ");
@@ -680,7 +809,7 @@ function drawCard(){
     </tbody></table></div>`};
   const pts=sum(played,h=>h.pts),gross=sum(real,h=>+h.g),parReal=sum(real,h=>h.par);
   const est=sum(played,h=>h.pick?h.par+h.st+2:+h.g),picks=played.length-real.length;
-  const WH=withHoles(),R=compute(S.config,WH.d1,WH.d2,S.bonus),rp=R.players.find(x=>x.id===p.id)||{};
+  const WH=withHoles(),R=compute(S.config,WH.d1,WH.d2,S.bonus,hx()),rp=R.players.find(x=>x.id===p.id)||{};
   const html=`<div class="box" role="dialog" aria-modal="true" aria-labelledby="pcmt">
     <div class="hd"><div><h3 id="pcmt">${esc(p.name)} · Day 2</h3><div class="sub">Lonsdale Links · Sun 25 Oct 2026 · ${esc(p.team)} · ${esc(p.group)}</div></div><button class="x" data-close aria-label="Close">✕</button></div>
     <div class="tiles"><div class="tile"><span>Stableford</span><b class="gd">${played.length?pts:"–"}</b></div><div class="tile"><span>Gross</span><b>${played.length?est:"–"}</b></div><div class="tile"><span>Lonsdale HCP</span><b>${hc}</b></div></div>
@@ -691,16 +820,16 @@ function drawCard(){
   mountCard(html);
 }
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&S.cardFor)closeCard()});
-function vRules(){
+function vRules(R){
   return`<h2>How scoring works</h2><div class="card rules"><dl>
   <dt>Day 1: Ambrose (team)</dt><dd>Team handicap = combined handicap ÷ (2 × players). Net per nine = gross − half the team handicap. Front 9, Back 9 and 18 are each ranked on net: 8 / 6 / 4 / 2 (up to 24 per team).</dd>
   <dt>Day 2: Stableford (individual)</dt><dd>Front 9, Back 9 and 18 are each ranked within your group (up to 18). Group of 3: 6 / 4 / 2. Group of 4: 6 / 5 / 3 / 2, so every player averages the same points whatever size group they're in. Only players with a score count towards the group size.</dd>
-  <dt>Bonus</dt><dd>1 point per closest-to-pin or longest-drive win. One CTP and one LD per nine (2 per nine, 4 per day), 8 in total.</dd>
+  ${fmtRules()}<dt>Bonus</dt><dd>1 point per closest-to-pin or longest-drive win. One CTP and one LD per nine (2 per nine, 4 per day), 8 in total.</dd>
   <dt>MVP</dt><dd>Day 2 points + bonuses + half your team's Day 1 points (Day 1 is worth up to 12). Ties share the higher placing.</dd>
   <dt>Team winner</dt><dd>Day 1 teams stay together for the whole trip. Team total = Day 1 Ambrose points + Day 2 team points (up to 24 each, 48 in total). Day 2 team points: each team's average Stableford is ranked for Front 9, Back 9 and 18: 8 / 6 / 4 / 2. Using the average keeps teams of 3 and 4 even. Level on total: the higher Day 2 18-hole average wins.</dd>
   <dt>Handicaps</dt><dd>Each player has a handicap for each course: GA handicap × slope ÷ 113 + (scratch rating − par), rounded, max 36. Day 1 team handicaps use the 13th Beach numbers; Day 2 Stableford shots use the Lonsdale numbers.</dd>
   <dt>Players, handicaps, teams and groups</dt><dd>These come from the GC26 Google Sheet. Change them there and the app picks them up within a few seconds.</dd></dl></div>
-  <h2>Organiser</h2><div class="card note org"><p style="margin:0 0 10px">Wipes every score, hole score and CTP / LD winner. Players, handicaps, teams, the draw and the CTP / LD hole numbers are kept. Needs the organiser PIN.</p>
+  <h2>Organiser</h2><div class="card note org">${fmtControls()}<p style="margin:0 0 10px">Wipes every score, hole score and CTP / LD winner. Players, handicaps, teams, the draw and the CTP / LD hole numbers are kept. Needs the organiser PIN.</p>
   <button class="btn danger" data-act="clearall" ${DEMO?"disabled":""}>Clear all scores…</button><div class="status" id="clrmsg"></div></div>`;
 }
 function statusLine(){return`<div class="status" id="status">${DEMO?"Demo mode: scores stay on this phone until the Google Sheet is connected.":""}</div>`}
@@ -712,7 +841,7 @@ function render(force){
   if(!force&&a&&$main.contains(a)&&/INPUT|SELECT/.test(a.tagName)){S.pending=true;return}
   S.pending=false;
   const M=withHoles();
-  const R=compute(S.config,M.d1,M.d2,S.bonus);R.thru=M.thru;
+  const R=compute(S.config,M.d1,M.d2,S.bonus,hx());R.thru=M.thru;
   if(S.cardFor)drawCard();
   $main.innerHTML={mvp:vMVP,card:vCard,teams:vTeams,day1:vDay1,day2:vDay2,bonus:vBonus,rules:vRules}[S.tab](R);
 }
@@ -756,7 +885,8 @@ function save(doc,pathArr,value){
   });
 }
 $main.addEventListener("change",e=>{
-  const el=e.target;if(!el.dataset.doc)return;
+  const el=e.target;if(el.id==="fmt3"||el.id==="fmt4"){S.fmtDraft=S.fmtDraft||{};S.fmtDraft[el.id]=el.value;return}
+if(!el.dataset.doc)return;
   let v=el.value.trim();
   if(el.tagName==="SELECT"||el.dataset.text)v=v||null;else v=v===""?null:Math.max(0,Math.round(+v));
   save(el.dataset.doc,el.dataset.path.split("|"),v);
