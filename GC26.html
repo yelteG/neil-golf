@@ -503,6 +503,7 @@ const out=document.getElementById("fmtmsg"),say=t=>{if(out)out.textContent=t};
 if(d2Started()){say(LOCK_MSG);return}
 const g3=document.getElementById("fmt3").value,g4=document.getElementById("fmt4").value;
 const pin=prompt("Organiser PIN:");if(pin===null||!pin.trim())return;
+if(!(await pinCheck(pin.trim(),say,"The format wasn’t changed.")))return;
 btn.disabled=true;say("Saving…");
 try{const r=await fetch(API_URL,{method:"POST",body:JSON.stringify({kind:"config",pin:pin.trim(),g3,g4})});const d=await r.json();
 if(!d.ok)throw new Error(d.error||"Rejected");
@@ -733,17 +734,23 @@ if(b.dataset.act==="savefmt"){saveFmt(b);return}
   setHole(day,key,sc.hole||1,v);
 });
 
+// Checks the organiser PIN with the sheet before anything else is asked or changed.
+async function pinCheck(pin,say,what){
+say("Checking PIN…");
+try{const r=await fetch(API_URL,{method:"POST",body:JSON.stringify({kind:"checkPin",pin})});const d=await r.json();if(!d.ok)throw new Error(d.error||"Rejected");return true}
+catch(e){const m=e.message==="Wrong PIN"?"Incorrect PIN. "+what:"Couldn't check the PIN: "+(e.message||"check your signal");say(m);alert(m);return false}
+}
 async function clearAll(btn){
-  const out=document.getElementById("clrmsg"),say=t=>{if(out)out.textContent=t};
-  const pin=prompt("Organiser PIN:");if(pin===null||!pin.trim())return;
-  const typed=prompt("This wipes ALL scores for both days, every hole score and all CTP / LD winners.\n\nType CLEAR to confirm.");
-  if(!typed||typed.trim().toUpperCase()!=="CLEAR"){say("Nothing was cleared.");return}
-  btn.disabled=true;say("Clearing…");
-  try{const r=await fetch(API_URL,{method:"POST",body:JSON.stringify({kind:"clearAll",pin:pin.trim()})});const d=await r.json();
-    if(!d.ok)throw new Error(d.error||"Rejected");
-    S.q=[];saveQ();apply(d.data);render(true);
-    const m=document.getElementById("clrmsg");if(m)m.textContent="All scores cleared. Other phones show it within 10 seconds.";
-  }catch(e){say("Not cleared: "+(e.message||"check your signal"));btn.disabled=false}
+const say=t=>{S.clrMsg=t;const o=document.getElementById("clrmsg");if(o)o.textContent=t};
+const pin=prompt("Organiser PIN:");if(pin===null||!pin.trim())return;
+if(!(await pinCheck(pin.trim(),say,"Nothing was cleared.")))return;
+const typed=prompt("This wipes ALL scores for both days, every hole score and all CTP / LD winners.\n\nType CLEAR to confirm.");
+if(!typed||typed.trim().toUpperCase()!=="CLEAR"){say("Nothing was cleared.");return}
+btn.disabled=true;say("Clearing…");
+try{const r=await fetch(API_URL,{method:"POST",body:JSON.stringify({kind:"clearAll",pin:pin.trim()})});const d=await r.json();
+if(!d.ok)throw new Error(d.error||"Rejected");
+S.q=[];saveQ();apply(d.data);say("All scores cleared. Other phones show it within 10 seconds.");render(true);alert("All scores cleared.");
+}catch(e){const m="Not cleared: "+(e.message||"check your signal");say(m);btn.disabled=false;alert(m)}
 }
 // ---------- Day 2 player scorecard popup ----------
 const pnBtn=p=>`<button class="pn" data-act="pcard" data-v="${esc(p.id)}" data-d="2" aria-label="Show ${esc(p.name)}'s Day 2 scorecard">${esc(p.name)}</button>`;
@@ -830,7 +837,7 @@ function vRules(R){
   <dt>Handicaps</dt><dd>Each player has a handicap for each course: GA handicap × slope ÷ 113 + (scratch rating − par), rounded, max 36. Day 1 team handicaps use the 13th Beach numbers; Day 2 Stableford shots use the Lonsdale numbers.</dd>
   <dt>Players, handicaps, teams and groups</dt><dd>These come from the GC26 Google Sheet. Change them there and the app picks them up within a few seconds.</dd></dl></div>
   <h2>Organiser</h2><div class="card note org">${fmtControls()}<p style="margin:0 0 10px">Wipes every score, hole score and CTP / LD winner. Players, handicaps, teams, the draw and the CTP / LD hole numbers are kept. Needs the organiser PIN.</p>
-  <button class="btn danger" data-act="clearall" ${DEMO?"disabled":""}>Clear all scores…</button><div class="status" id="clrmsg"></div></div>`;
+  <button class="btn danger" data-act="clearall" ${DEMO?"disabled":""}>Clear all scores…</button><div class="status" id="clrmsg">${esc(S.clrMsg||"")}</div></div>`;
 }
 function statusLine(){return`<div class="status" id="status">${DEMO?"Demo mode: scores stay on this phone until the Google Sheet is connected.":""}</div>`}
 
