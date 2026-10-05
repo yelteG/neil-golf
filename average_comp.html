@@ -200,7 +200,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     margin-bottom: 3px;
+    cursor: pointer;
   }
+
+  .player-card-name:hover { opacity: 0.9; }
 
   .player-card-meta {
     font-size: 12px;
@@ -426,6 +429,266 @@
 
   .page-pad { padding-bottom: 90px; }
 
+  /* ── PLAYER SCORECARD MODAL ─────────────────────────────────────────────── */
+  .player-scorecard-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 18, 0.72);
+    z-index: 1200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+  }
+  .player-scorecard-overlay.open { display: flex; }
+
+  .player-scorecard-sheet {
+    width: min(100%, 760px);
+    background: #f5f5f3;
+    border-radius: 18px;
+    color: #0d1b2a;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,.35);
+  }
+
+  .player-scorecard-topbar {
+    background: #e8e8e5;
+    border-bottom: 1px solid rgba(17,24,39,0.12);
+    padding: 18px 20px 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .player-scorecard-player {
+    font-size: clamp(24px, 4vw, 38px);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    color: #0f1d2f;
+    margin: 0;
+  }
+
+  .player-scorecard-sub {
+    font-size: 12px;
+    color: #4b5563;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+
+  .player-scorecard-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(17,24,39,0.2);
+    background: rgba(255,255,255,0.5);
+    color: #0f1d2f;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .scorecard-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    padding: 14px 16px 0;
+  }
+
+  .scorecard-stat {
+    background: #f8f8f7;
+    border: 1px solid rgba(17,24,39,0.12);
+    border-radius: 10px;
+    padding: 12px 10px;
+    min-height: 88px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .scorecard-stat-label {
+    color: #64748b;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .scorecard-stat-value {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 900;
+    line-height: 1;
+    color: #0f1d2f;
+  }
+
+  .scorecard-stat-value.green { color: #0b7a53; }
+  .scorecard-stat-value.dark { color: #0f1d2f; }
+
+  .scorecard-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    align-items: center;
+    padding: 12px 16px 0;
+    font-size: 11px;
+    color: #475569;
+    font-weight: 600;
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .legend-badge {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: 9px;
+    font-weight: 800;
+    border: 1px solid rgba(15,29,47,0.3);
+    background: #fff;
+  }
+
+  .legend-badge.eagle { color: #0c6c3d; }
+  .legend-badge.birdie { color: #0f5d8c; }
+  .legend-badge.par { color: #0f1d2f; }
+  .legend-badge.bogey { color: #a16207; }
+  .legend-badge.db { color: #b91c1c; }
+  .legend-badge.picked { color: #d97706; }
+  .legend-badge.ct { color: #4f46e5; }
+
+  .scorecard-grid-wrap {
+    padding: 12px 12px 0;
+    overflow-x: auto;
+  }
+
+  .scorecard-grid {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(15,29,47,0.18);
+    background: #eef2f7;
+    min-width: 620px;
+  }
+
+  .scorecard-grid-row {
+    display: grid;
+    grid-template-columns: 94px repeat(18, minmax(26px, 1fr));
+    background: #eff5f7;
+  }
+
+  .scorecard-grid-head {
+    background: #0f3d2f;
+    color: #e6f7ef;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    padding: 10px 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    text-transform: uppercase;
+  }
+
+  .scorecard-grid-cell {
+    background: transparent;
+    border-right: 1px solid rgba(15,29,47,0.12);
+    border-top: 1px solid rgba(15,29,47,0.08);
+    padding: 8px 4px;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f1d2f;
+  }
+
+  .scorecard-grid-row .scorecard-grid-cell:first-child {
+    background: #f4f6f7;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    justify-content: center;
+  }
+
+  .scorecard-grid-cell.par { color: #0f1d2f; }
+  .scorecard-grid-cell.stroke { color: #1d4ed8; }
+  .scorecard-grid-cell.shots { color: #0b7a53; }
+  .scorecard-grid-cell.score { color: #0f1d2f; }
+
+  .scorecard-grid-cell.special {
+    border-radius: 6px;
+    background: #fff;
+    border: 1px solid #f7b267;
+    color: #d97706;
+    font-weight: 900;
+  }
+
+  .scorecard-grid-cell.special.red {
+    border-color: #ef4444;
+    color: #b91c1c;
+  }
+
+  .scorecard-grid-cell.special.green {
+    border-color: #10b981;
+    color: #0b7a53;
+  }
+
+  .scorecard-grid-cell.special.blue {
+    border-color: #60a5fa;
+    color: #1d4ed8;
+  }
+
+  .scorecard-footer {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    padding: 14px 16px 18px;
+    border-top: 1px solid rgba(15,29,47,0.12);
+    margin-top: 8px;
+  }
+
+  .scorecard-footer-row {
+    background: #f8f8f7;
+    border: 1px solid rgba(15,29,47,0.12);
+    border-radius: 10px;
+    padding: 12px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #475569;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .scorecard-footer-row strong {
+    font-size: 20px;
+    color: #0f1d2f;
+    letter-spacing: -0.04em;
+    text-transform: none;
+  }
+
+  .scorecard-footer-row strong.green { color: #0b7a53; }
+
+  .scorecard-note {
+    padding: 0 16px 20px;
+    font-size: 11px;
+    color: #667085;
+    line-height: 1.5;
+  }
+
   /* ── NUMPAD MODAL ──────────────────────────────────────────────────────── */
   .numpad-overlay {
     display: none;
@@ -629,6 +892,55 @@
     <button class="bottom-nav-btn setup" onclick="openPinPrompt()">🔒 Admin</button>
   </div>
 
+</div>
+
+<!-- PLAYER SCORECARD MODAL -->
+<div class="player-scorecard-overlay" id="player-scorecard-overlay" onclick="closePlayerScorecard(event)">
+  <div class="player-scorecard-sheet" onclick="event.stopPropagation()">
+    <div class="player-scorecard-topbar">
+      <div>
+        <div class="player-scorecard-player" id="scorecard-player-name">Neil</div>
+        <div class="player-scorecard-sub" id="scorecard-course-meta">Lonsdale Links • Sun 25 Oct 2026 • Team 1</div>
+      </div>
+      <button class="player-scorecard-close" onclick="closePlayerScorecard()">×</button>
+    </div>
+
+    <div class="scorecard-stats">
+      <div class="scorecard-stat">
+        <div class="scorecard-stat-label">STABLEFORD</div>
+        <div class="scorecard-stat-value green" id="scorecard-stableford">38</div>
+      </div>
+      <div class="scorecard-stat">
+        <div class="scorecard-stat-label">GROSS</div>
+        <div class="scorecard-stat-value dark" id="scorecard-gross">83</div>
+      </div>
+      <div class="scorecard-stat">
+        <div class="scorecard-stat-label">LONSDALE HCP</div>
+        <div class="scorecard-stat-value dark" id="scorecard-hcp">16</div>
+      </div>
+    </div>
+
+    <div class="scorecard-legend">
+      <span class="legend-item"><span class="legend-badge eagle">E</span> Eagle+</span>
+      <span class="legend-item"><span class="legend-badge birdie">B</span> Birdie</span>
+      <span class="legend-item"><span class="legend-badge par">P</span> Par</span>
+      <span class="legend-item"><span class="legend-badge bogey">B</span> Bogey</span>
+      <span class="legend-item"><span class="legend-badge db">D</span> Db+</span>
+      <span class="legend-item"><span class="legend-badge picked">P</span> Picked up</span>
+      <span class="legend-item"><span class="legend-badge ct">C</span> CT / LD hole</span>
+    </div>
+
+    <div class="scorecard-grid-wrap">
+      <div class="scorecard-grid" id="scorecard-grid"></div>
+    </div>
+
+    <div class="scorecard-footer">
+      <div class="scorecard-footer-row"><span>Total gross</span><strong id="scorecard-total-gross">70</strong></div>
+      <div class="scorecard-footer-row"><span>Stableford</span><strong class="green" id="scorecard-total-stab">38</strong></div>
+      <div class="scorecard-footer-row"><span>Est. gross</span><strong id="scorecard-est-gross">83</strong></div>
+    </div>
+    <div class="scorecard-note" id="scorecard-note">Thu 18 • 2 pick-ups counted as net double bogey in est. gross.</div>
+  </div>
 </div>
 
 <script>
@@ -1100,6 +1412,85 @@ function renderHoleNav() {
   }).join('');
 }
 
+function openPlayerScorecard(teamIdx, playerIdx) {
+  const player = TEAMS[teamIdx].players[playerIdx];
+  const grossTotal = (() => {
+    let total = 0;
+    let hadAny = false;
+    for (let h = 0; h < 18; h++) {
+      const value = getScore(teamIdx, playerIdx, h);
+      if (value !== null && value !== undefined && value !== '') {
+        total += value === -1 ? 0 : value;
+        hadAny = true;
+      }
+    }
+    return hadAny ? total : 0;
+  })();
+
+  const stablefordTotal = playerTotal(teamIdx, playerIdx) ?? 0;
+  const hcp = Number(player.hcp) || 0;
+
+  document.getElementById('scorecard-player-name').textContent = player.name;
+  document.getElementById('scorecard-course-meta').textContent = `${COURSE_NAME} • ${new Date().toLocaleDateString('en-AU', {weekday:'short', day:'2-digit', month:'short', year:'numeric'})} • ${TEAMS[teamIdx].name}`;
+  document.getElementById('scorecard-stableford').textContent = stablefordTotal;
+  document.getElementById('scorecard-gross').textContent = grossTotal;
+  document.getElementById('scorecard-hcp').textContent = hcp;
+  document.getElementById('scorecard-total-gross').textContent = grossTotal;
+  document.getElementById('scorecard-total-stab').textContent = stablefordTotal;
+  document.getElementById('scorecard-est-gross').textContent = Math.max(0, grossTotal);
+
+  const grid = document.getElementById('scorecard-grid');
+  const headers = ['Hole'];
+  HOLE_LABELS.forEach(label => headers.push(label));
+
+  const holeRows = [
+    { label: 'Par', values: HOLES.map(h => h.par) },
+    { label: 'Strokes', values: HOLES.map((h, idx) => {
+        const gross = getScore(teamIdx, playerIdx, idx);
+        if (gross === null || gross === undefined || gross === '') return '—';
+        if (gross === -1) return 'P';
+        return computeAllStrokes(hcp, HOLES)[idx];
+      }) },
+    { label: 'Shots', values: HOLES.map((h, idx) => {
+        const gross = getScore(teamIdx, playerIdx, idx);
+        if (gross === null || gross === undefined || gross === '') return '—';
+        if (gross === -1) return 'P';
+        return gross;
+      }) },
+    { label: 'Score', values: HOLES.map((h, idx) => {
+        const gross = getScore(teamIdx, playerIdx, idx);
+        if (gross === null || gross === undefined || gross === '') return '—';
+        if (gross === -1) return 'P';
+        return gross;
+      }) }
+  ];
+
+  const rowMarkup = [
+    '<div class="scorecard-grid-row">' + headers.map((h) => '<div class="scorecard-grid-head">' + h + '</div>').join('') + '</div>'
+  ];
+
+  holeRows.forEach((row) => {
+    const cells = ['<div class="scorecard-grid-cell">' + row.label + '</div>'];
+    row.values.forEach((value, idx) => {
+      let className = 'scorecard-grid-cell ' + (row.label === 'Par' ? 'par' : row.label === 'Strokes' ? 'stroke' : row.label === 'Shots' ? 'shots' : 'score');
+      let display = value;
+      if (value === 'P') className += ' special';
+      else if (value === '—') className += ' special blue';
+      else if (typeof value === 'number' && value >= 0 && value <= 5) className += ' special green';
+      cells.push('<div class="' + className + '">' + display + '</div>');
+    });
+    rowMarkup.push('<div class="scorecard-grid-row">' + cells.join('') + '</div>');
+  });
+
+  grid.innerHTML = rowMarkup.join('');
+  document.getElementById('player-scorecard-overlay').classList.add('open');
+}
+
+function closePlayerScorecard(event) {
+  if (event && event.target !== document.getElementById('player-scorecard-overlay')) return;
+  document.getElementById('player-scorecard-overlay').classList.remove('open');
+}
+
 function renderTeams() {
   const container = document.getElementById('teams-container');
   container.innerHTML = '';
@@ -1130,7 +1521,7 @@ function renderTeams() {
       card.className = 'player-card';
       card.innerHTML = `
         <div class="player-left">
-          <div class="player-card-name" style="display:flex;align-items:baseline;gap:6px;">
+          <div class="player-card-name" onclick="openPlayerScorecard(${t},${i})" style="display:flex;align-items:baseline;gap:6px;">
             ${player.name}
             <span style="font-size:11px;font-weight:600;color:#c8a84b;opacity:0.9;">
               ${(() => { const tot = playerTotal(t, i); return tot !== null ? tot + ' pts' : ''; })()}
