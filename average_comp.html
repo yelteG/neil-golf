@@ -733,11 +733,43 @@
     color: #1d4ed8;
   }
 
+  .scorecard-nine-split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 12px 16px 0;
+  }
+
+  .scorecard-nine-box {
+    background: #f8f8f7;
+    border: 1px solid rgba(15,29,47,0.12);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .scorecard-nine-box span {
+    font-size: 10px;
+    color: #64748b;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .scorecard-nine-box strong {
+    font-size: 22px;
+    color: #0f1d2f;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
   .scorecard-footer {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
-    padding: 14px 16px 18px;
+    padding: 12px 16px 18px;
     border-top: 1px solid rgba(15,29,47,0.12);
     margin-top: 8px;
   }
@@ -746,22 +778,24 @@
     background: #f8f8f7;
     border: 1px solid rgba(15,29,47,0.12);
     border-radius: 10px;
-    padding: 12px 10px;
+    padding: 12px 10px 10px;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    gap: 8px;
-    font-size: 12px;
+    gap: 6px;
+    font-size: 10px;
     color: #475569;
     font-weight: 700;
     text-transform: uppercase;
   }
 
   .scorecard-footer-row strong {
-    font-size: 20px;
+    font-size: 24px;
     color: #0f1d2f;
     letter-spacing: -0.04em;
     text-transform: none;
+    line-height: 1;
   }
 
   .scorecard-footer-row strong.green { color: #0b7a53; }
@@ -1015,6 +1049,11 @@
 
     <div class="scorecard-grid-wrap">
       <div class="scorecard-grid" id="scorecard-grid"></div>
+    </div>
+
+    <div class="scorecard-nine-split">
+      <div class="scorecard-nine-box"><span>Front 9</span><strong id="scorecard-front9">0</strong></div>
+      <div class="scorecard-nine-box"><span>Back 9</span><strong id="scorecard-back9">0</strong></div>
     </div>
 
     <div class="scorecard-footer">
@@ -1522,6 +1561,24 @@ function openPlayerScorecard(teamIdx, playerIdx) {
     return hadAny ? total : 0;
   })();
 
+  const front9Gross = (() => {
+    let total = 0;
+    for (let h = 0; h < 9; h++) {
+      const value = getScore(teamIdx, playerIdx, h);
+      if (value !== null && value !== undefined && value !== '') total += value === -1 ? 0 : value;
+    }
+    return total;
+  })();
+
+  const back9Gross = (() => {
+    let total = 0;
+    for (let h = 9; h < 18; h++) {
+      const value = getScore(teamIdx, playerIdx, h);
+      if (value !== null && value !== undefined && value !== '') total += value === -1 ? 0 : value;
+    }
+    return total;
+  })();
+
   const stablefordTotal = playerTotal(teamIdx, playerIdx) ?? 0;
   const hcp = Number(player.hcp) || 0;
   const coursePar = HOLES.reduce((sum, hole) => sum + hole.par, 0);
@@ -1532,64 +1589,107 @@ function openPlayerScorecard(teamIdx, playerIdx) {
   document.getElementById('scorecard-stableford').textContent = stablefordTotal;
   document.getElementById('scorecard-gross').textContent = grossDerived;
   document.getElementById('scorecard-hcp').textContent = hcp;
+  document.getElementById('scorecard-front9').textContent = front9Gross;
+  document.getElementById('scorecard-back9').textContent = back9Gross;
   document.getElementById('scorecard-total-gross').textContent = grossTotal;
   document.getElementById('scorecard-total-stab').textContent = stablefordTotal;
   document.getElementById('scorecard-est-gross').textContent = grossDerived;
 
   const grid = document.getElementById('scorecard-grid');
-  const headers = ['Hole'];
-  HOLE_LABELS.forEach(label => headers.push(label));
 
-  const holeRows = [
-    { label: 'Par', values: HOLES.map(h => h.par) },
-    { label: 'Strokes', values: HOLES.map((h, idx) => {
-        const gross = getScore(teamIdx, playerIdx, idx);
-        if (gross === null || gross === undefined || gross === '') return '—';
-        if (gross === -1) return 'P';
-        return gross;
-      }) },
-    { label: 'Shots', values: HOLES.map((h, idx) => {
-        const gross = getScore(teamIdx, playerIdx, idx);
-        if (gross === null || gross === undefined || gross === '') return '—';
-        if (gross === -1) return 'P';
-        return computeAllStrokes(hcp, HOLES)[idx];
-      }) },
-    { label: 'Score', values: HOLES.map((h, idx) => {
-        const gross = getScore(teamIdx, playerIdx, idx);
-        if (gross === null || gross === undefined || gross === '') return '—';
-        if (gross === -1) return 0;
-        const strokes = computeAllStrokes(hcp, HOLES)[idx];
-        return stabPts(gross, HOLES[idx].par, strokes);
-      }) }
-  ];
+  const renderSection = (start, end, totalLabel) => {
+    const sectionHeaders = ['Hole'];
+    for (let i = start; i <= end; i++) sectionHeaders.push(String(HOLE_LABELS[i]));
+    sectionHeaders.push(totalLabel);
 
-  const rowMarkup = [
-    '<div class="scorecard-grid-row">' + headers.map((h) => '<div class="scorecard-grid-head">' + h + '</div>').join('') + '</div>'
-  ];
+    const rows = [
+      { label: 'Par', values: HOLES.slice(start, end + 1).map(h => h.par).concat(HOLES.slice(start, end + 1).reduce((sum, h) => sum + h.par, 0)) },
+      { label: 'Strokes', values: HOLES.slice(start, end + 1).map((h, offset) => {
+          const idx = start + offset;
+          const gross = getScore(teamIdx, playerIdx, idx);
+          if (gross === null || gross === undefined || gross === '') return '—';
+          if (gross === -1) return 'P';
+          return gross;
+        }).concat(
+          HOLES.slice(start, end + 1)
+            .map((h, offset) => {
+              const idx = start + offset;
+              const gross = getScore(teamIdx, playerIdx, idx);
+              if (gross === null || gross === undefined || gross === '') return 0;
+              if (gross === -1) return 0;
+              return gross;
+            })
+            .reduce((sum, value) => sum + value, 0)
+        ) },
+      { label: 'Shots', values: HOLES.slice(start, end + 1).map((h, offset) => {
+          const idx = start + offset;
+          const gross = getScore(teamIdx, playerIdx, idx);
+          if (gross === null || gross === undefined || gross === '') return '—';
+          if (gross === -1) return 'P';
+          return computeAllStrokes(hcp, HOLES)[idx];
+        }).concat(
+          HOLES.slice(start, end + 1)
+            .map((h, offset) => {
+              const idx = start + offset;
+              const gross = getScore(teamIdx, playerIdx, idx);
+              if (gross === null || gross === undefined || gross === '') return 0;
+              if (gross === -1) return 0;
+              return computeAllStrokes(hcp, HOLES)[idx];
+            })
+            .reduce((sum, value) => sum + value, 0)
+        ) },
+      { label: 'Score', values: HOLES.slice(start, end + 1).map((h, offset) => {
+          const idx = start + offset;
+          const gross = getScore(teamIdx, playerIdx, idx);
+          if (gross === null || gross === undefined || gross === '') return '—';
+          if (gross === -1) return 0;
+          const strokes = computeAllStrokes(hcp, HOLES)[idx];
+          return stabPts(gross, HOLES[idx].par, strokes);
+        }).concat(
+          HOLES.slice(start, end + 1)
+            .map((h, offset) => {
+              const idx = start + offset;
+              const gross = getScore(teamIdx, playerIdx, idx);
+              if (gross === null || gross === undefined || gross === '') return 0;
+              if (gross === -1) return 0;
+              const strokes = computeAllStrokes(hcp, HOLES)[idx];
+              return stabPts(gross, HOLES[idx].par, strokes);
+            })
+            .reduce((sum, value) => sum + value, 0)
+        ) }
+    ];
 
-  holeRows.forEach((row) => {
-    const cells = ['<div class="scorecard-grid-cell">' + row.label + '</div>'];
-    row.values.forEach((value, idx) => {
-      const display = value;
-      let className = 'scorecard-grid-cell ' + (row.label === 'Par' ? 'par' : row.label === 'Strokes' ? 'stroke' : row.label === 'Shots' ? 'shots' : 'score');
+    const rowMarkup = [
+      '<div class="scorecard-grid-row">' + sectionHeaders.map((h) => '<div class="scorecard-grid-head">' + h + '</div>').join('') + '</div>'
+    ];
 
-      if (row.label === 'Strokes') {
-        const actual = value === 'P' || value === '—' ? value : Number(value);
-        const parValue = HOLES[idx].par;
-        const strokesForHole = computeAllStrokes(hcp, HOLES)[idx];
-        const scoreRelativeToHandicap = actual === 'P' || actual === '—' ? actual : Number(actual);
-        className += ' ' + (actual === 'P' ? 'pickup' : actual === '—' ? 'blank' : getScorecardColorClass(scoreRelativeToHandicap, parValue, strokesForHole));
-      }
+    rows.forEach((row) => {
+      const cells = ['<div class="scorecard-grid-cell">' + row.label + '</div>'];
+      row.values.forEach((value, idx) => {
+        const display = value;
+        let className = 'scorecard-grid-cell ' + (row.label === 'Par' ? 'par' : row.label === 'Strokes' ? 'stroke' : row.label === 'Shots' ? 'shots' : 'score');
 
-      if (value === 'P' && row.label !== 'Strokes') {
-        className += ' special';
-      }
-      cells.push('<div class="' + className + '">' + display + '</div>');
+        if (idx !== row.values.length - 1 && row.label === 'Strokes') {
+          const actual = value === 'P' || value === '—' ? value : Number(value);
+          const parValue = HOLES[start + idx]?.par || HOLES[start].par;
+          const strokesForHole = computeAllStrokes(hcp, HOLES)[start + idx] ?? 0;
+          const scoreRelativeToHandicap = actual === 'P' || actual === '—' ? actual : Number(actual);
+          className += ' ' + (actual === 'P' ? 'pickup' : actual === '—' ? 'blank' : getScorecardColorClass(scoreRelativeToHandicap, parValue, strokesForHole));
+        }
+
+        if (idx !== row.values.length - 1 && value === 'P' && row.label !== 'Strokes') {
+          className += ' special';
+        }
+        cells.push('<div class="' + className + '">' + display + '</div>');
+      });
+      rowMarkup.push('<div class="scorecard-grid-row">' + cells.join('') + '</div>');
     });
-    rowMarkup.push('<div class="scorecard-grid-row">' + cells.join('') + '</div>');
-  });
 
-  grid.innerHTML = rowMarkup.join('');
+    return rowMarkup;
+  };
+
+  const sectionRows = [...renderSection(0, 8, 'OUT'), ...renderSection(9, 17, 'IN')];
+  grid.innerHTML = sectionRows.join('');
   document.getElementById('player-scorecard-overlay').classList.add('open');
 }
 
