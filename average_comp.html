@@ -35,7 +35,35 @@
     margin-bottom: 10px;
   }
 
-  .app-title { font-size: 17px; font-weight: 800; color: #c8a84b; }
+  .app-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 17px;
+    font-weight: 800;
+    color: #c8a84b;
+  }
+  .app-title-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    overflow: hidden;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .app-title-link img {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .app-title-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   .sync-pill {
     display: flex;
@@ -1316,7 +1344,17 @@ async function pullScores() {
       if (data.course.name)   COURSE_NAME  = data.course.name;
       if (data.course.labels) HOLE_LABELS  = data.course.labels;
       if (data.course.holes)  HOLES        = data.course.holes;
-      document.querySelector('.app-title').textContent = '⛳ ' + COURSE_NAME;
+
+      const appTitle = document.querySelector('.app-title');
+      if (appTitle) {
+        const iconSrc = appTitle.querySelector('img')?.src || document.querySelector('link[rel="icon"]')?.href || '';
+        appTitle.innerHTML = `
+          <a class="app-title-link" href="https://yelteg.github.io/neil-golf/monday_golf.html" target="_blank" rel="noopener noreferrer" aria-label="Open Monday Golf">
+            <img src="${iconSrc}" alt="Neil Golf favicon" />
+          </a>
+          <span class="app-title-text">⛳ ${COURSE_NAME}</span>
+        `;
+      }
     }
     renderAll();
     setSync('synced', 'Live ✓');
@@ -1510,6 +1548,22 @@ function playerTotal(t, i) {
 }
 
 // ── RENDER ───────────────────────────────────────────────────────────────────
+function bindHeaderLogo() {
+  const appTitle = document.querySelector('.app-title');
+  if (!appTitle) return;
+  const img = appTitle.querySelector('img');
+  if (!img) return;
+
+  const link = document.createElement('a');
+  link.className = 'app-title-link';
+  link.href = 'https://yelteg.github.io/neil-golf/monday_golf.html';
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.setAttribute('aria-label', 'Open Monday Golf');
+  link.appendChild(img);
+  appTitle.replaceChildren(link);
+}
+
 function goHole(h) {
   if (h < 0 || h > 17) return;
   currentHole = h;
