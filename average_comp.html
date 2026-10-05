@@ -556,13 +556,12 @@
     background: #fff;
   }
 
-  .legend-badge.eagle { color: #0c6c3d; }
-  .legend-badge.birdie { color: #0f5d8c; }
-  .legend-badge.par { color: #0f1d2f; }
-  .legend-badge.bogey { color: #a16207; }
-  .legend-badge.db { color: #b91c1c; }
-  .legend-badge.picked { color: #d97706; }
-  .legend-badge.ct { color: #4f46e5; }
+  .legend-badge.eagle { color: #fff; background: #2563eb; border: 2px solid #1d4ed8; border-radius: 50%; }
+  .legend-badge.birdie { color: #1d4ed8; background: #dbeafe; border: 2px solid #2563eb; border-radius: 50%; }
+  .legend-badge.par { color: #0f1d2f; background: #fff; border: 1px solid rgba(15,29,47,0.18); }
+  .legend-badge.bogey { color: #92400e; background: #fef3c7; border: 1px solid #fbbf24; }
+  .legend-badge.db { color: #991b1b; background: #fee2e2; border: 1px solid #ef4444; }
+  .legend-badge.picked { color: #fff; background: #d97706; border: 1px solid #b45309; border-radius: 50%; }
 
   .scorecard-grid-wrap {
     padding: 12px 12px 0;
@@ -621,10 +620,53 @@
     justify-content: center;
   }
 
-  .scorecard-grid-cell.par { color: #0f1d2f; }
-  .scorecard-grid-cell.stroke { color: #1d4ed8; }
-  .scorecard-grid-cell.shots { color: #0b7a53; }
-  .scorecard-grid-cell.score { color: #0f1d2f; }
+  .scorecard-grid-cell.par { color: #0f1d2f; background: #fff; }
+  .scorecard-grid-cell.stroke { color: #1d4ed8; background: transparent; }
+  .scorecard-grid-cell.shots { color: #0b7a53; background: transparent; }
+  .scorecard-grid-cell.score { color: #0f1d2f; background: transparent; }
+
+  .scorecard-grid-cell.stroke.par {
+    background: #fff;
+    border: 1px solid rgba(15,29,47,0.18);
+    border-radius: 6px;
+  }
+  .scorecard-grid-cell.stroke.bogey {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fbbf24;
+    border-radius: 6px;
+  }
+  .scorecard-grid-cell.stroke.double {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #ef4444;
+    border-radius: 6px;
+  }
+  .scorecard-grid-cell.stroke.triple {
+    background: #dc2626;
+    color: #fff;
+    border: 1px solid #b91c1c;
+    border-radius: 6px;
+  }
+  .scorecard-grid-cell.stroke.birdie {
+    background: #dbeafe;
+    color: #1d4ed8;
+    border: 2px solid #2563eb;
+    border-radius: 50%;
+  }
+  .scorecard-grid-cell.stroke.eagle {
+    background: #2563eb;
+    color: #fff;
+    border: 2px solid #1d4ed8;
+    border-radius: 50%;
+  }
+  .scorecard-grid-cell.stroke.pickup {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid rgba(37,99,235,0.35);
+    border-radius: 6px;
+  }
+  .scorecard-grid-cell.stroke.blank { background: transparent; }
 
   .scorecard-grid-cell.special {
     border-radius: 6px;
@@ -915,19 +957,18 @@
         <div class="scorecard-stat-value dark" id="scorecard-gross">83</div>
       </div>
       <div class="scorecard-stat">
-        <div class="scorecard-stat-label">LONSDALE HCP</div>
+        <div class="scorecard-stat-label">HCP</div>
         <div class="scorecard-stat-value dark" id="scorecard-hcp">16</div>
       </div>
     </div>
 
     <div class="scorecard-legend">
-      <span class="legend-item"><span class="legend-badge eagle">E</span> Eagle+</span>
+      <span class="legend-item"><span class="legend-badge eagle">E</span> Eagle</span>
       <span class="legend-item"><span class="legend-badge birdie">B</span> Birdie</span>
       <span class="legend-item"><span class="legend-badge par">P</span> Par</span>
       <span class="legend-item"><span class="legend-badge bogey">B</span> Bogey</span>
       <span class="legend-item"><span class="legend-badge db">D</span> Db+</span>
       <span class="legend-item"><span class="legend-badge picked">P</span> Picked up</span>
-      <span class="legend-item"><span class="legend-badge ct">C</span> CT / LD hole</span>
     </div>
 
     <div class="scorecard-grid-wrap">
@@ -1412,6 +1453,18 @@ function renderHoleNav() {
   }).join('');
 }
 
+function getScorecardColorClass(actualScore, par, strokes) {
+  if (actualScore === null || actualScore === undefined || actualScore === '') return 'blank';
+  if (actualScore === -1) return 'pickup';
+  const diff = actualScore - par;
+  if (diff <= -2) return 'eagle';
+  if (diff === -1) return 'birdie';
+  if (diff === 0) return 'par';
+  if (diff === 1) return 'bogey';
+  if (diff === 2) return 'double';
+  return 'triple';
+}
+
 function openPlayerScorecard(teamIdx, playerIdx) {
   const player = TEAMS[teamIdx].players[playerIdx];
   const grossTotal = (() => {
@@ -1429,15 +1482,17 @@ function openPlayerScorecard(teamIdx, playerIdx) {
 
   const stablefordTotal = playerTotal(teamIdx, playerIdx) ?? 0;
   const hcp = Number(player.hcp) || 0;
+  const coursePar = HOLES.reduce((sum, hole) => sum + hole.par, 0);
+  const grossDerived = coursePar + hcp + (36 - stablefordTotal);
 
   document.getElementById('scorecard-player-name').textContent = player.name;
   document.getElementById('scorecard-course-meta').textContent = `${COURSE_NAME} • ${new Date().toLocaleDateString('en-AU', {weekday:'short', day:'2-digit', month:'short', year:'numeric'})} • ${TEAMS[teamIdx].name}`;
   document.getElementById('scorecard-stableford').textContent = stablefordTotal;
-  document.getElementById('scorecard-gross').textContent = grossTotal;
+  document.getElementById('scorecard-gross').textContent = grossDerived;
   document.getElementById('scorecard-hcp').textContent = hcp;
   document.getElementById('scorecard-total-gross').textContent = grossTotal;
   document.getElementById('scorecard-total-stab').textContent = stablefordTotal;
-  document.getElementById('scorecard-est-gross').textContent = Math.max(0, grossTotal);
+  document.getElementById('scorecard-est-gross').textContent = grossDerived;
 
   const grid = document.getElementById('scorecard-grid');
   const headers = ['Hole'];
@@ -1449,19 +1504,20 @@ function openPlayerScorecard(teamIdx, playerIdx) {
         const gross = getScore(teamIdx, playerIdx, idx);
         if (gross === null || gross === undefined || gross === '') return '—';
         if (gross === -1) return 'P';
-        return computeAllStrokes(hcp, HOLES)[idx];
+        return gross;
       }) },
     { label: 'Shots', values: HOLES.map((h, idx) => {
         const gross = getScore(teamIdx, playerIdx, idx);
         if (gross === null || gross === undefined || gross === '') return '—';
         if (gross === -1) return 'P';
-        return gross;
+        return computeAllStrokes(hcp, HOLES)[idx];
       }) },
     { label: 'Score', values: HOLES.map((h, idx) => {
         const gross = getScore(teamIdx, playerIdx, idx);
         if (gross === null || gross === undefined || gross === '') return '—';
         if (gross === -1) return 'P';
-        return gross;
+        const strokes = computeAllStrokes(hcp, HOLES)[idx];
+        return stabPts(gross, HOLES[idx].par, strokes);
       }) }
   ];
 
@@ -1472,11 +1528,20 @@ function openPlayerScorecard(teamIdx, playerIdx) {
   holeRows.forEach((row) => {
     const cells = ['<div class="scorecard-grid-cell">' + row.label + '</div>'];
     row.values.forEach((value, idx) => {
+      const display = value;
       let className = 'scorecard-grid-cell ' + (row.label === 'Par' ? 'par' : row.label === 'Strokes' ? 'stroke' : row.label === 'Shots' ? 'shots' : 'score');
-      let display = value;
-      if (value === 'P') className += ' special';
-      else if (value === '—') className += ' special blue';
-      else if (typeof value === 'number' && value >= 0 && value <= 5) className += ' special green';
+
+      if (row.label === 'Strokes') {
+        const actual = value === 'P' || value === '—' ? value : Number(value);
+        const parValue = HOLES[idx].par;
+        const strokesForHole = computeAllStrokes(hcp, HOLES)[idx];
+        const scoreRelativeToHandicap = actual === 'P' || actual === '—' ? actual : Number(actual);
+        className += ' ' + (actual === 'P' ? 'pickup' : actual === '—' ? 'blank' : getScorecardColorClass(scoreRelativeToHandicap, parValue, strokesForHole));
+      }
+
+      if (value === 'P' && row.label !== 'Strokes') {
+        className += ' special';
+      }
       cells.push('<div class="' + className + '">' + display + '</div>');
     });
     rowMarkup.push('<div class="scorecard-grid-row">' + cells.join('') + '</div>');
