@@ -249,7 +249,15 @@
 
   .net-cell { font-size: 12px; color: #666; width: 28px; }
   .stab-cell { font-size: 13px; font-weight: 500; width: 28px; }
-  .pts-cell { font-size: 14px; font-weight: 700; width: 32px; }
+  .pts-cell {
+    font-size: 14px;
+    font-weight: 700;
+    width: 32px;
+    padding: 4px 2px;
+    text-align: center;
+  }
+  .pts-main { line-height: 1.1; font-size: 13px; }
+  .pts-run { margin-top: 2px; font-size: 9px; letter-spacing: 0.04em; font-weight: 700; opacity: 0.8; }
 
   .stab-eagle  { color: #7c3aed; }
   .stab-birdie { color: #2563eb; }
@@ -506,7 +514,18 @@
   .mob-gross-input:focus { outline: none; border-color: #4a90d9; background: #fff; }
 
   .mob-stab { font-size: 11px; font-weight: 600; }
-  .mob-pts  { font-size: 14px; font-weight: 700; min-height: 18px; }
+  .mob-pts {
+    font-size: 14px;
+    font-weight: 700;
+    min-height: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+  }
+  .mob-pts-main { font-size: 13px; line-height: 1; }
+  .mob-pts-run { font-size: 9px; opacity: 0.8; }
   .mob-net  { font-size: 9px; color: #999; }
 
   /* Divider row for OUT/IN */
@@ -1295,6 +1314,20 @@ function splitSixesPts(stabs) {
   return stabs.map(s => s === s1 ? 4 : s === s2 ? 2 : 0);
 }
 
+function renderHolePtsCell(currentPts, cumulativeTotal) {
+  if (currentPts === null) {
+    return '<div class="pts-main">—</div><div class="pts-run">—</div>';
+  }
+  return `<div class="pts-main">${currentPts}</div><div class="pts-run">T ${cumulativeTotal}</div>`;
+}
+
+function renderMobPtsCell(currentPts, cumulativeTotal) {
+  if (currentPts === null) {
+    return '<div class="mob-pts-main">—</div><div class="mob-pts-run">—</div>';
+  }
+  return `<div class="mob-pts-main">${currentPts}</div><div class="mob-pts-run">T ${cumulativeTotal}</div>`;
+}
+
 // ── TABLE ────────────────────────────────────────────────────────────────────
 function buildTable() {
   const tbody = document.getElementById('tbody');
@@ -1374,6 +1407,16 @@ function updateRow(h) {
   const { par } = HOLES[h];
   const hcps = [0,1,2].map(getHcp);
   const allStrokes = [0,1,2].map(p => computeAllStrokes(hcps[p], HOLES));
+  const cumulativeBefore = [0,0,0];
+
+  for (let prev = 0; prev < h; prev++) {
+    const prevStabs = [0,1,2].map(p => stablefordPts(grossScores[prev][p], HOLES[prev].par, allStrokes[p][prev]));
+    const prevPts = splitSixesPts(prevStabs);
+    for (let p = 0; p < 3; p++) {
+      cumulativeBefore[p] += (prevPts[p] === null ? 0 : prevPts[p]);
+    }
+  }
+
   const stabs = [0,1,2].map(p => {
     const gross = grossScores[h][p];
     const strokes = allStrokes[p][h];
@@ -1396,8 +1439,10 @@ function updateRow(h) {
   const pts = splitSixesPts(stabs);
   for (let p = 0; p < 3; p++) {
     const ptsEl = document.getElementById(`pts${h}_${p}`);
-    ptsEl.textContent = pts[p] !== null ? pts[p] : '—';
-    ptsEl.className = pts[p] !== null ? 'pts-cell pts-' + pts[p] : 'pts-cell pts-dash';
+    const holePts = pts[p];
+    const runTotal = cumulativeBefore[p] + (holePts === null ? 0 : holePts);
+    ptsEl.innerHTML = renderHolePtsCell(holePts, runTotal);
+    ptsEl.className = holePts !== null ? 'pts-cell pts-' + holePts : 'pts-cell pts-dash';
   }
 }
 
@@ -1617,6 +1662,15 @@ function updateMobileScorecard() {
     const { par } = HOLES[h];
     const label = h < 9 ? 'OUT' : 'IN';
     const stabs = [];
+    const cumulativeBefore = [0,0,0];
+
+    for (let prev = 0; prev < h; prev++) {
+      const prevStabs = [0,1,2].map(p => stablefordPts(grossScores[prev][p], HOLES[prev].par, allStrokes[p][prev]));
+      const prevPts = splitSixesPts(prevStabs);
+      for (let p = 0; p < 3; p++) {
+        cumulativeBefore[p] += (prevPts[p] === null ? 0 : prevPts[p]);
+      }
+    }
 
     // Update player name labels
     for (let p = 0; p < 3; p++) {
@@ -1661,8 +1715,10 @@ function updateMobileScorecard() {
     for (let p = 0; p < 3; p++) {
       const pEl = document.getElementById(`mob-pts-${h}-${p}`);
       if (pEl) {
-        if (pts[p] === null) { pEl.textContent = '—'; pEl.className = 'mob-pts pts-dash'; }
-        else { pEl.textContent = pts[p]; pEl.className = 'mob-pts pts-' + pts[p]; }
+        const holePts = pts[p];
+        const runTotal = cumulativeBefore[p] + (holePts === null ? 0 : holePts);
+        pEl.innerHTML = renderMobPtsCell(holePts, runTotal);
+        pEl.className = holePts !== null ? 'mob-pts pts-' + holePts : 'mob-pts pts-dash';
       }
     }
   }
