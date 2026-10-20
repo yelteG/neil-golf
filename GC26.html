@@ -230,6 +230,7 @@ button.pn:focus-visible{outline:2px solid var(--sea);outline-offset:2px;border-r
     <button role="tab" data-tab="day2">Day 2 scores</button>
     <button role="tab" data-tab="bonus">CTP &amp; LD</button>
     <button role="tab" data-tab="rules">Rules</button>
+    <button role="tab" data-tab="wet">Wet weather</button>
   </nav>
 </header>
 <main id="main"><div class="empty">Loading the scoreboard…</div></main>
@@ -560,7 +561,7 @@ const m=document.getElementById("fmtmsg");if(m)m.textContent="Saved: groups of 3
 }catch(e){say("Not saved: "+(e.message||"check your signal"));btn.disabled=false}
 }
 
-const TABS=["mvp","card","teams","day1","day2","bonus","rules"];
+const TABS=["mvp","card","teams","day1","day2","bonus","rules","wet"];
 try{const h=location.hash.slice(1);if(TABS.includes(h))S.tab=h;else{const t=localStorage.getItem("gc26tab");if(TABS.includes(t))S.tab=t;}}catch(e){}
 document.getElementById("tabs").addEventListener("click",e=>{const b=e.target.closest("button[data-tab]");if(!b)return;S.tab=b.dataset.tab;try{localStorage.setItem("gc26tab",S.tab);history.replaceState(null,"","#"+S.tab)}catch(e){}render(true);window.scrollTo({top:0});});
 
@@ -887,6 +888,15 @@ function vRules(R){
   <h2>Organiser</h2><div class="card note org">${fmtControls()}<p style="margin:0 0 10px">Wipes every score, hole score and CTP / LD winner. Players, handicaps, teams, the draw and the CTP / LD hole numbers are kept. Needs the organiser PIN.</p>
   <button class="btn danger" data-act="clearall" ${DEMO?"disabled":""}>Clear all scores…</button><div class="status" id="clrmsg">${esc(S.clrMsg||"")}</div></div>`;
 }
+function vWet(){
+  return`<h2>Wet weather rules</h2><p class="lede">Rain is forecast, so here's how we handle it. These apply to both days unless stated.</p><div class="card rules"><dl>
+  <dt>1. The golf shop calls it off</dt><dd>If the course closes the round for rain or thunderstorms, the whole day is rescheduled to another date with the same format, teams and groups. Points already earned on the other day stand; MVP and Team Winner are decided once both days are played. Green fees and carts transfer to the new date, or are refunded if the course allows it. If no date can be found, that day is void and the other day's results stand on their own.</dd>
+  <dt>2. We all agree to cancel</dt><dd>If the course is open but the group decides not to play, a vote is held at the course 60 minutes before tee time and a majority of confirmed players carries it. The day is then rescheduled as in rule 1, and anything the course won't refund is shared equally across all players.</dd>
+  <dt>3. Some play, some don't</dt><dd>If the course is open and the group doesn't cancel, anyone can choose to skip, but skipping lets the team down.<br><b>Day 1 (Ambrose):</b> team handicaps are not revised. A non-player still counts in the combined team handicap and still shares the team's Day 1 points. Too bad, so sad: the team plays short-handed.<br><b>Day 2 (Stableford):</b> everything counts. A non-player gets a P (pick-up) on every hole, which scores 0, ranks last in their group, and drags down their team's average. A non-player can't win a CTP or LD bonus.</dd>
+  <dt>4. Play suspended during a round</dt><dd>Everyone stops immediately when the siren sounds or lightning is sighted. If play can restart within 45 minutes, the round carries on from where it stopped. If not, nine holes or more completed: the front 9 stands and a partial back 9 isn't counted. Fewer than 9 holes: the round is rescheduled under rule 1.</dd>
+  <dt>5. On-course relief</dt><dd>Lift, clean and place on closely mown areas, within one scorecard length and no nearer the hole. Gimmes inside a putter length. On Day 2 a pick-up scores 0 (mark an X); on Day 1 a team out of the hole takes net double bogey and moves on. Follow the course's cart rules on the day; if carts are restricted or withdrawn we play on, and fees follow rule 1 for refunds.</dd>
+  <dt>6. Who makes the call</dt><dd>Course closed: the golf shop's decision is final (rule 1). Everyone's arrived and it's borderline: the group votes (rule 2). Neil has the casting vote on anything not covered here.</dd></dl></div>`;
+}
 function statusLine(){return`<div class="status" id="status">${DEMO?"Demo mode: scores stay on this phone until the Google Sheet is connected.":""}</div>`}
 
 function render(force){
@@ -898,7 +908,7 @@ function render(force){
   const M=withHoles();
   const R=compute(S.config,M.d1,M.d2,S.bonus,hx());R.thru=M.thru;
   if(S.cardFor)drawCard();
-  $main.innerHTML={mvp:vMVP,card:vCard,teams:vTeams,day1:vDay1,day2:vDay2,bonus:vBonus,rules:vRules}[S.tab](R);
+  $main.innerHTML={mvp:vMVP,card:vCard,teams:vTeams,day1:vDay1,day2:vDay2,bonus:vBonus,rules:vRules,wet:vWet}[S.tab](R);
 }
 $main.addEventListener("focusout",()=>setTimeout(()=>{if(S.pending)render()},0));
 
