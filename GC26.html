@@ -277,7 +277,9 @@ function rankPoints(entries, higherBetter, scale) {
 function compute(config, d1, d2, bonus, hx) {
   const players = config.players || [];
   const teams = [...new Set(players.map(p => p.team))].sort();
-  const groups = [...new Set(players.map(p => p.group))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  // Players flagged "not playing" (p.out) are Day 2 only: they sit outside every group, score 0 for the day, and still count as zeros in their team's average. Day 1 is unaffected.
+  const active = players.filter(p => !p.out);
+  const groups = [...new Set(active.map(p => p.group))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   const d1t = (d1 && d1.teams) || {};
   const d2p = (d2 && d2.players) || {};
   const aw = (bonus && bonus.awards) || {};
@@ -313,10 +315,12 @@ function compute(config, d1, d2, bonus, hx) {
   for (const p of players) {
     const s = d2p[p.id] || {};
     const f9 = num(s.f9), b9 = num(s.b9);
-    pl[p.id] = { ...p, f9, b9, t18: f9 !== null && b9 !== null ? f9 + b9 : null, bonus: 0 };
+    pl[p.id] = p.out
+      ? { ...p, f9: 0, b9: 0, t18: 0, pf9: 0, pb9: 0, pt18: 0, bonus: 0 }
+      : { ...p, f9, b9, t18: f9 !== null && b9 !== null ? f9 + b9 : null, bonus: 0 };
   }
   for (const gr of groups) {
-    const mem = players.filter(p => p.group === gr);
+    const mem = active.filter(p => p.group === gr);
     for (const seg of ["f9", "b9", "t18"]) {
       const entries = mem.map(p => ({ id: p.id, v: pl[p.id][seg] }));
       const pts = rankPoints(entries, true, d2Scale(entries.filter(e => e.v !== null).length));
@@ -327,7 +331,7 @@ function compute(config, d1, d2, bonus, hx) {
 // 18-hole placings stay plain Stableford. A nine with no hole-by-hole scores (paper card) stays plain Stableford.
 const gfmt = {};
 for (const gr of groups) {
-const mem = players.filter(p => p.group === gr), f = groupFormat(config, mem.length);
+const mem = active.filter(p => p.group === gr), f = groupFormat(config, mem.length);
 const G = gfmt[gr] = { fmt: f, ids: mem.map(p => p.id), names: Object.fromEntries(mem.map(p => [p.id, p.name])) };
 if (f === "stableford") continue;
 for (const [seg, a] of [["f9", 0], ["b9", 9]]) {
@@ -339,7 +343,7 @@ for (const p of mem) pl[p.id]["p" + seg] = r.pts[p.id];
 G[seg] = { k: rows.length, note: r.note, holes: r.holes, stb: rows.map(x => Object.fromEntries(mem.map(p => [p.id, x[p.id].pts]))) };
 }
 }
-for (const a of AWARDS) { const w = aw[a.id] && aw[a.id].w; if (w && pl[w]) pl[w].bonus++; }
+for (const a of AWARDS) { const w = aw[a.id] && aw[a.id].w; if (w && pl[w] && !pl[w].out) pl[w].bonus++; }
   for (const id in pl) {
     const P = pl[id];
     P.d1 = team[P.team] ? team[P.team].d1pts : 0;
@@ -583,7 +587,7 @@ function vMVP(R){
   const rows=R.players.map(p=>`<div class="row ${p.rank===1&&p.mvp>0?"p1":""}">
     <div class="pos num">${p.rank}</div>
     <div class="who"><div class="n">${pnBtn(p)}</div><div class="m">${esc(p.team)} · ${esc(p.group)} · HCP ${esc(p.hcp)} / ${esc(hcp2(p))}${thruTxt(R,"d2|"+p.id)}</div>
-      <div class="chips num"><span class="chip">D1 ½ <b>${fmt(p.d1/2)}</b></span><span class="chip">F9 <b>${p.pf9??"–"}</b></span><span class="chip">B9 <b>${p.pb9??"–"}</b></span><span class="chip">18 <b>${p.pt18??"–"}</b></span><span class="chip">Bonus <b>${p.bonus}</b></span></div></div>
+      <div class="chips num"><span class="chip">D1 ½ <b>${fmt(p.d1/2)}</b></span><span class="chip">F9 <b>${p.pf9??"–"}</b></span><span class="chip">B9 <b>${p.pb9??"–"}</b></span><span class="chip">18 <b>${p.pt18??"–"}</b></span><span class="chip">Bonus <b>${p.bonus}</b></span>${p.out?`<span class="chip"><b>Not playing Day 2</b></span>`:""}</div></div>
     <div class="tot num">${fmt(p.mvp)}</div></div>`).join("");
   return`<h2>MVP leaderboard</h2><p class="lede">Day 2 points (Front 9, Back 9, 18) + CTP/LD bonuses + half your team's Day 1 points.</p><div class="card lb">${rows}</div>`;
 }
@@ -622,7 +626,7 @@ function vDay1(R){
 }
 function vDay2(R){
   const blocks=R.groups.map(g=>{
-    const mem=R.players.filter(p=>p.group===g).sort((a,b)=>a.name.localeCompare(b.name));
+    const mem=R.players.filter(p=>p.group===g&&!p.out).sort((a,b)=>a.name.localeCompare(b.name));
     const played=mem.filter(p=>p.f9!=null||p.b9!=null).length,s=d2Scale(played||mem.length);
     const note=played&&played<mem.length?` (${played} of ${mem.length} have scores)`:"";
     return`<div class="gh">${esc(g)} <span class="muted" style="font-size:13px;letter-spacing:0">· ${s.join(" / ")}${note}</span></div><div class="prow hd"><span>Player</span><span>F9 pts</span><span>B9 pts</span><span style="text-align:right">F9 · B9 · 18</span></div>`+
@@ -631,10 +635,12 @@ function vDay2(R){
       ${inp("d2-"+p.id+"-b9","d2",["players",p.id,"b9"],p.b9,p.name+" back 9 stableford",R.thru["d2|"+p.id])}
       <div class="res num"><span class="cl">F9</span>${pts(p.pf9,s)}<span class="cl">B9</span>${pts(p.pb9,s)}<span class="cl">18</span>${pts(p.pt18,s)}</div></div>`).join("")+fmtPanel(R,g);
   }).join("");
-  return`<h2>Day 2 · Sun 25 Oct</h2><p class="lede">Lonsdale Links, 12:12 pm, Stableford. Best way: enter gross scores hole by hole on the Scorecard tab and the Stableford points are worked out for you. You can still type nine totals below if a card was kept on paper. Points are ranked within the group: 6 / 4 / 2 in a group of 3, 6 / 5 / 3 / 2 in a group of 4.</p><div class="card plist">${blocks}</div>${statusLine()}`;
+  const outs=R.players.filter(p=>p.out);
+  const outBlock=outs.length?`<div class="gh">Not playing <span class="muted" style="font-size:13px;letter-spacing:0">· 0 points, still counts in the team average</span></div><div class="note">${outs.map(p=>esc(p.name)+" ("+esc(p.team)+")").join(", ")}</div>`:"";
+  return`<h2>Day 2 · Sun 25 Oct</h2><p class="lede">Lonsdale Links, 12:12 pm, Stableford. Best way: enter gross scores hole by hole on the Scorecard tab and the Stableford points are worked out for you. You can still type nine totals below if a card was kept on paper. Points are ranked within the group: 6 / 4 / 2 in a group of 3, 6 / 5 / 3 / 2 in a group of 4.</p><div class="card plist">${blocks}${outBlock}</div>${statusLine()}`;
 }
 function vBonus(R){
-  const opts=sel=>`<option value="">No winner yet</option>`+R.players.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${esc(p.id)}" ${p.id===sel?"selected":""}>${esc(p.name)}</option>`).join("");
+  const opts=sel=>`<option value="">No winner yet</option>`+R.players.filter(p=>!p.out).slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${esc(p.id)}" ${p.id===sel?"selected":""}>${esc(p.name)}</option>`).join("");
   const aw=(S.bonus&&S.bonus.awards)||{};
   const day=d=>AWARDS.filter(a=>a.day===d).map(a=>{const v=aw[a.id]||{};
     return`<div class="aw"><div class="k">${a.kind==="CTP"?"Closest to pin":"Longest drive"}<small>${a.nine}</small></div>
@@ -731,7 +737,7 @@ function vCard(R){
   const H=(S.holes&&S.holes["d"+day])||{};
   const team=day===1?R.teams.find(t=>t.id===sc.grp):null;
   const rows=day===1?[{key:sc.grp,name:sc.grp,hcp:team?team.hcp:0,sub:team?team.members.map(m=>m.name).join(", "):""}]
-    :R.players.filter(p=>p.group===sc.grp).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>({key:p.id,name:p.name,hcp:hcp2(p),sub:p.team}));
+    :R.players.filter(p=>p.group===sc.grp&&!p.out).sort((a,b)=>a.name.localeCompare(b.name)).map(p=>({key:p.id,name:p.name,hcp:hcp2(p),sub:p.team}));
   const h=Math.min(18,Math.max(1,sc.hole||1)),i=h-1,par=C.par[i],idx=C.idx[i];
   const done=n=>rows.every(r=>hasScore((H[r.key]||[])[n-1]));
   const strip=`<div class="strip" role="group" aria-label="Hole">${Array.from({length:18},(_,k)=>k+1).map(n=>{const bn=bonusOn(day,n).map(a=>a.kind);return`<button data-act="hole" data-v="${n}" class="${n===h?"cur":""} ${done(n)?"done":""} ${bn.length?"bn":""}" aria-label="Hole ${n}${bn.length?", "+bn.join(" and ")+" bonus hole":""}${done(n)?", done":""}">${n}${bn.length?`<small>${bn.join("+")}</small>`:""}</button>`}).join("")}</div>`;
