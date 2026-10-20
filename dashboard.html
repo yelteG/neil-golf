@@ -601,6 +601,21 @@ function scoreClass(s) {
   return 'avg';
 }
 
+// GA Handicap (WHS, Australia): average of best 8 Gross Diffs from last 20 scored rounds.
+// No multiplier (the 0.93 allowance applies only to Daily Handicap). Soft cap above Low+3 (50%), hard cap at Low+5.
+function calcGaIndex(scoredRows, lowHcp) {
+  const diffs = scoredRows.slice(-20).map(r => parseFloat(r['Gross Diff'])).filter(v => !isNaN(v) && v !== 0);
+  if (!diffs.length) return null;
+  const best = diffs.sort((a,b) => a-b).slice(0, 8);
+  let idx = best.reduce((a,b) => a+b, 0) / best.length;
+  const low = parseFloat(lowHcp);
+  if (!isNaN(low)) {
+    if (idx > low + 3) idx = low + 3 + (idx - low - 3) / 2;
+    idx = Math.min(idx, low + 5);
+  }
+  return Math.round(idx * 10) / 10;
+}
+
 function buildStats(rows) {
   const scoredRows = rows.filter(r => r._score > 0); // exclude tracking-only rows
   const scores  = scoredRows.map(r => r._score);
@@ -611,6 +626,7 @@ function buildStats(rows) {
     .filter(r => r._date >= oneYearAgo && r['Prior GA Hcp'] && parseFloat(r['Prior GA Hcp']) > 0)
     .map(r => parseFloat(r['Prior GA Hcp']));
   const lowHcpDynamic = priorHcpLast12.length ? Math.min(...priorHcpLast12).toFixed(1) : null;
+  window.__lowHcp = lowHcpDynamic || (hcps.length ? Math.min(...hcps) : null);
   const last5   = scores.slice(-5);
   const prev5   = scores.slice(-10, -5);
   const trend   = prev5.length ? (last5.reduce((a,b)=>a+b,0)/last5.length - prev5.reduce((a,b)=>a+b,0)/prev5.length).toFixed(1) : 0;
@@ -648,7 +664,7 @@ function buildStats(rows) {
     avg:        (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1),
     best:       Math.max(...scores),
     worst:      Math.min(...scores),
-    currentHcp: hcps[hcps.length-1],
+    currentHcp: calcGaIndex(scoredRows, window.__lowHcp) ?? hcps[hcps.length-1],
     startHcp:   hcps[0],
     hcpChange:  hcps.length ? (hcps[hcps.length-1]-Math.min(...hcps)).toFixed(1) : 0,
     lowHcp:     lowHcpDynamic || Math.min(...hcps).toFixed(1),
@@ -722,13 +738,13 @@ function renderInsights(stats) {
   const worst8 = best8diffs10[7] || best8diffs10[best8diffs10.length - 1];
   const sum7   = best8diffs10.slice(0, 7).reduce((a,b) => a+b, 0);
   const sumBest8_10 = best8diffs10.reduce((a,b) => a+b, 0);
-  const calcHcp10 = (sumBest8_10 / 8) * 0.93;
+  const calcHcp10 = sumBest8_10 / 8;
   const dailyHcp10 = Math.round((stats.currentHcp * sl10 / 113 + (sr10 - par10)) * 0.93 * 0.9986);
 
   // Score to drop HCP by 0.5 and 1.0 — realistic next goals
   function scoreForDrop(drop) {
     const target = Math.round((calcHcp10 - drop) * 10) / 10;
-    const needed = (target / 0.93) * 8 - (sumBest8_10 - worst8);
+    const needed = target * 8 - (sumBest8_10 - worst8);
     return { target: target.toFixed(1), score: Math.ceil(36 + dailyHcp10 + par10 - sr10 - (needed * sl10 / 113)) };
   }
   const goal1 = scoreForDrop(0.5);
@@ -1106,8 +1122,8 @@ function renderHcpTracker(rows) {
   // Summary: best 8 diffs
   const best8diffs = sorted.slice(0,8).map(d => d.diff);
   const avg8 = best8diffs.length ? best8diffs.reduce((a,b)=>a+b,0)/best8diffs.length : 0;
-  const calcHcp = (avg8 * 0.96).toFixed(1);
-  const currentHcp = parseFloat(last20[last20.length-1]['GA Handicap']) || 14;
+  const calcHcp = (Math.round(avg8 * 10) / 10).toFixed(1);
+  const currentHcp = calcGaIndex(last20, window.__lowHcp) ?? (parseFloat(last20[last20.length-1]['GA Handicap']) || 14);
 
   // Use last round's course params for calculations
   const lastRound     = last20[last20.length - 1];
@@ -1125,11 +1141,11 @@ function renderHcpTracker(rows) {
   // PlayedTo = ((36 - Stableford) + DailyHcp + Par - (ScratchRating + PCC)) * (113/Slope)
   // Rearranged for Stableford needed to improve HCP:
   // Need new PlayedTo < worstBest8 to replace it in best 8
-  // Target: new_avg * 0.96 = currentHcp - 0.1
-  // Use calcHcp (best 8 avg * 0.93) as base, not official GA HCP
-  const calcHcpFloat  = avg8 * 0.93;
+  // Target: new best-8 avg = calculated index - 0.1
+  // Use calcHcp (best 8 avg, no multiplier) as base
+  const calcHcpFloat  = avg8;
   const targetHcpDown = (Math.round(calcHcpFloat * 10) - 1) / 10;
-  const targetAvgDown = targetHcpDown / 0.93;
+  const targetAvgDown = targetHcpDown;
   const neededPlayedTo = targetAvgDown * 8 - (sumBest8 - worstBest8);
   const scoreToImprove = Math.ceil(36 + dailyHcp + par - scratchRating - pcc - (neededPlayedTo * slopeRating / 113));
 
