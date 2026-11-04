@@ -363,6 +363,106 @@
     .checklist { padding: 0 16px; }
     .grand-amt { font-size: 26px; }
   }
+
+  /* Tabs */
+  .tab-nav {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 12px 18px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Passport cards */
+  .passport-grid {
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 480px) {
+    .passport-grid { grid-template-columns: 1fr; }
+  }
+  .passport-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .passport-card::before {
+    content: '🛂';
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 20px;
+    opacity: 0.3;
+  }
+  .passport-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .passport-role {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+  .passport-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .passport-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .passport-row .plbl { color: var(--muted); }
+  .passport-row .pval {
+    font-weight: 600;
+    color: var(--text);
+    font-family: monospace;
+    letter-spacing: 0.04em;
+  }
+  .passport-row .pval.ok { color: var(--aus); }
+  .passport-note {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #e6b830;
+    background: rgba(244,196,48,0.08);
+    border: 1px solid rgba(244,196,48,0.2);
+    border-radius: 6px;
+    padding: 6px 10px;
+  }
 </style>
 </head>
 <body>
@@ -389,6 +489,16 @@
   <span class="booking-pill"><span class="check">✓</span> PVG→SGN <span class="code">UPMDYY</span></span>
 </div>
 
+<!-- Tab Navigation -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="showTab('itinerary')">🗺 Itinerary</button>
+  <button class="tab-btn" onclick="showTab('budget')">💰 Budget</button>
+  <button class="tab-btn" onclick="showTab('checklist')">✅ Checklist</button>
+  <button class="tab-btn" onclick="showTab('passports')">🛂 Passports</button>
+</div>
+
+<!-- Itinerary Tab -->
+<div id="tab-itinerary" class="tab-panel active">
 <div class="section-label">Itinerary</div>
 
 <div class="timeline">
@@ -591,6 +701,10 @@
 </div>
 
 <!-- Budget -->
+</div><!-- end tab-itinerary -->
+
+<!-- Budget Tab -->
+<div id="tab-budget" class="tab-panel">
 <div class="section-label">Budget</div>
 <div class="budget-section">
 
@@ -684,6 +798,10 @@
 </div>
 
 <!-- Pre-trip Checklist -->
+</div><!-- end tab-budget -->
+
+<!-- Checklist Tab -->
+<div id="tab-checklist" class="tab-panel">
 <div class="section-label">Pre-Trip Checklist</div>
 <div class="checklist">
 
@@ -711,8 +829,8 @@
 
   <div class="check-group">
     <div class="check-group-title">September 2026</div>
-    <div class="check-item"><span class="icon">🛂</span><div class="text">Renew Neil's passport<span class="note">Expires 14 Oct 2026 — apply by mid-September</span></div></div>
-    <div class="check-item"><span class="icon">🛂</span><div class="text">Check all family passports<span class="note">Must be valid until at least 6 Jul 2027</span></div></div>
+    <div class="check-item done"><span class="icon">✅</span><div class="text">Renew Neil's passport<span class="note">New passport received Nov 2026</span></div></div>
+    <div class="check-item done"><span class="icon">✅</span><div class="text">Check all family passports<span class="note">All valid past 6 Jul 2027 ✓</span></div></div>
   </div>
 
   <div class="check-group">
@@ -738,11 +856,66 @@
 
 </div>
 
+</div><!-- end tab-checklist -->
+
+<!-- Passports Tab -->
+<div id="tab-passports" class="tab-panel">
+<div class="section-label">Passports</div>
+<div class="passport-grid">
+
+  <div class="passport-card">
+    <div class="passport-name">Neil Hua</div>
+    <div class="passport-role">Adult · Primary traveller</div>
+    <div class="passport-row"><span class="plbl">Passport No.</span><span class="pval">RB2730923</span></div>
+    <div class="passport-row"><span class="plbl">Nationality</span><span class="pval">Australian</span></div>
+    <div class="passport-row"><span class="plbl">Date of Birth</span><span class="pval">07 Mar 1983</span></div>
+    <div class="passport-row"><span class="plbl">Expiry</span><span class="pval ok">13 Oct 2036 ✓</span></div>
+    <div class="passport-note">⚠️ Update new passport number on Vietjet (HHBVBR, U2BWBX, UPMDYY) &amp; Spring Airlines (BKVUXVA)</div>
+  </div>
+
+  <div class="passport-card">
+    <div class="passport-name">Vivian Hua</div>
+    <div class="passport-role">Adult</div>
+    <div class="passport-row"><span class="plbl">Passport No.</span><span class="pval">PB5854126</span></div>
+    <div class="passport-row"><span class="plbl">Nationality</span><span class="pval">Australian</span></div>
+    <div class="passport-row"><span class="plbl">Date of Birth</span><span class="pval">09 Apr 1982</span></div>
+    <div class="passport-row"><span class="plbl">Expiry</span><span class="pval ok">08 Sep 2032 ✓</span></div>
+  </div>
+
+  <div class="passport-card">
+    <div class="passport-name">Maddison Evie Hua</div>
+    <div class="passport-role">Child · Age 16</div>
+    <div class="passport-row"><span class="plbl">Passport No.</span><span class="pval">RA6288811</span></div>
+    <div class="passport-row"><span class="plbl">Nationality</span><span class="pval">Australian</span></div>
+    <div class="passport-row"><span class="plbl">Date of Birth</span><span class="pval">02 Nov 2010</span></div>
+    <div class="passport-row"><span class="plbl">Expiry</span><span class="pval ok">03 May 2029 ✓</span></div>
+  </div>
+
+  <div class="passport-card">
+    <div class="passport-name">Kellan Ashton Hua</div>
+    <div class="passport-role">Child · Age 13</div>
+    <div class="passport-row"><span class="plbl">Passport No.</span><span class="pval">RA1427152</span></div>
+    <div class="passport-row"><span class="plbl">Nationality</span><span class="pval">Australian</span></div>
+    <div class="passport-row"><span class="plbl">Date of Birth</span><span class="pval">11 Jun 2013</span></div>
+    <div class="passport-row"><span class="plbl">Expiry</span><span class="pval ok">21 Nov 2027 ✓</span></div>
+  </div>
+
+</div>
+</div><!-- end tab-passports -->
+
 <div class="footer">
   <div class="family">👨‍👩‍👧‍👦</div>
   Neil · Vivian · Maddison · Kellan<br>
   <span style="color:#4a4f6a;margin-top:6px;display:block">Have an amazing trip! 🌏</span>
 </div>
 
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
 </body>
 </html>
