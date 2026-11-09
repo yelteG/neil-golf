@@ -11,8 +11,8 @@
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #0f1f35;
-    color: #fff;
+    background: #f5f7fa;
+    color: #111827;
     min-height: 100vh;
     max-width: 480px;
     margin: 0 auto;
@@ -20,7 +20,7 @@
 
   /* ── HEADER ── */
   .header {
-    background: #0a1628;
+    background: #1e3a8a;
     padding: 12px 16px;
     position: sticky;
     top: 0;
@@ -41,7 +41,7 @@
     gap: 8px;
     font-size: 17px;
     font-weight: 800;
-    color: #c8a84b;
+    color: #92741a;
   }
   .app-title-link {
     display: inline-flex;
@@ -69,11 +69,11 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    background: #1e3a5f;
+    background: #e8f0fe;
     border-radius: 20px;
     padding: 4px 10px;
     font-size: 11px;
-    color: #aaa;
+    color: #6b7280;
   }
 
   .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #888; }
@@ -90,7 +90,7 @@
   }
 
   .team-score-card {
-    background: #1a2740;
+    background: #ffffff;
     border-radius: 10px;
     padding: 10px 12px;
     border: 2px solid transparent;
@@ -102,20 +102,20 @@
   .team-score-card.leading { border-width: 3px; }
 
   .tscard-name { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 2px; }
-  .t1 .tscard-name { color: #60a5fa; }
-  .t2 .tscard-name { color: #4ade80; }
+  .t1 .tscard-name { color: #2563eb; }
+  .t2 .tscard-name { color: #15803d; }
   .tscard-score { font-size: 28px; font-weight: 900; line-height: 1.1; }
-  .t1 .tscard-score { color: #93c5fd; }
-  .t2 .tscard-score { color: #86efac; }
-  .tscard-sub { font-size: 10px; color: #666; margin-top: 2px; }
-  .tscard-lead { font-size: 11px; color: #c8a84b; font-weight: 600; min-height: 15px; }
+  .t1 .tscard-score { color: #2563eb; }
+  .t2 .tscard-score { color: #16a34a; }
+  .tscard-sub { font-size: 10px; color: #374151; margin-top: 2px; }
+  .tscard-lead { font-size: 11px; color: #92741a; font-weight: 600; min-height: 15px; }
 
   /* ── HOLE NAV ── */
   .hole-nav {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #1a2740;
+    background: #ffffff;
     padding: 10px 16px;
     border-bottom: 1px solid #1e3a5f;
   }
@@ -125,8 +125,8 @@
     height: 56px;
     border-radius: 14px;
     border: 2px solid #c8a84b;
-    background: #1e3a5f;
-    color: #c8a84b;
+    background: #e8f0fe;
+    color: #92741a;
     font-size: 30px;
     font-weight: 700;
     cursor: pointer;
@@ -140,8 +140,8 @@
   .hole-nav-btn.dim { border-color: #2a4a7f; color: #2a4a7f; }
 
   .hole-nav-center { text-align: center; }
-  .hole-nav-label { font-size: 22px; font-weight: 800; color: #c8a84b; line-height: 1; }
-  .hole-nav-meta { font-size: 12px; color: #888; margin-top: 2px; }
+  .hole-nav-label { font-size: 22px; font-weight: 800; color: #92741a; line-height: 1; }
+  .hole-nav-meta { font-size: 12px; color: #4b5563; margin-top: 2px; }
   .hole-nav-meta span { color: #ccc; font-weight: 600; }
 
   .hole-progress {
@@ -157,7 +157,7 @@
     width: 18px;
     height: 18px;
     border-radius: 4px;
-    background: #1e3a5f;
+    background: #e8f0fe;
     color: #4a6a8a;
     font-size: 9px;
     font-weight: 700;
@@ -170,15 +170,15 @@
     -webkit-tap-highlight-color: transparent;
   }
   .hole-pip:active { transform: scale(0.9); }
-  .hole-pip.done    { background: #166534; color: #4ade80; }
-  .hole-pip.partial { background: #7f1d1d; color: #f87171; }
+  .hole-pip.done    { background: #166534; color: #15803d; }
+  .hole-pip.partial { background: #fee2e2; color: #dc2626; }
   .hole-pip.current { background: #c8a84b; color: #1a1a1a; }
 
   /* ── TEAM SECTIONS ── */
   .teams-container { padding: 12px 12px 0; }
 
   .team-block {
-    background: #1a2740;
+    background: #ffffff;
     border-radius: 14px;
     overflow: hidden;
     margin-bottom: 12px;
@@ -191,12 +191,12 @@
     padding: 10px 16px;
   }
 
-  .team-block-header.t1 { background: #1e3a5f; }
-  .team-block-header.t2 { background: #1a3320; }
+  .team-block-header.t1 { background: #e8f0fe; }
+  .team-block-header.t2 { background: #dcfce7; }
 
   .team-block-name { font-size: 14px; font-weight: 800; }
-  .team-block-header.t1 .team-block-name { color: #60a5fa; }
-  .team-block-header.t2 .team-block-name { color: #4ade80; }
+  .team-block-header.t1 .team-block-name { color: #2563eb; }
+  .team-block-header.t2 .team-block-name { color: #15803d; }
 
   .team-block-avg {
     background: rgba(0,0,0,0.3);
@@ -204,7 +204,7 @@
     padding: 4px 10px;
     font-size: 13px;
     font-weight: 700;
-    color: #fff;
+    color: #111827;
   }
 
   /* ── PLAYER CARD ── */
@@ -223,7 +223,7 @@
   .player-card-name {
     font-size: 16px;
     font-weight: 700;
-    color: #fff;
+    color: #111827;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -235,7 +235,7 @@
 
   .player-card-meta {
     font-size: 12px;
-    color: #888;
+    color: #4b5563;
     margin-bottom: 3px;
   }
 
@@ -245,10 +245,10 @@
     min-height: 18px;
   }
 
-  .stab-4 { color: #a78bfa; }
-  .stab-3 { color: #60a5fa; }
-  .stab-2 { color: #4ade80; }
-  .stab-1 { color: #fbbf24; }
+  .stab-4 { color: #7c3aed; }
+  .stab-3 { color: #2563eb; }
+  .stab-2 { color: #15803d; }
+  .stab-1 { color: #b45309; }
   .stab-0 { color: #6b7280; }
 
   /* ── SCORE STEPPER ── */
@@ -256,10 +256,10 @@
     display: flex;
     align-items: center;
     gap: 0;
-    background: #0f1f35;
+    background: #f5f7fa;
     border-radius: 12px;
     overflow: hidden;
-    border: 1px solid #2a4a7f;
+    border: 1px solid #dbeafe;
     flex-shrink: 0;
   }
 
@@ -268,7 +268,7 @@
     height: 52px;
     border: none;
     background: transparent;
-    color: #fff;
+    color: #111827;
     font-size: 26px;
     font-weight: 300;
     cursor: pointer;
@@ -277,8 +277,8 @@
     justify-content: center;
   }
 
-  .stepper-btn.minus { color: #f87171; }
-  .stepper-btn.plus { color: #4ade80; }
+  .stepper-btn.minus { color: #dc2626; }
+  .stepper-btn.plus { color: #15803d; }
   .stepper-btn:active { background: rgba(255,255,255,0.08); }
 
   .stepper-val {
@@ -286,7 +286,7 @@
     text-align: center;
     font-size: 22px;
     font-weight: 800;
-    color: #fff;
+    color: #111827;
     border-left: 1px solid #1e3a5f;
     border-right: 1px solid #1e3a5f;
     padding: 0 4px;
@@ -295,12 +295,12 @@
     height: 52px;
   }
 
-  .stepper-val.entered { color: #c8a84b; }
+  .stepper-val.entered { color: #92741a; }
 
   /* ── HOLE SUMMARY ── */
   .hole-summary {
     margin: 0 12px 12px;
-    background: #1a2740;
+    background: #ffffff;
     border-radius: 14px;
     padding: 12px 16px;
   }
@@ -310,7 +310,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #666;
+    color: #374151;
     margin-bottom: 10px;
   }
 
@@ -324,15 +324,15 @@
   }
 
   .hole-summary-row:last-child { border-bottom: none; }
-  .hs-hole { color: #888; width: 48px; }
-  .hs-t1 { color: #60a5fa; font-weight: 700; text-align: center; flex: 1; }
-  .hs-t2 { color: #4ade80; font-weight: 700; text-align: center; flex: 1; }
+  .hs-hole { color: #4b5563; width: 48px; }
+  .hs-t1 { color: #2563eb; font-weight: 700; text-align: center; flex: 1; }
+  .hs-t2 { color: #15803d; font-weight: 700; text-align: center; flex: 1; }
   .hs-mp { font-weight: 700; text-align: center; width: 72px; font-size: 11px; }
-  .hs-mp.mp-t1 { color: #60a5fa; }
-  .hs-mp.mp-t2 { color: #4ade80; }
-  .hs-mp.mp-as { color: #c8a84b; }
-  .hs-mp.mp-hdr { color: #c8a84b; font-size: 11px; }
-  .hs-header { color: #666; font-size: 11px; }
+  .hs-mp.mp-t1 { color: #2563eb; }
+  .hs-mp.mp-t2 { color: #15803d; }
+  .hs-mp.mp-as { color: #92741a; }
+  .hs-mp.mp-hdr { color: #92741a; font-size: 11px; }
+  .hs-header { color: #374151; font-size: 11px; }
   .total-summary-row { margin-top: 6px; padding-top: 6px; border-top: 1px solid #2a4a7f; font-weight: 800; font-size: 15px; }
 
   /* ── SETUP MODAL ── */
@@ -347,7 +347,7 @@
   }
 
   .modal {
-    background: #1a2740;
+    background: #ffffff;
     border-radius: 24px 24px 0 0;
     padding: 20px 16px 40px;
     width: 100%;
@@ -359,12 +359,12 @@
   .modal-handle {
     width: 40px;
     height: 4px;
-    background: #2a4a7f;
+    background: #dbeafe;
     border-radius: 2px;
     margin: 0 auto 16px;
   }
 
-  .modal h2 { font-size: 18px; font-weight: 800; color: #c8a84b; margin-bottom: 16px; }
+  .modal h2 { font-size: 18px; font-weight: 800; color: #92741a; margin-bottom: 16px; }
 
   .modal-label {
     display: block;
@@ -372,21 +372,21 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #888;
+    color: #4b5563;
     margin: 14px 0 5px;
   }
 
   .modal-input {
     width: 100%;
-    background: #0f1f35;
-    border: 1px solid #2a4a7f;
+    background: #f5f7fa;
+    border: 1px solid #dbeafe;
     border-radius: 10px;
     padding: 12px 14px;
     font-size: 16px;
-    color: #fff;
+    color: #111827;
   }
 
-  .modal-input:focus { outline: none; border-color: #c8a84b; }
+  .modal-input:focus { outline: none; border-color: #92741a; }
 
   .url-hint { font-size: 11px; color: #555; margin-top: 4px; line-height: 1.5; }
 
@@ -398,8 +398,8 @@
     border-radius: 8px;
   }
 
-  .team-section-label.t1 { background: #1e3a5f; color: #60a5fa; }
-  .team-section-label.t2 { background: #1a3320; color: #4ade80; }
+  .team-section-label.t1 { background: #e8f0fe; color: #2563eb; }
+  .team-section-label.t2 { background: #dcfce7; color: #15803d; }
 
   .player-setup-row {
     display: grid;
@@ -410,13 +410,13 @@
 
   .modal-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }
   .modal-btn.primary { background: #c8a84b; color: #0f1f35; }
-  .modal-btn.secondary { background: transparent; border: 1px solid #2a4a7f; color: #aaa; }
-  .modal-btn.danger { background: transparent; border: 1px solid #7f1d1d; color: #f87171; }
+  .modal-btn.secondary { background: transparent; border: 1px solid #dbeafe; color: #6b7280; }
+  .modal-btn.danger { background: transparent; border: 1px solid #fee2e2; color: #dc2626; }
 
   .add-player-btn {
     background: transparent;
-    border: 1px dashed #2a4a7f;
-    color: #60a5fa;
+    border: 1px dashed #dbeafe;
+    color: #2563eb;
     border-radius: 8px;
     padding: 8px;
     font-size: 13px;
@@ -433,7 +433,7 @@
     transform: translateX(-50%);
     width: 100%;
     max-width: 480px;
-    background: #0a1628;
+    background: #1e3a8a;
     border-top: 1px solid #1e3a5f;
     display: flex;
     padding: 8px 16px 20px;
@@ -451,8 +451,8 @@
     cursor: pointer;
   }
 
-  .bottom-nav-btn.setup { background: #1e3a5f; color: #aaa; }
-  .bottom-nav-btn.scores { background: #1e3a5f; color: #aaa; }
+  .bottom-nav-btn.setup { background: #e8f0fe; color: #6b7280; }
+  .bottom-nav-btn.scores { background: #e8f0fe; color: #6b7280; }
   .bottom-nav-btn.scores.active { background: #c8a84b; color: #0f1f35; }
 
   .page-pad { padding-bottom: 90px; }
@@ -584,12 +584,12 @@
     background: #fff;
   }
 
-  .legend-badge.eagle { color: #fff; background: #2563eb; border: 2px solid #1d4ed8; border-radius: 50%; }
+  .legend-badge.eagle { color: #111827; background: #2563eb; border: 2px solid #1d4ed8; border-radius: 50%; }
   .legend-badge.birdie { color: #1d4ed8; background: #dbeafe; border: 2px solid #2563eb; border-radius: 50%; }
   .legend-badge.par { color: #0f1d2f; background: #fff; border: 1px solid rgba(15,29,47,0.18); }
   .legend-badge.bogey { color: #92400e; background: #fef3c7; border: 1px solid #fbbf24; }
   .legend-badge.db { color: #991b1b; background: #fee2e2; border: 1px solid #ef4444; }
-  .legend-badge.picked { color: #fff; background: #d97706; border: 1px solid #b45309; border-radius: 50%; }
+  .legend-badge.picked { color: #111827; background: #d97706; border: 1px solid #b45309; border-radius: 50%; }
 
   .scorecard-grid-wrap {
     padding: 10px 12px 0;
@@ -612,7 +612,7 @@
   }
 
   .scorecard-grid-head {
-    background: #0f3d2f;
+    background: #dcfce7;
     color: #e6f7ef;
     font-size: 10px;
     font-weight: 800;
@@ -673,7 +673,7 @@
   }
   .scorecard-grid-cell.stroke.triple {
     background: #dc2626;
-    color: #fff;
+    color: #111827;
     border: 1px solid #b91c1c;
     border-radius: 6px;
   }
@@ -685,7 +685,7 @@
   }
   .scorecard-grid-cell.stroke.eagle {
     background: #2563eb;
-    color: #fff;
+    color: #111827;
     border: 2px solid #1d4ed8;
     border-radius: 50%;
   }
@@ -763,7 +763,7 @@
   }
 
   .scorecard-grid-cell.special.blue {
-    border-color: #60a5fa;
+    border-color: #2563eb;
     color: #1d4ed8;
   }
 
@@ -853,7 +853,7 @@
   }
   .numpad-overlay.open { display: flex; }
   .numpad-sheet {
-    background: #1e2a3a;
+    background: #e8f0fe;
     border-radius: 18px 18px 0 0;
     padding: 16px 16px 32px;
     width: 100%;
@@ -870,8 +870,8 @@
     text-align: center; margin-bottom: 10px; letter-spacing: 0.04em;
   }
   .numpad-display {
-    font-size: 36px; font-weight: 900; text-align: center; color: #fff;
-    background: #0f1f35; border-radius: 10px; padding: 10px;
+    font-size: 36px; font-weight: 900; text-align: center; color: #111827;
+    background: #f5f7fa; border-radius: 10px; padding: 10px;
     margin-bottom: 14px; min-height: 58px; line-height: 1;
     display: flex; align-items: center; justify-content: center;
   }
@@ -881,14 +881,14 @@
   .numpad-btn {
     height: 54px; border: none; border-radius: 10px;
     font-size: 22px; font-weight: 700; cursor: pointer;
-    background: #2d3f55; color: #fff;
+    background: #dbeafe; color: #111827;
     transition: background 0.1s, transform 0.1s;
     -webkit-tap-highlight-color: transparent;
   }
-  .numpad-btn:active { background: #3d5070; transform: scale(0.95); }
-  .numpad-btn.numpad-del { background: #374151; color: #f87171; font-size: 18px; }
-  .numpad-btn.numpad-p   { background: #374151; color: #c8a84b; font-size: 15px; font-weight: 800; }
-  .numpad-btn.numpad-ok  { background: #2563eb; color: #fff; font-size: 16px; font-weight: 800; }
+  .numpad-btn:active { background: #c7dcf5; transform: scale(0.95); }
+  .numpad-btn.numpad-del { background: #374151; color: #dc2626; font-size: 18px; }
+  .numpad-btn.numpad-p   { background: #374151; color: #92741a; font-size: 15px; font-weight: 800; }
+  .numpad-btn.numpad-ok  { background: #2563eb; color: #111827; font-size: 16px; font-weight: 800; }
   .numpad-btn.numpad-clr { background: #374151; color: #9ca3af; font-size: 13px; }
 
   /* ── INLINE TEAM NAME EDIT ─────────────────────────────────────────────── */
@@ -899,25 +899,25 @@
   }
   .team-name-edit-overlay.open { display: flex; }
   .team-name-edit-sheet {
-    background: #1e2a3a; border-radius: 18px 18px 0 0;
+    background: #e8f0fe; border-radius: 18px 18px 0 0;
     padding: 20px 20px 36px; width: 100%; max-width: 400px;
     box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
     animation: slideUp 0.2s ease;
   }
   .team-name-edit-title {
     font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
-    text-transform: uppercase; color: #c8a84b; margin-bottom: 12px;
+    text-transform: uppercase; color: #92741a; margin-bottom: 12px;
   }
   .team-name-input {
     width: 100%; box-sizing: border-box;
-    background: #0f1f35; border: 1.5px solid #2d3f55; border-radius: 10px;
-    color: #fff; font-size: 20px; font-weight: 700;
+    background: #f5f7fa; border: 1.5px solid #2d3f55; border-radius: 10px;
+    color: #111827; font-size: 20px; font-weight: 700;
     padding: 12px 14px; margin-bottom: 12px; outline: none;
   }
-  .team-name-input:focus { border-color: #c8a84b; }
+  .team-name-input:focus { border-color: #92741a; }
   .team-name-btns { display: flex; gap: 8px; }
   .team-name-save {
-    flex: 1; padding: 14px; background: #2563eb; color: #fff;
+    flex: 1; padding: 14px; background: #2563eb; color: #111827;
     border: none; border-radius: 10px; font-size: 16px; font-weight: 700;
     cursor: pointer;
   }
@@ -940,7 +940,7 @@
     <h2>🔒 Admin access</h2>
     <span class="modal-label">Enter PIN</span>
     <input type="number" class="modal-input" id="pin-input" placeholder="••••" style="font-size:28px;letter-spacing:8px;text-align:center;" oninput="checkPinLength()">
-    <div id="pin-error" style="color:#f87171;font-size:13px;margin-top:8px;min-height:18px;"></div>
+    <div id="pin-error" style="color:#dc2626;font-size:13px;margin-top:8px;min-height:18px;"></div>
     <button class="modal-btn primary" onclick="submitPin()" style="margin-top:12px;">Unlock</button>
     <button class="modal-btn secondary" onclick="closePin()" style="margin-top:8px;">Cancel</button>
   </div>
@@ -990,14 +990,14 @@
         <div class="tscard-name" id="t1-card-name" onclick="editTeamName(0)">Team Blue</div>
         <div class="tscard-score" id="t1-total">0.0</div>
         <div class="tscard-sub">avg stableford total</div>
-        <div class="tscard-sub" style="color:#93c5fd;font-size:11px;">Total stab: <span id="t1-raw-total">0</span></div>
+        <div class="tscard-sub" style="color:#2563eb;font-size:11px;">Total stab: <span id="t1-raw-total">0</span></div>
         <div class="tscard-lead" id="t1-lead"></div>
       </div>
       <div class="team-score-card t2" id="t2-card">
         <div class="tscard-name" id="t2-card-name" onclick="editTeamName(1)">Team Green</div>
         <div class="tscard-score" id="t2-total">0.0</div>
         <div class="tscard-sub">avg stableford total</div>
-        <div class="tscard-sub" style="color:#86efac;font-size:11px;">Total stab: <span id="t2-raw-total">0</span></div>
+        <div class="tscard-sub" style="color:#16a34a;font-size:11px;">Total stab: <span id="t2-raw-total">0</span></div>
         <div class="tscard-lead" id="t2-lead"></div>
       </div>
     </div>
@@ -1031,7 +1031,7 @@
       </div>
       <div id="summary-rows"></div>
       <div class="hole-summary-row total-summary-row">
-        <div class="hs-hole" style="color:#c8a84b;">Total</div>
+        <div class="hs-hole" style="color:#92741a;">Total</div>
         <div class="hs-t1" id="sum-t1-total">0.0</div>
         <div class="hs-t2" id="sum-t2-total">0.0</div>
         <div class="hs-mp" id="sum-mp-total">AS</div>
@@ -1788,7 +1788,7 @@ function renderTeams() {
         <div class="player-left">
           <div class="player-card-name" onclick="openPlayerScorecard(${t},${i})" style="display:flex;align-items:baseline;gap:6px;">
             ${player.name}
-            <span style="font-size:11px;font-weight:600;color:#c8a84b;opacity:0.9;">
+            <span style="font-size:11px;font-weight:600;color:#92741a;opacity:0.9;">
               ${(() => { const tot = playerTotal(t, i); return tot !== null ? tot + ' pts' : ''; })()}
             </span>
           </div>
