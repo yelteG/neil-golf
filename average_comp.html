@@ -327,6 +327,8 @@
   .hs-hole { color: #4b5563; width: 48px; }
   .hs-t1 { color: #2563eb; font-weight: 700; text-align: center; flex: 1; }
   .hs-t2 { color: #15803d; font-weight: 700; text-align: center; flex: 1; }
+  .hs-t1.hs-win { background: #dbeafe; border-radius: 6px; padding: 1px 6px; }
+  .hs-t2.hs-win { background: #dcfce7; border-radius: 6px; padding: 1px 6px; }
   .hs-mp { font-weight: 700; text-align: center; width: 72px; font-size: 11px; }
   .hs-mp.mp-t1 { color: #2563eb; }
   .hs-mp.mp-t2 { color: #15803d; }
@@ -1839,10 +1841,12 @@ function renderSummary() {
     }
 
     const cur = h === currentHole ? 'style="background:rgba(200,168,75,0.08)"' : '';
+    const win1 = a1 !== null && a2 !== null && a1 > a2 ? ' hs-win' : '';
+    const win2 = a1 !== null && a2 !== null && a2 > a1 ? ' hs-win' : '';
     rows += `<div class="hole-summary-row" ${cur}>
       <div class="hs-hole">${label}</div>
-      <div class="hs-t1">${a1 !== null ? a1.toFixed(1) : '—'}</div>
-      <div class="hs-t2">${a2 !== null ? a2.toFixed(1) : '—'}</div>
+      <div class="hs-t1${win1}">${a1 !== null ? a1.toFixed(1) : '—'}</div>
+      <div class="hs-t2${win2}">${a2 !== null ? a2.toFixed(1) : '—'}</div>
       <div class="hs-mp ${mpCls}">${mpHole}</div>
     </div>`;
   });
