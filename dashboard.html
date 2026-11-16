@@ -1181,36 +1181,48 @@ function renderHcpTracker(rows) {
   const worstBest8    = Math.max(...best8diffs);
   const sumBest8      = best8diffs.reduce((a,b)=>a+b,0);
 
-  // Daily HCP formula from xlsx: (GA_HCP * (Slope/113) + (ScratchRating - Par)) * 0.93
+  // Daily HCP formula: (GA_HCP * (Slope/113) + (ScratchRating - Par)) * 0.93
   const dailyHcp = Math.round((currentHcp * (slopeRating/113) + (scratchRating - par)) * 0.93);
 
-  // Played To (Gross Diff) formula from xlsx:
-  // PlayedTo = ((36 - Stableford) + DailyHcp + Par - (ScratchRating + PCC)) * (113/Slope)
-  // Rearranged for Stableford needed to improve HCP:
-  // Need new PlayedTo < worstBest8 to replace it in best 8
-  // Target: new best-8 avg = calculated index - 0.1
-  // Use calcHcp (best 8 avg, no multiplier) as base
-  const calcHcpFloat  = avg8;
-  const targetHcpDown = (Math.round(calcHcpFloat * 10) - 1) / 10;
-  const targetAvgDown = targetHcpDown;
-  const neededPlayedTo = targetAvgDown * 8 - (sumBest8 - worstBest8);
-  const scoreToImprove = Math.ceil(36 + dailyHcp + par - scratchRating - pcc - (neededPlayedTo * slopeRating / 113));
+  // Drop-off aware next-round thresholds — same logic as Next Round tab
+  // The oldest of last 20 exits the window; use remaining 19 diffs as the base
+  const rem19Diffs = last20.slice(1).map(r => parseFloat(r['Gross Diff'])).filter(v => !isNaN(v) && v > 0);
+  const lowHcpFloat = parseFloat(window.__lowHcp) || currentHcp;
 
-  // Score to WORSEN: need diff > worstBest8 so it doesn't enter best 8
-  const neededPlayedToUp = worstBest8 + 0.05;
-  const scoreToWorsen    = Math.floor(36 + dailyHcp + par - scratchRating - pcc - (neededPlayedToUp * slopeRating / 113));
+  function projHcp(pts) {
+    const adjGross = par + dailyHcp + 36 - pts;
+    const newDiff  = Math.round((adjGross - scratchRating - pcc) * 113 / slopeRating * 10) / 10;
+    const allNew   = [...rem19Diffs, newDiff].sort((a,b) => a-b);
+    const best8new = allNew.slice(0, 8);
+    if (best8new.length < 8) return null;
+    let h = best8new.reduce((a,b)=>a+b,0) / 8;
+    if (h > lowHcpFloat + 3) h = lowHcpFloat + 3 + (h - lowHcpFloat - 3) / 2;
+    h = Math.min(h, lowHcpFloat + 5);
+    return Math.round(h * 10) / 10;
+  }
+
+  // Find lowest score that improves HCP, highest score that worsens it
+  let scoreToImprove = null, scoreToWorsen = null;
+  for (let pts = 20; pts <= 50; pts++) {
+    const h = projHcp(pts);
+    if (h !== null && h < currentHcp && scoreToImprove === null) scoreToImprove = pts;
+  }
+  for (let pts = 50; pts >= 20; pts--) {
+    const h = projHcp(pts);
+    if (h !== null && h > currentHcp && scoreToWorsen === null) scoreToWorsen = pts;
+  }
 
   document.getElementById('hcp-summary-bar').innerHTML = `
     <div class="hcp-summary-item"><div class="hcp-summary-label">Current HCP</div><div class="hcp-summary-value" style="color:var(--gold)">${currentHcp}</div></div>
     <div class="hcp-summary-item"><div class="hcp-summary-label">Calculated index</div><div class="hcp-summary-value" style="color:var(--green)">${calcHcp}</div></div>
     <div class="hcp-summary-item">
       <div class="hcp-summary-label">Score to improve HCP ▼</div>
-      <div class="hcp-summary-value" style="color:#3db870;">${scoreToImprove}+ pts</div>
+      <div class="hcp-summary-value" style="color:#3db870;">${scoreToImprove !== null ? scoreToImprove+'+ pts' : '—'}</div>
       <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">Daily HCP ${dailyHcp} · ${scratchRating} scratch · ${slopeRating} slope</div>
     </div>
     <div class="hcp-summary-item">
       <div class="hcp-summary-label">Score to worsen HCP ▲</div>
-      <div class="hcp-summary-value" style="color:#e05c5c;">${scoreToWorsen} pts or less</div>
+      <div class="hcp-summary-value" style="color:#e05c5c;">${scoreToWorsen !== null ? scoreToWorsen+' pts or less' : '—'}</div>
       <div style="font-size:11px;color:var(--text-faint);margin-top:2px;">Daily HCP ${dailyHcp} · ${scratchRating} scratch · ${slopeRating} slope</div>
     </div>`;
 
