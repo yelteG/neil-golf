@@ -1845,8 +1845,8 @@ function renderSummary() {
     const win2 = a1 !== null && a2 !== null && a2 > a1 ? ' hs-win' : '';
     rows += `<div class="hole-summary-row" ${cur}>
       <div class="hs-hole">${label}</div>
-      <div class="hs-t1${win1}">${a1 !== null ? a1.toFixed(1) : '—'}</div>
-      <div class="hs-t2${win2}">${a2 !== null ? a2.toFixed(1) : '—'}</div>
+      <div class="hs-t1${win1}">${a1 !== null ? a1.toFixed(2) : '—'}</div>
+      <div class="hs-t2${win2}">${a2 !== null ? a2.toFixed(2) : '—'}</div>
       <div class="hs-mp ${mpCls}">${mpHole}</div>
     </div>`;
   });
