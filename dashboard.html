@@ -226,6 +226,7 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
   <button class="tab" onclick="showTab('years',this)">By year</button>
   <button class="tab" onclick="showTab('courses',this)">Courses</button>
   <button class="tab" onclick="showTab('hcptrack',this)">HCP tracker</button>
+  <button class="tab" onclick="showTab('hcpnext',this)">Next round</button>
 </div>
 
 <!-- OVERVIEW -->
@@ -335,6 +336,52 @@ footer{text-align:center;padding:24px;font-size:12px;color:var(--text-faint);bor
         </thead>
         <tbody id="hcp-rows"></tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<!-- HCP NEXT ROUND -->
+<div id="hcpnext" class="view">
+  <div style="max-width:900px;margin:0 auto;padding:20px 16px;">
+    <div id="hcpnext-summary" class="hcp-summary-bar" style="margin-bottom:16px;"></div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title" style="margin-bottom:12px;">Round dropping off</div>
+      <div id="hcpnext-dropoff" style="font-size:13px;color:var(--text-muted);"></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px;">
+      <div style="padding:14px 16px 10px;font-family:var(--font-d);font-size:15px;font-weight:600;">Next-round projection</div>
+      <div style="padding:0 16px 10px;font-size:12px;color:var(--text-faint);">Based on last round's course. Assumes PCC = 0.</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:460px;">
+          <thead>
+            <tr style="background:#0d1f2d;color:rgba(255,255,255,0.7);">
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:500;letter-spacing:0.05em;white-space:nowrap;">Points</th>
+              <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:500;white-space:nowrap;">Adj. Gross</th>
+              <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:500;white-space:nowrap;">New Diff</th>
+              <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:500;white-space:nowrap;">Best-8 Avg</th>
+              <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:500;white-space:nowrap;">New GA HCP</th>
+            </tr>
+          </thead>
+          <tbody id="hcpnext-rows"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:14px 16px 10px;font-family:var(--font-d);font-size:15px;font-weight:600;">Last 20 rounds</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;min-width:420px;">
+          <thead>
+            <tr style="background:#0d1f2d;color:rgba(255,255,255,0.7);">
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:500;white-space:nowrap;">Date</th>
+              <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:500;">Course</th>
+              <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:500;">Score</th>
+              <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:500;white-space:nowrap;">Gross Diff</th>
+              <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:500;">Counting</th>
+            </tr>
+          </thead>
+          <tbody id="hcpnext-last20"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -1211,13 +1258,144 @@ function renderHcpTracker(rows) {
   document.getElementById('hcp-rows').innerHTML = html;
 }
 
+function renderHcpNext(scoredRows) {
+  const last20 = scoredRows.slice(-20);
+  if (last20.length < 2) {
+    document.getElementById('hcpnext-rows').innerHTML = '<tr><td colspan="5" style="padding:16px;color:var(--text-muted);">Not enough rounds to project.</td></tr>';
+    return;
+  }
+
+  const dropsOff    = last20[0]; // oldest — exits the window next round
+  const remaining19 = last20.slice(1);
+
+  const currentHcp = calcGaIndex(last20, window.__lowHcp) ?? parseFloat(last20[last20.length-1]['GA Handicap']) ?? 14;
+  const lowHcp     = parseFloat(window.__lowHcp) || currentHcp;
+
+  // Last round course params
+  const lastRound = last20[last20.length - 1];
+  const sr    = parseFloat(lastRound['Scratch Rating']) || 72.0;
+  const slope = parseFloat(lastRound['Slope']) || 131;
+  const par   = 72;
+  const pcc   = 0;
+
+  // Daily HCP for projection (same formula as HCP tracker)
+  const dailyHcp = Math.round((currentHcp * (slope / 113) + (sr - par)) * 0.93);
+
+  // Best-8 from current last 20
+  const last20Diffs = last20.map(r => parseFloat(r['Gross Diff'])).filter(v => !isNaN(v) && v > 0);
+  const sortedLast20 = [...last20Diffs].sort((a,b) => a-b);
+  const best8diffs   = sortedLast20.slice(0, 8);
+  const sumBest8     = best8diffs.reduce((a,b)=>a+b,0);
+  const best8Set     = new Set(best8diffs);
+
+  // Diffs from the 19 rounds that remain after drop-off
+  const rem19Diffs = remaining19.map(r => parseFloat(r['Gross Diff'])).filter(v => !isNaN(v) && v > 0);
+
+  // Summary bar
+  const dropsOffDiff = parseFloat(dropsOff['Gross Diff']);
+  const isCounting   = !isNaN(dropsOffDiff) && dropsOffDiff > 0 && best8diffs.includes(dropsOffDiff);
+  document.getElementById('hcpnext-summary').innerHTML = `
+    <div class="hcp-summary-item"><div class="hcp-summary-label">Current GA HCP</div><div class="hcp-summary-value" style="color:var(--gold)">${currentHcp}</div></div>
+    <div class="hcp-summary-item"><div class="hcp-summary-label">Low HCP (12 mo)</div><div class="hcp-summary-value" style="color:var(--green)">${parseFloat(lowHcp).toFixed(1)}</div></div>
+    <div class="hcp-summary-item"><div class="hcp-summary-label">Daily HCP (projection)</div><div class="hcp-summary-value">${dailyHcp}</div><div style="font-size:11px;color:var(--text-faint);margin-top:2px;">${sr} scratch · ${slope} slope</div></div>
+    <div class="hcp-summary-item"><div class="hcp-summary-label">PCC</div><div class="hcp-summary-value">${pcc}</div></div>`;
+
+  // Drop-off card
+  document.getElementById('hcpnext-dropoff').innerHTML = `
+    <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+      <div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:3px;">Date</div><div style="font-size:14px;">${dropsOff._dateStr||dropsOff['Date']}</div></div>
+      <div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:3px;">Course</div><div style="font-size:14px;">${dropsOff['Course']||'—'}</div></div>
+      <div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:3px;">Score</div><div style="font-size:14px;">${dropsOff._score||dropsOff['Score']||'—'} pts</div></div>
+      <div><div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-faint);margin-bottom:3px;">Gross Diff</div><div style="font-size:14px;${isCounting?'color:var(--red)':''}">${isNaN(dropsOffDiff)?'—':dropsOffDiff.toFixed(1)}${isCounting?' ⚠ counting':''}</div></div>
+    </div>
+    <div style="margin-top:8px;font-size:12px;color:var(--text-faint);">
+      ${isCounting
+        ? 'This was a counting score — dropping it out may push your HCP up unless your new round is good enough.'
+        : 'This round was not in your best 8, so dropping it won\'t affect your HCP directly.'}
+    </div>`;
+
+  // Projection table
+  const FLAG_SVG = `<svg width="12" height="12" viewBox="0 0 14 14" style="margin-left:4px;vertical-align:middle;" fill="none"><path d="M2 1v12M2 1l8 3-8 3" stroke="#3db870" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  let projHtml = '';
+  for (let pts = 25; pts <= 45; pts++) {
+    const adjGross = par + dailyHcp + 36 - pts;
+    const rawDiff  = (adjGross - sr - pcc) * 113 / slope;
+    const newDiff  = Math.round(rawDiff * 10) / 10;
+
+    // Best 8 from rem19 + newDiff
+    const allNew   = [...rem19Diffs, newDiff].sort((a,b) => a-b);
+    const best8new = allNew.slice(0, 8);
+    let newGaHcp   = best8new.length === 8 ? best8new.reduce((a,b)=>a+b,0) / 8 : null;
+
+    // Apply soft/hard cap
+    if (newGaHcp !== null) {
+      if (newGaHcp > lowHcp + 3) newGaHcp = lowHcp + 3 + (newGaHcp - lowHcp - 3) / 2;
+      newGaHcp = Math.min(newGaHcp, lowHcp + 5);
+      newGaHcp = Math.round(newGaHcp * 10) / 10;
+    }
+
+    const best8avg = best8new.length === 8 ? (best8new.reduce((a,b)=>a+b,0)/8).toFixed(2) : '—';
+    const hcpDisplay = newGaHcp !== null ? newGaHcp.toFixed(1) : '—';
+
+    // Highlight rows: improving = green, same = gold, worse = red
+    let rowBg = 'transparent';
+    let hcpColor = 'var(--text)';
+    let rowBorder = 'border-left:3px solid transparent;';
+    if (newGaHcp !== null) {
+      if (newGaHcp < currentHcp) { rowBg='rgba(61,184,112,0.06)'; hcpColor='var(--green)'; rowBorder='border-left:3px solid var(--green);'; }
+      else if (newGaHcp === currentHcp) { rowBg='rgba(212,168,67,0.04)'; hcpColor='var(--gold)'; rowBorder='border-left:3px solid var(--gold);'; }
+      else { hcpColor='var(--red)'; }
+    }
+
+    // Mark if this diff enters best 8
+    const sortedNew = [...rem19Diffs].sort((a,b)=>a-b);
+    const threshold8 = sortedNew[7] ?? Infinity;
+    const entersBest8 = newDiff <= threshold8;
+
+    projHtml += `<tr style="background:${rowBg};${rowBorder}border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:11px 14px;font-size:14px;font-weight:600;color:var(--text);">${pts}</td>
+      <td style="padding:11px 14px;text-align:center;color:var(--text-muted);">${adjGross}</td>
+      <td style="padding:11px 14px;text-align:center;color:var(--text-muted);">${newDiff.toFixed(1)}${entersBest8?FLAG_SVG:''}</td>
+      <td style="padding:11px 14px;text-align:center;color:var(--text-muted);">${best8avg}</td>
+      <td style="padding:11px 14px;text-align:center;font-weight:700;color:${hcpColor};">${hcpDisplay}</td>
+    </tr>`;
+  }
+  document.getElementById('hcpnext-rows').innerHTML = projHtml;
+
+  // Last 20 table (newest first)
+  const rem19DiffsRaw = remaining19.map(r => parseFloat(r['Gross Diff']));
+  const sortedRem = [...rem19DiffsRaw].filter(v=>!isNaN(v)&&v>0).sort((a,b)=>a-b);
+  const best8rem = new Set(sortedRem.slice(0,8));
+
+  let last20Html = '';
+  [...last20].reverse().forEach((r, revIdx) => {
+    const isDropping = revIdx === last20.length - 1; // was the oldest
+    const diff = parseFloat(r['Gross Diff']);
+    const isCnt = !isNaN(diff) && diff > 0 && best8diffs.includes(diff);
+    const rowBg2 = isDropping ? 'rgba(224,92,92,0.06)' : (isCnt ? 'rgba(61,184,112,0.04)' : 'transparent');
+    const borderL = isDropping ? 'border-left:3px solid var(--red);' : (isCnt ? 'border-left:3px solid var(--green);' : 'border-left:3px solid transparent;');
+    const diffCol = isCnt ? 'var(--green)' : 'var(--text-muted)';
+    const badge = isDropping ? ' <span style="font-size:10px;padding:1px 6px;border-radius:8px;background:rgba(224,92,92,0.2);color:var(--red);">drops off</span>' : (isCnt ? ' <span style="font-size:10px;padding:1px 6px;border-radius:8px;background:rgba(61,184,112,0.15);color:var(--green);">counting</span>' : '');
+    last20Html += `<tr style="background:${rowBg2};${borderL}border-bottom:1px solid rgba(255,255,255,0.05);">
+      <td style="padding:11px 14px;white-space:nowrap;font-size:12px;color:var(--text-muted);">${r['Date']}</td>
+      <td style="padding:11px 14px;font-size:12px;color:var(--text);">${r['Course']||'—'}</td>
+      <td style="padding:11px 14px;text-align:center;font-size:13px;">${r._score>0?`<span class="pill ${scoreClass(r._score)}">${r._score}</span>`:'<span style="color:var(--text-faint)">—</span>'}</td>
+      <td style="padding:11px 14px;text-align:center;font-weight:${isCnt?'600':'400'};color:${diffCol};">${isNaN(diff)?'—':diff.toFixed(1)}</td>
+      <td style="padding:11px 14px;text-align:center;">${badge}</td>
+    </tr>`;
+  });
+  document.getElementById('hcpnext-last20').innerHTML = last20Html;
+}
+
 function showTab(id, btn) {
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   btn.classList.add('active');
-  if (id === 'trends' && !window.trendsBuilt) { renderTrends(SCORED_ROWS); window.trendsBuilt = true; }
-  if (id === 'hcptrack' && !window.hcpBuilt) { renderHcpTracker(SCORED_ROWS); window.hcpBuilt = true; }
+  if (id === 'trends'   && !window.trendsBuilt)  { renderTrends(SCORED_ROWS);     window.trendsBuilt  = true; }
+  if (id === 'hcptrack' && !window.hcpBuilt)     { renderHcpTracker(SCORED_ROWS); window.hcpBuilt     = true; }
+  if (id === 'hcpnext'  && !window.hcpNextBuilt) { renderHcpNext(SCORED_ROWS);    window.hcpNextBuilt = true; }
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
